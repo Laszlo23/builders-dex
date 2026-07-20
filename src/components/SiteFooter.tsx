@@ -23,8 +23,10 @@ import {
   Headphones,
   Eye,
   Map,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
+import { BRAND_SOCIALS, CULTURE_NODE_X_POST } from '../data/brand';
 
 type FooterLink = { id: string; label: string; icon: LucideIcon };
 
@@ -108,6 +110,27 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
               </span>
               LIVE · {tradeableCount} tradeable
             </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {BRAND_SOCIALS.map((s) => (
+                <a
+                  key={s.id}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-white/80 transition hover:border-accent/40 hover:text-accent"
+                >
+                  {s.label} <ExternalLink className="h-3 w-3" />
+                </a>
+              ))}
+            </div>
+            <a
+              href={CULTURE_NODE_X_POST}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 font-mono text-[10px] text-accent hover:underline"
+            >
+              Like · share · comment Culture Node ↗
+            </a>
           </div>
 
           <div className="grid flex-1 grid-cols-2 gap-8 sm:grid-cols-3">

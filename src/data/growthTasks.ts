@@ -1,4 +1,5 @@
 import { GrowthTask } from './earn';
+import { BRAND_SOCIALS, CULTURE_NODE_X_POST } from './brand';
 
 /**
  * Full-growth member missions — every role contributes to discovery + proof + signal.
@@ -56,6 +57,43 @@ export const INITIAL_GROWTH_TASKS: GrowthTask[] = [
     description: 'Open an X/Twitter campaign post from the Share kit (copy counts as amplify).',
     xp: 175,
     badge: 'Amplifier',
+    category: 'social',
+    completed: false,
+  },
+  {
+    id: 't_culture_node_engage',
+    title: 'Engage Culture Node on X',
+    description:
+      'Like, share (repost), and comment on the Building Culture Culture Node post — then claim.',
+    xp: 250,
+    badge: 'Culture Signal',
+    category: 'social',
+    completed: false,
+  },
+  {
+    id: 't_join_discord',
+    title: 'Join Discord',
+    description: 'Join the Building Culture Discord and say gm — community is the moat.',
+    xp: 100,
+    badge: 'Discord',
+    category: 'social',
+    completed: false,
+  },
+  {
+    id: 't_join_telegram',
+    title: 'Join Telegram',
+    description: 'Join the Building Culture Telegram group.',
+    xp: 100,
+    badge: 'Telegram',
+    category: 'social',
+    completed: false,
+  },
+  {
+    id: 't_follow_x',
+    title: 'Follow Building Culture on X',
+    description: 'Follow @buildingcultu3 on X — then claim.',
+    xp: 80,
+    badge: 'Follower',
     category: 'social',
     completed: false,
   },
@@ -133,7 +171,7 @@ export const INITIAL_GROWTH_TASKS: GrowthTask[] = [
   },
 ];
 
-/** Where Earn “Go” buttons should send members */
+/** Where Earn “Go” buttons should send members (in-app paths) */
 export const GROWTH_TASK_ROUTES: Record<string, string> = {
   t_review_5: 'explore',
   t_first_discovery: 'landing',
@@ -149,4 +187,12 @@ export const GROWTH_TASK_ROUTES: Record<string, string> = {
   t_stake: 'earn',
   t_trade: 'swap',
   t_daily_spin: 'earn',
+};
+
+/** External “Go” targets — opens in a new tab */
+export const GROWTH_TASK_EXTERNAL: Record<string, string> = {
+  t_culture_node_engage: CULTURE_NODE_X_POST,
+  t_follow_x: BRAND_SOCIALS.find((s) => s.id === 'x')!.href,
+  t_join_discord: BRAND_SOCIALS.find((s) => s.id === 'discord')!.href,
+  t_join_telegram: BRAND_SOCIALS.find((s) => s.id === 'telegram')!.href,
 };

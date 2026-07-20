@@ -15,6 +15,7 @@ import {
   LP_POOLS,
   STAKER_PERKS,
   GROWTH_TASK_ROUTES,
+  GROWTH_TASK_EXTERNAL,
   PendingUnstake,
   UNSTAKE_COOLDOWN_LABEL,
   UNSTAKE_COOLDOWN_DAYS,
@@ -315,10 +316,17 @@ export default function EarnView({
                       </button>
                     ) : (
                       <>
-                        {GROWTH_TASK_ROUTES[t.id] && (
+                        {(GROWTH_TASK_EXTERNAL[t.id] || GROWTH_TASK_ROUTES[t.id]) && (
                           <button
                             type="button"
-                            onClick={() => setCurrentPath(GROWTH_TASK_ROUTES[t.id])}
+                            onClick={() => {
+                              const external = GROWTH_TASK_EXTERNAL[t.id];
+                              if (external) {
+                                window.open(external, '_blank', 'noopener,noreferrer');
+                                return;
+                              }
+                              setCurrentPath(GROWTH_TASK_ROUTES[t.id]);
+                            }}
                             className="rounded-lg bg-accent px-2.5 py-1 font-mono text-[10px] font-bold text-ink hover:bg-accent-bright"
                           >
                             Go

@@ -8,7 +8,11 @@ export type GrowthTask = {
   completed: boolean;
 };
 
-export { INITIAL_GROWTH_TASKS, GROWTH_TASK_ROUTES } from './growthTasks';
+export {
+  INITIAL_GROWTH_TASKS,
+  GROWTH_TASK_ROUTES,
+  GROWTH_TASK_EXTERNAL,
+} from './growthTasks';
 
 export type LpPool = {
   id: string;

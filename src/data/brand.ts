@@ -45,3 +45,26 @@ export const MANIFESTO = {
     'Welcome to the proof economy.',
   ],
 } as const;
+
+/** Building Culture socials — shared across DEX + culture network */
+export const BRAND_SOCIALS = [
+  {
+    id: 'x',
+    label: 'X',
+    href: 'https://x.com/buildingcultu3',
+  },
+  {
+    id: 'discord',
+    label: 'Discord',
+    href: 'https://discord.gg/geUpHt3eSb',
+  },
+  {
+    id: 'telegram',
+    label: 'Telegram',
+    href: 'https://t.me/+4zFH7-2tyW0yOTBk',
+  },
+] as const;
+
+/** Priority Culture Node post — like · share · comment missions */
+export const CULTURE_NODE_X_POST =
+  'https://x.com/buildingcultu3/status/2078992593736851943';
