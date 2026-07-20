@@ -849,6 +849,9 @@ export default function App() {
   return (
     <div className="flex min-h-screen flex-col justify-between bg-ink font-sans text-white selection:bg-accent selection:text-ink">
       <Seo path={currentPath} projectName={activeProject?.name} blogSlug={blogSlug} />
+      <div className="dev-ribbon" aria-hidden="true">
+        <span>Still in development</span>
+      </div>
       <div>
         <Navbar
           currentPath={currentPath}

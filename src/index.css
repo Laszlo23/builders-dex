@@ -429,3 +429,33 @@ body {
   opacity: 1;
 }
 
+/* Corner ribbon — staging notice */
+.dev-ribbon {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 100;
+  width: 10.5rem;
+  height: 10.5rem;
+  overflow: hidden;
+}
+
+.dev-ribbon span {
+  position: absolute;
+  top: 1.65rem;
+  right: -2.35rem;
+  width: 14rem;
+  transform: rotate(45deg);
+  background: #c8e868;
+  color: #07080a;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0.4rem 0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
