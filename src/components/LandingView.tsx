@@ -37,6 +37,7 @@ import RecognitionRateCard from './RecognitionRateCard';
 import BuilderArchiveCard from './BuilderArchiveCard';
 import TalentBuilderSlider from './TalentBuilderSlider';
 import FarcasterAppsFeed from './FarcasterAppsFeed';
+import ConvictionWinnersSection from './ConvictionWinnersSection';
 import BuilderGraphPrideBand from './BuilderGraphPrideBand';
 import EducationalReviewCard from './EducationalReviewCard';
 import { educationalReviewFor } from '../data/builderPlatform';
@@ -514,6 +515,12 @@ export default function LandingView({
       </section>
 
       <TalentBuilderSlider />
+
+      <section className="border-b border-white/5 bg-ink px-4 py-16">
+        <div className="mx-auto max-w-5xl">
+          <ConvictionWinnersSection onTrade={onTrade} />
+        </div>
+      </section>
 
       <section className="relative border-b border-white/5 bg-ink px-4 py-16">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
