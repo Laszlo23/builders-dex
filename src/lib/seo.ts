@@ -1,6 +1,6 @@
 import { BRAND_SUPPORT, BRAND_TAGLINE } from '../data/brand';
 
-export const SITE_URL = 'https://buildersdex.app';
+export const SITE_URL = 'https://dex.buildingcultureid.space';
 export const SITE_NAME = 'Builders DEX';
 export const DEFAULT_DESCRIPTION = `${BRAND_TAGLINE} ${BRAND_SUPPORT}`;
 
