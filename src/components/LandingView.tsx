@@ -476,7 +476,8 @@ export default function LandingView({
                         <ScoreBars score={p.builderScore} mode="top3" compact />
                       </div>
                     </div>
-                    <div className="relative z-30 mt-4 flex gap-2">
+                    {/* z-[60] > mobile nav (z-50) so Story/Trade stay clickable when cards sit over the bar */}
+                    <div className="relative z-[60] mt-4 flex gap-2">
                       <button
                         type="button"
                         onClick={(e) => {

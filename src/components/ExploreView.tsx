@@ -262,7 +262,8 @@ export default function ExploreView({
                   )}
                 </div>
 
-                <div className="relative z-30 mt-5 flex items-center justify-between gap-2 border-t border-white/8 pt-4">
+                {/* Above mobile bottom nav (z-50) so CTAs remain clickable */}
+                <div className="relative z-[60] mt-5 flex items-center justify-between gap-2 border-t border-white/8 pt-4">
                   {!isRejected && (
                     <button
                       type="button"
