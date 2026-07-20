@@ -1,0 +1,177 @@
+[
+  {
+    "file": "brand-mark.png",
+    "beforeKb": 804,
+    "afterKb": 9,
+    "webpKb": 1,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/hook-builder100.png",
+    "beforeKb": 2117,
+    "afterKb": 1937,
+    "webpKb": 69,
+    "dims": "1024x1536"
+  },
+  {
+    "file": "campaign/hook-reputation.png",
+    "beforeKb": 1099,
+    "afterKb": 1076,
+    "webpKb": 21,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/hook-standard.png",
+    "beforeKb": 1706,
+    "afterKb": 1482,
+    "webpKb": 29,
+    "dims": "1024x1536"
+  },
+  {
+    "file": "campaign/hook-stories.png",
+    "beforeKb": 387,
+    "afterKb": 281,
+    "webpKb": 19,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/hook-trade-last.png",
+    "beforeKb": 921,
+    "afterKb": 737,
+    "webpKb": 30,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/hook-wide.png",
+    "beforeKb": 1500,
+    "afterKb": 1385,
+    "webpKb": 48,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "campaign/meme-banner-wide.png",
+    "beforeKb": 1755,
+    "afterKb": 1502,
+    "webpKb": 98,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "campaign/meme-no-more-zero.png",
+    "beforeKb": 1495,
+    "afterKb": 1495,
+    "webpKb": 130,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/meme-outsourced-dyor.png",
+    "beforeKb": 1398,
+    "afterKb": 1398,
+    "webpKb": 103,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/meme-rug-season-over.png",
+    "beforeKb": 2704,
+    "afterKb": 2704,
+    "webpKb": 236,
+    "dims": "1024x1536"
+  },
+  {
+    "file": "campaign/meme-touch-grass.png",
+    "beforeKb": 1216,
+    "afterKb": 1216,
+    "webpKb": 99,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/meme-unruggable.png",
+    "beforeKb": 1472,
+    "afterKb": 1472,
+    "webpKb": 97,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/og-wide.jpg",
+    "beforeKb": 1558,
+    "afterKb": 27,
+    "webpKb": 14,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "campaign/square.jpg",
+    "beforeKb": 1251,
+    "afterKb": 93,
+    "webpKb": 69,
+    "dims": "1024x1024"
+  },
+  {
+    "file": "campaign/story.jpg",
+    "beforeKb": 1710,
+    "afterKb": 85,
+    "webpKb": 51,
+    "dims": "1024x1536"
+  },
+  {
+    "file": "hero-poster.png",
+    "beforeKb": 2230,
+    "afterKb": 417,
+    "webpKb": 111,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "og-image.png",
+    "beforeKb": 1603,
+    "afterKb": 124,
+    "webpKb": 47,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "parallax/index.jpg",
+    "beforeKb": 1591,
+    "afterKb": 73,
+    "webpKb": 40,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "parallax/standard.jpg",
+    "beforeKb": 2153,
+    "afterKb": 125,
+    "webpKb": 85,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "parallax/wall.jpg",
+    "beforeKb": 1709,
+    "afterKb": 74,
+    "webpKb": 43,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "projects/aerolend.jpg",
+    "beforeKb": 1821,
+    "afterKb": 109,
+    "webpKb": 78,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "projects/creatorlink.jpg",
+    "beforeKb": 1937,
+    "afterKb": 90,
+    "webpKb": 63,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "projects/hypersphere.jpg",
+    "beforeKb": 2183,
+    "afterKb": 143,
+    "webpKb": 121,
+    "dims": "1536x1024"
+  },
+  {
+    "file": "projects/sentient.jpg",
+    "beforeKb": 1927,
+    "afterKb": 118,
+    "webpKb": 89,
+    "dims": "1536x1024"
+  }
+]

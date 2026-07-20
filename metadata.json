@@ -1,0 +1,6 @@
+{
+  "name": "Builders DEX",
+  "description": "Where the best Solana builders get discovered. The quality layer of Solana — curated discovery, Builder Score™, and trading for projects that earn attention.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

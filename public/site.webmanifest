@@ -1,0 +1,18 @@
+{
+  "name": "Builders DEX",
+  "short_name": "Builders DEX",
+  "description": "The quality layer of Solana — where the best builders get discovered.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080A",
+  "theme_color": "#07080A",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/brand-mark.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
