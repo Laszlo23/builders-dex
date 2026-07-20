@@ -262,11 +262,15 @@ export default function ExploreView({
                   )}
                 </div>
 
-                <div className="mt-5 flex items-center justify-between gap-2 border-t border-white/8 pt-4">
+                <div className="relative z-30 mt-5 flex items-center justify-between gap-2 border-t border-white/8 pt-4">
                   {!isRejected && (
                     <button
                       type="button"
-                      onClick={() => onUpvote(p.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onUpvote(p.id);
+                      }}
                       className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 font-mono text-xs text-steel hover:border-accent/30 hover:text-accent"
                     >
                       ▲ {p.upvotes}
@@ -281,6 +285,7 @@ export default function ExploreView({
                         <button
                           type="button"
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             onTrade(tradeMint);
                           }}
@@ -292,7 +297,11 @@ export default function ExploreView({
                     })()}
                     <button
                       type="button"
-                      onClick={() => openProject(p.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openProject(p.id);
+                      }}
                       className="inline-flex items-center gap-1 rounded-lg border border-white/12 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent"
                     >
                       {isRejected ? 'Review' : 'Read story'} <ChevronRight className="h-4 w-4" />

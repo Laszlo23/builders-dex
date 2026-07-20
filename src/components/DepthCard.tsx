@@ -84,7 +84,7 @@ export default function DepthCard({
             opacity: hovered ? 1 : 0.25,
           }}
         />
-        <div className="relative z-10 h-full">{children}</div>
+        <div className="relative z-10 h-full isolate">{children}</div>
       </motion.div>
     </div>
   );

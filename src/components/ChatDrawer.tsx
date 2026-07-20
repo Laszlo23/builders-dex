@@ -118,23 +118,25 @@ Ask about Trade, Earn, Passport™, or listings. Flip to **Stream** for live pul
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — fully inert when closed so it never steals card clicks */}
       <button
         type="button"
         aria-label="Close chat"
         onClick={onClose}
+        tabIndex={open ? 0 : -1}
         className={`fixed inset-0 z-[110] bg-ink/60 backdrop-blur-[2px] transition-opacity ${
-          open ? 'opacity-100' : 'pointer-events-none opacity-0'
+          open ? 'opacity-100' : 'pointer-events-none invisible opacity-0'
         }`}
       />
 
       {/* Panel */}
       <aside
         role="dialog"
-        aria-modal="true"
+        aria-modal={open}
+        aria-hidden={!open}
         aria-label="Builders DEX chat"
         className={`fixed inset-y-0 right-0 z-[120] flex w-full max-w-md flex-col border-l border-white/10 bg-ink shadow-[-24px_0_60px_rgba(0,0,0,0.55)] transition-transform duration-300 ease-out ${
-          open ? 'translate-x-0' : 'translate-x-full'
+          open ? 'translate-x-0' : 'pointer-events-none invisible translate-x-full'
         }`}
       >
         <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">

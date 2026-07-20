@@ -245,6 +245,7 @@ body {
   transform: translateX(-40%);
   transition: transform 0.7s ease;
   z-index: 1;
+  pointer-events: none;
 }
 
 .btn-sheen:hover::after {

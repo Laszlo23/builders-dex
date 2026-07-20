@@ -476,7 +476,7 @@ export default function LandingView({
                         <ScoreBars score={p.builderScore} mode="top3" compact />
                       </div>
                     </div>
-                    <div className="mt-4 flex gap-2">
+                    <div className="relative z-30 mt-4 flex gap-2">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -484,7 +484,7 @@ export default function LandingView({
                           e.stopPropagation();
                           onOpenStory(p.id);
                         }}
-                        className="relative z-20 flex-1 rounded-xl border border-accent/35 bg-accent/10 py-2.5 text-xs font-semibold text-accent backdrop-blur-sm hover:bg-accent/20"
+                        className="flex-1 rounded-xl border border-accent/35 bg-accent/10 py-2.5 text-xs font-semibold text-accent hover:bg-accent/20"
                       >
                         Read story
                       </button>
@@ -496,12 +496,13 @@ export default function LandingView({
                           <button
                             type="button"
                             onClick={(e) => {
+                              e.preventDefault();
                               e.stopPropagation();
                               onTrade(tradeMint);
                             }}
                             className="btn-sheen flex-1 rounded-xl bg-accent py-2.5 text-xs font-bold text-ink hover:bg-accent-bright"
                           >
-                            Trade {tradeSymbol}
+                            <span>Trade {tradeSymbol}</span>
                           </button>
                         );
                       })()}
