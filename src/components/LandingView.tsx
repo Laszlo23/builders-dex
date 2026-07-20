@@ -151,13 +151,10 @@ export default function LandingView({
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.7 }}
-            className="font-display brand-glow text-[clamp(2rem,6.5vw,3.5rem)] font-bold leading-[0.95] tracking-[-0.035em]"
+            className="font-sans brand-glow text-[clamp(2rem,6.5vw,3.5rem)] font-bold leading-[0.95] tracking-tight"
           >
-            BUILDERS
-            <br />
-            <span className="bg-gradient-to-r from-accent via-accent-bright to-accent bg-clip-text text-transparent">
-              DEX
-            </span>
+            BUILDERS{' '}
+            <span className="text-accent">DEX</span>
           </motion.p>
 
           <motion.h1
