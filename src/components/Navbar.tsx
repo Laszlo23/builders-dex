@@ -30,10 +30,9 @@ interface NavbarProps {
   setCurrentPath: (path: string) => void;
   builderXp: number;
   builderLevelName: string;
-}
-
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 4)}…${address.slice(-4)}`;
+  /** Readable name: Passport / .sol / short address */
+  walletLabel?: string;
+  walletDomain?: string | null;
 }
 
 const DESKTOP_NAV = [
@@ -69,11 +68,17 @@ const MOBILE_NAV = [
   { id: 'profile', label: 'Passport', icon: User },
 ] as const;
 
+function truncateAddress(address: string): string {
+  return `${address.slice(0, 4)}…${address.slice(-4)}`;
+}
+
 export default function Navbar({
   currentPath,
   setCurrentPath,
   builderXp,
   builderLevelName,
+  walletLabel,
+  walletDomain,
 }: NavbarProps) {
   const { publicKey, connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
@@ -81,6 +86,9 @@ export default function Navbar({
   const [moreOpen, setMoreOpen] = useState(false);
   const walletRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
+  const shownName =
+    walletLabel ||
+    (publicKey ? truncateAddress(publicKey.toBase58()) : 'Connect');
 
   const activeDesktop =
     currentPath === 'project-detail'
@@ -210,14 +218,20 @@ export default function Navbar({
                 <button
                   type="button"
                   onClick={() => setWalletOpen((v) => !v)}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 font-mono text-xs text-white hover:border-accent/30"
+                  className="flex max-w-[10.5rem] items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white hover:border-accent/30 sm:max-w-[14rem]"
+                  title={publicKey.toBase58()}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                  <span>{truncateAddress(publicKey.toBase58())}</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-steel" />
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <span className="truncate font-sans font-semibold tracking-tight">
+                    {shownName}
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-steel" />
                 </button>
                 {walletOpen && (
                   <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-white/10 bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
+                    {walletDomain && (
+                      <p className="px-2 py-1 font-mono text-[10px] text-accent">{walletDomain}</p>
+                    )}
                     <p className="break-all px-2 py-1.5 font-mono text-[10px] text-steel">
                       {publicKey.toBase58()}
                     </p>

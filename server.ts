@@ -831,10 +831,19 @@ app.post('/api/support/chat', rateLimit(20, 60_000, 'support'), async (req, res)
       return res.status(400).json({ error: 'Invalid messages (max 24 turns, 4k chars each)' });
     }
 
+    const displayName =
+      typeof req.body?.displayName === 'string'
+        ? req.body.displayName.trim().slice(0, 64)
+        : '';
+
     const contents = sanitized.map((msg) => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }],
     }));
+
+    const nameHint = displayName
+      ? `\nThe user is signed in as "${displayName}" — address them by that name when natural.`
+      : '';
 
     const response = await generateWithFallback({
       contents,
@@ -842,10 +851,12 @@ app.post('/api/support/chat', rateLimit(20, 60_000, 'support'), async (req, res)
         systemInstruction: `You are Support Agent for Builders DEX — a builder intelligence network with curated Solana trading (brand: Build > Hype).
 
 Your job: help users navigate the product. Be warm, clear, short. Use Markdown sparingly (bold key UI names).
+${nameHint}
 
 You know:
 - Connect a Solana wallet to trade curated tokens via Jupiter-routed swaps.
 - Explore / Terminal / Builder Graph / Builder Stories / Passport / Earn (growth tasks, LP, daily spin wheel) / Accelerator (launchpad) / AI research agent (separate from you).
+- Live desk chat (right drawer) also has Stream (pulse) and News tabs.
 - THE STANDARD: many projects analyzed → few earn recognition → fewer enter Builder Network → very few are tradeable. Listing is earned, not bought.
 - Builder Score™ is a quality signal, not investment advice.
 - Feedback tab is for bugs/ideas; you handle how-to and troubleshooting.

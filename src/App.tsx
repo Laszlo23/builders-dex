@@ -5,6 +5,8 @@ import Navbar from './components/Navbar';
 import Seo from './components/Seo';
 import SiteFooter from './components/SiteFooter';
 import FirstDiscoveryModal from './components/FirstDiscoveryModal';
+import ChatDrawer, { ChatFab } from './components/ChatDrawer';
+import { useWalletDisplayName } from './hooks/useWalletDisplayName';
 
 const LandingView = lazy(() => import('./components/LandingView'));
 const ExploreView = lazy(() => import('./components/ExploreView'));
@@ -194,6 +196,9 @@ export default function App() {
       /* ignore */
     }
   }, [userProfile]);
+
+  const [chatOpen, setChatOpen] = useState(false);
+  const walletDisplay = useWalletDisplayName(userProfile.displayName);
 
   /** Daily spin task re-opens when the 24h cooldown clears */
   useEffect(() => {
@@ -861,6 +866,8 @@ export default function App() {
           }}
           builderXp={builderXp}
           builderLevelName={builderLevelName}
+          walletLabel={connected ? walletDisplay.label : undefined}
+          walletDomain={walletDisplay.domain}
         />
         <main className="pb-28 lg:pb-16">
           <Suspense fallback={<RouteFallback />}>{renderView()}</Suspense>
@@ -873,6 +880,13 @@ export default function App() {
           setCurrentPath(path);
         }}
         tradeableCount={tradeableCount}
+      />
+
+      <ChatFab onClick={() => setChatOpen(true)} />
+      <ChatDrawer
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        displayName={connected ? walletDisplay.label : 'Guest'}
       />
 
       <FirstDiscoveryModal
