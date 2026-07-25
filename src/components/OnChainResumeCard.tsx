@@ -1,5 +1,6 @@
 import React from 'react';
 import { LegacyPassport } from '../data/builderNetwork';
+import { SITE_URL } from '../lib/seo';
 
 type Props = {
   legacy: LegacyPassport;
@@ -28,7 +29,7 @@ export default function OnChainResumeCard({ legacy, name, shareable = true }: Pr
       `Builders Mentored: ${legacy.buildersMentored}`,
       '',
       'Verified forever on Builders DEX.',
-      'https://buildersdex.app',
+      `${SITE_URL}/`,
     ];
     void navigator.clipboard?.writeText(lines.join('\n'));
   };

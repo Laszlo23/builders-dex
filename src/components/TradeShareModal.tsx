@@ -8,6 +8,7 @@ import {
   twitterIntentUrl,
 } from '../data/tradeShare';
 import { formatUiAmount } from '../lib/jupiter';
+import { SITE_URL } from '../lib/seo';
 import OptimizedImage from './OptimizedImage';
 
 type Props = {
@@ -20,11 +21,12 @@ export default function TradeShareModal({ trade, onClose, onShared }: Props) {
   const seed = trade.signature || `${trade.fromToken}-${trade.toToken}-${trade.toAmount}`;
   const image = pickTradeShareImage(seed);
   const text = buildTradeShareText(trade, seed);
+  const shareBody = `${text}\n\n${SITE_URL}/`;
   const [copied, setCopied] = useState(false);
 
   const copyText = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(shareBody);
       setCopied(true);
       onShared?.();
       window.setTimeout(() => setCopied(false), 1800);
@@ -38,8 +40,8 @@ export default function TradeShareModal({ trade, onClose, onShared }: Props) {
       try {
         await navigator.share({
           title: 'Builders DEX trade',
-          text,
-          url: 'https://buildersdex.app',
+          text: shareBody,
+          url: `${SITE_URL}/`,
         });
         onShared?.();
       } catch {
@@ -52,7 +54,7 @@ export default function TradeShareModal({ trade, onClose, onShared }: Props) {
 
   const shareX = () => {
     onShared?.();
-    window.open(twitterIntentUrl(text), '_blank', 'noopener,noreferrer');
+    window.open(twitterIntentUrl(shareBody), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -96,7 +98,7 @@ export default function TradeShareModal({ trade, onClose, onShared }: Props) {
 
         <div className="p-5 sm:p-6">
           <p className="whitespace-pre-wrap rounded-2xl border border-white/10 bg-ink/50 px-4 py-3 text-sm leading-relaxed text-white/90">
-            {text}
+            {shareBody}
           </p>
           <p className="mt-2 font-mono text-[10px] text-steel">
             Tags @{BUILDING_CULTURE_HANDLE} · uses campaign creative

@@ -1,5 +1,6 @@
 import React from 'react';
 import { FEATURED_BADGE_LINE } from '../data/prideMovement';
+import { SITE_URL } from '../lib/seo';
 
 type Props = {
   projectName: string;
@@ -9,7 +10,7 @@ type Props = {
 export default function FeaturedStandardBadge({ projectName, unlocked }: Props) {
   const copy = () => {
     void navigator.clipboard?.writeText(
-      `${FEATURED_BADGE_LINE}\n${projectName} — Proof of Building™\nhttps://buildersdex.app`
+      `${FEATURED_BADGE_LINE}\n${projectName} — Proof of Building™\n${SITE_URL}/`
     );
   };
 

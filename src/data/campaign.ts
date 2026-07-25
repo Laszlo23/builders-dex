@@ -174,7 +174,7 @@ TRADE IS THE LAST STEP.`,
 We don't list everything.
 We decide which builders matter.
 
-buildersdex.app`,
+dex.buildingcultureid.space`,
     hashtags: '#TheStandard #SolanaBuilders #BuildersDEX',
     asset: '/campaign/hook-standard.jpg',
   },
@@ -246,7 +246,7 @@ Shape Solana.
 
 Hall of Fame lives on Builders DEX.
 
-buildersdex.app`,
+dex.buildingcultureid.space`,
     hashtags: '#Builder100 #Solana #BuildersDEX',
     asset: '/campaign/hook-builder100.jpg',
   },
@@ -283,7 +283,7 @@ This week: share one Builder Story you respect — not a chart.
 → Open the Builder Terminal™
 → Grab the share kit (new creatives every angle)
 
-buildersdex.app`,
+dex.buildingcultureid.space`,
     hashtags: '#BuildersDEX',
     asset: '/campaign/hook-reputation.jpg',
   },
@@ -332,7 +332,7 @@ Different angle. Same standard.
 Download the share kit —
 9 creatives · 12 ready posts · every channel.
 
-buildersdex.app → Share kit`,
+dex.buildingcultureid.space → Share kit`,
     hashtags: '#BuildersDEX #ShareTheStandard',
     asset: '/campaign/hook-standard.jpg',
   },
@@ -400,7 +400,7 @@ Proof of Building™ → then you get to trade.
 
 No vibes. No anonymous team. No zero tomorrow.
 
-buildersdex.app`,
+dex.buildingcultureid.space`,
     hashtags: '#Unruggable #BuildersDEX #Solana',
     asset: '/campaign/meme-unruggable.jpg',
   },
@@ -439,7 +439,7 @@ checked before liquidity.
 Touch grass.
 We touched the repo.
 
-buildersdex.app`,
+dex.buildingcultureid.space`,
     hashtags: '#DYOR #BuildersDEX #Farcaster',
     asset: '/campaign/meme-outsourced-dyor.jpg',
   },
@@ -478,7 +478,7 @@ it's commits, deploys, and real users.
 Drop a builder you trust.
 We'll tell you if the proof holds.
 
-buildersdex.app`,
+dex.buildingcultureid.space`,
     hashtags: '#TouchGrass #BuildersDEX',
     asset: '/campaign/meme-touch-grass.jpg',
   },

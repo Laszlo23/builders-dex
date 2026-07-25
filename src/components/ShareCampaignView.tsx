@@ -12,6 +12,9 @@ import {
   CampaignChannel,
   CampaignHook,
 } from '../data/campaign';
+import { SITE_URL } from '../lib/seo';
+
+const SHARE_URL = `${SITE_URL}/`;
 
 const HOOKS: Array<CampaignHook | 'All'> = [
   'All',
@@ -74,13 +77,13 @@ export default function ShareCampaignView({
   const shareNative = async (title: string, text: string, channel?: string) => {
     if (navigator.share) {
       try {
-        await navigator.share({ title, text, url: 'https://buildersdex.app' });
+        await navigator.share({ title, text, url: SHARE_URL });
         onShareAction?.(channel);
       } catch {
         /* cancelled */
       }
     } else {
-      void copyText('native', `${text}\n\nhttps://buildersdex.app`, channel);
+      void copyText('native', `${text}\n\n${SHARE_URL}`, channel);
     }
   };
 
@@ -357,7 +360,7 @@ export default function ShareCampaignView({
 
           <div className="mt-8 space-y-5">
             {posts.map((post) => {
-              const full = `${post.copy}\n\n${post.hashtags}\nhttps://buildersdex.app`;
+              const full = `${post.copy}\n\n${post.hashtags}\n${SHARE_URL}`;
               return (
                 <article
                   key={post.id}
