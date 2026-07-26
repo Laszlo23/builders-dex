@@ -117,48 +117,14 @@ export function signalsFor(projectId: string): BuilderSignal[] {
   );
 }
 
-export const BUILD_FEED: BuildFeedItem[] = [
-  {
-    id: 'f1',
-    when: '14 minutes ago',
-    projectId: 'p1',
-    projectName: 'SentientAI',
-    event: 'Merged 12 pull requests',
-  },
-  {
-    id: 'f2',
-    when: '2 hours ago',
-    projectId: 'p4',
-    projectName: 'CreatorLink',
-    event: 'Reached 100,000 users',
-  },
-  {
-    id: 'f3',
-    when: 'Yesterday',
-    projectId: 'p3',
-    projectName: 'HyperSphere',
-    event: 'Released Testnet v3',
-  },
-  {
-    id: 'f4',
-    when: 'Today',
-    projectName: 'Nova Relay',
-    event: 'Passed Builder Review',
-  },
-  {
-    id: 'f5',
-    when: 'Today',
-    projectId: 'p2',
-    projectName: 'AeroLend',
-    event: 'Published founder AMA notes',
-  },
-];
+/** Build Feed — empty until events come from GitHub / radar (no staged theater). */
+export const BUILD_FEED: BuildFeedItem[] = [];
 
 export const INITIAL_CONVICTIONS: Conviction[] = [
   {
     id: 'c1',
     projectId: 'p1',
-    projectName: 'SentientAI',
+    projectName: 'llama.cpp',
     level: 5,
     label: 'Strong Conviction',
     reason: 'Founder execution.',
@@ -166,7 +132,7 @@ export const INITIAL_CONVICTIONS: Conviction[] = [
   {
     id: 'c2',
     projectId: 'p4',
-    projectName: 'CreatorLink',
+    projectName: 'Metaplex',
     level: 3,
     label: 'Medium',
     reason: 'Growing quickly.',
@@ -177,9 +143,9 @@ export const CURRENT_SEASON: BuilderSeason = {
   id: 'spring-2026',
   name: 'SPRING 2026',
   theme: 'The AI Builder Season',
-  applications: 6,
+  applications: 4,
   accepted: 3,
-  winnerName: 'SentientAI',
+  winnerName: 'llama.cpp',
   winnerProjectId: 'p1',
   closesInDays: 18,
   status: 'live',

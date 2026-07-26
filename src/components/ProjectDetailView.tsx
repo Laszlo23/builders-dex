@@ -677,7 +677,7 @@ export default function ProjectDetailView({
           <div className="rounded-3xl border border-white/10 bg-surface p-5">
             <p className="font-mono text-[11px] uppercase tracking-wider text-steel">Support</p>
             <p className="mt-2 text-xs leading-relaxed text-steel">
-              Optional builder support (simulated). Trade remains the primary path for curated mints.
+              Optional builder support — <span className="text-amber-200/90">simulated only</span>. Parked until curated trading is live. Real path: Trade for allowlisted mints.
             </p>
             <form onSubmit={handleSupport} className="mt-4 space-y-3">
               <input

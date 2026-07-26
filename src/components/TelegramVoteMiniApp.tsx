@@ -14,6 +14,7 @@ type VoteItem = {
   status: string;
   chatTitle: string;
   voted: boolean;
+  nextVoteAt: string | null;
   votesToTrending: number;
 };
 
@@ -41,22 +42,36 @@ function getTg(): TgWebApp | null {
   return window.Telegram?.WebApp ?? null;
 }
 
-/**
- * Telegram Mini App — vote-only surface (not the full DEX).
- */
 function readDeepLink(): { tokenId: number | null; chatId: number | null } {
   const q = new URLSearchParams(window.location.search);
   const tokenId = Number(q.get('token') || '');
   const chatId = Number(q.get('chat') || '');
   return {
     tokenId: Number.isFinite(tokenId) && tokenId > 0 ? tokenId : null,
-    chatId: Number.isFinite(chatId) ? chatId : null,
+    // Only group/supergroup ids (negative) — private chats must not filter the list
+    chatId: Number.isFinite(chatId) && chatId < 0 ? chatId : null,
   };
 }
 
+function formatCooldown(nextVoteAt: string | null, fallbackHours: number): string {
+  if (!nextVoteAt) return `${fallbackHours}h`;
+  const ms = Date.parse(nextVoteAt) - Date.now();
+  if (!Number.isFinite(ms) || ms <= 0) return 'soon';
+  const totalMin = Math.ceil(ms / 60_000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h <= 0) return `${m}m`;
+  if (m <= 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+/**
+ * Telegram Mini App — vote-only surface (not the full DEX).
+ */
 export default function TelegramVoteMiniApp() {
   const [items, setItems] = useState<VoteItem[]>([]);
   const [threshold, setThreshold] = useState(25);
+  const [cooldownHours, setCooldownHours] = useState(3);
   const [userLabel, setUserLabel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +101,7 @@ export default function TelegramVoteMiniApp() {
     }
     setItems(list);
     if (typeof data.threshold === 'number') setThreshold(data.threshold);
+    if (typeof data.cooldownHours === 'number') setCooldownHours(data.cooldownHours);
     if (data.user?.username) setUserLabel(`@${data.user.username}`);
     else if (data.user?.firstName) setUserLabel(data.user.firstName);
     else if (tg?.initDataUnsafe?.user?.username)
@@ -138,13 +154,18 @@ export default function TelegramVoteMiniApp() {
       });
       const data = await res.json();
       if (!res.ok) {
-        if (data.error === 'duplicate') {
-          setError('You already voted for this token.');
+        if (data.error === 'cooldown' || data.error === 'duplicate') {
+          const wait = formatCooldown(
+            typeof data.nextVoteAt === 'string' ? data.nextVoteAt : null,
+            typeof data.cooldownHours === 'number' ? data.cooldownHours : cooldownHours,
+          );
+          setError(`Already voted — you can vote again in ${wait}.`);
         } else if (data.error === 'not_voting') {
           setError('Voting is not open for this token yet.');
         } else {
           setError(data.error || 'Vote failed');
         }
+        await load();
         return;
       }
       try {
@@ -170,8 +191,8 @@ export default function TelegramVoteMiniApp() {
           Community token votes
         </h1>
         <p className="mt-1.5 text-sm text-white/55">
-          Prefer voting in the group: tap <strong>▲ Upvote here</strong> on the bot’s vote
-          post. This screen is the same vote via Mini App.
+          Tap <strong>👍 Vote</strong> in the group or here — one vote every{' '}
+          <strong>{cooldownHours}h</strong> per token.
           {userLabel ? (
             <span className="mt-1 block font-mono text-[11px] text-accent/90">
               Signed in as {userLabel}
@@ -203,7 +224,9 @@ export default function TelegramVoteMiniApp() {
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/15 px-4 py-10 text-center">
           <p className="text-sm text-white/55">
-            No tokens open for voting yet. Group admins: /newtoken → /openvotes
+            No tokens open for voting yet. Owners: DM the bot{' '}
+            <code className="text-accent">/newtoken</code>, then{' '}
+            <code className="text-accent">/postvote TICKER</code> in the group.
           </p>
         </div>
       ) : (
@@ -265,7 +288,8 @@ export default function TelegramVoteMiniApp() {
                   </div>
                   {t.voted ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-accent/35 px-3 py-1.5 font-mono text-[11px] text-accent">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Voted
+                      <CheckCircle2 className="h-3.5 w-3.5" />{' '}
+                      Next in {formatCooldown(t.nextVoteAt, cooldownHours)}
                     </span>
                   ) : (
                     <button
@@ -274,7 +298,7 @@ export default function TelegramVoteMiniApp() {
                       onClick={() => onVote(t.id)}
                       className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-ink disabled:opacity-40"
                     >
-                      {votingId === t.id ? '…' : '▲ Upvote'}
+                      {votingId === t.id ? '…' : '👍 Vote'}
                     </button>
                   )}
                 </div>
@@ -291,7 +315,7 @@ export default function TelegramVoteMiniApp() {
       ) : null}
 
       <p className="mt-8 text-center font-mono text-[10px] text-white/30">
-        Community signal — not curated for trade
+        Community signal — not curated for trade · 1 vote / {cooldownHours}h
       </p>
     </div>
   );

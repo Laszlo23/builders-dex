@@ -117,14 +117,45 @@ export default function CommunityTrendingSection({ compact, onTrade }: Props) {
 
       {items.length === 0 ? (
         <p className="mt-8 text-sm text-white/45">
-          No community-trending tokens yet. More → Telegram bot to submit mint, logo, banner, and
-          socials — then /openvotes and /upvote in the group.
+          No community-trending tokens yet. DM the bot `/newtoken`, then `/postvote TICKER` in your group.
         </p>
       ) : (
         <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((t) => (
+            <TrendingCard key={t.id} t={t} onTrade={onTrade} />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function TrendingCard({
+  t,
+  onTrade,
+}: {
+  t: CommunityTrendingItem;
+  onTrade?: (mint?: string) => void;
+}) {
+  const [queueState, setQueueState] = useState<'idle' | 'loading' | 'done' | 'err'>('idle');
+
+  const queueForIndex = async () => {
+    setQueueState('loading');
+    try {
+      const res = await fetch('/api/index/candidates/from-telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegramTokenId: t.id }),
+      });
+      if (!res.ok) throw new Error('fail');
+      setQueueState('done');
+    } catch {
+      setQueueState('err');
+    }
+  };
+
+  return (
             <li
-              key={t.id}
               className="flex flex-col overflow-hidden rounded-2xl border border-white/8 bg-white/[0.02] transition hover:border-accent/35"
             >
               {t.bannerUrl ? (
@@ -235,14 +266,24 @@ export default function CommunityTrendingSection({ compact, onTrade }: Props) {
                     ) : null}
                     </>
                   ) : (
-                    <span className="font-mono text-[10px] text-white/35">No mint linked</span>
+                    <span className="font-mono text-[10px] text-steel">No mint on file</span>
                   )}
+                  <button
+                    type="button"
+                    disabled={queueState === 'loading' || queueState === 'done'}
+                    onClick={() => void queueForIndex()}
+                    className="inline-flex items-center gap-1 rounded-full border border-accent/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-accent transition hover:border-accent/50 disabled:opacity-60"
+                  >
+                    {queueState === 'done'
+                      ? 'Queued for Index'
+                      : queueState === 'loading'
+                        ? 'Queuing…'
+                        : queueState === 'err'
+                          ? 'Retry Index queue'
+                          : 'Queue for Index'}
+                  </button>
                 </div>
               </div>
             </li>
-          ))}
-        </ul>
-      )}
-    </section>
   );
 }

@@ -11,6 +11,7 @@ export const SOCIAL_GO_THEN_CLAIM = new Set([
   't_culture_node_engage',
   't_join_discord',
   't_join_telegram',
+  't_community_vote',
   't_follow_x',
 ]);
 
@@ -57,7 +58,7 @@ export const DEFAULT_PASSPORT: PassportStats = {
   openSourceContributions: 0,
   reputationAgeYears: 0,
   earlyCalls: 0,
-  researchAccuracy: 70,
+  researchAccuracy: 0,
   scoutXp: 0,
 };
 

@@ -55,6 +55,7 @@ import {
   upvoteMessage,
 } from './src/lib/reputation/messages';
 import { composeDailyRadar } from './src/lib/dailyRadar/compose';
+import { maybePushRadarDigest } from './src/lib/dailyRadar/digest';
 import {
   loadScoreSnapshot,
   previousDayKey,
@@ -68,6 +69,12 @@ import {
   listSubmissionsForWallet,
   submitScoutCall,
 } from './src/lib/scout/repo';
+import { resolveScoutOutcomes } from './src/lib/scout/outcomes';
+import {
+  listIndexCandidates,
+  setIndexCandidateStatus,
+  upsertIndexCandidateFromTelegram,
+} from './src/lib/indexPipeline/repo';
 import { TODAY_BRIEF } from './src/data/dailyIntelligence';
 import { runToolUsingAnalyst } from './src/lib/aiAnalyst/run';
 import { TALENT_TOP7_FALLBACK } from './src/data/talentFarcaster';
@@ -94,7 +101,8 @@ import {
   getRegisteredBotHandle,
   getRegisteredBotRow,
   getTrendThreshold,
-  hasUserVoted,
+  getVoteCooldown,
+  getVoteCooldownHours,
   initTelegramBot,
   listRegisteredBotsPublic,
   listTokensByChatId,
@@ -712,6 +720,19 @@ app.get('/api/daily-radar', rateLimit(40, 60_000, 'daily-radar'), async (_req, r
       trending,
     });
 
+    try {
+      const curation = new Map(
+        INITIAL_PROJECTS.map((p) => [p.id, p.curation.status] as const),
+      );
+      resolveScoutOutcomes(curation);
+    } catch (err) {
+      console.warn('[scout-outcomes]', err);
+    }
+
+    void maybePushRadarDigest(payload).catch((err) =>
+      console.warn('[radar-digest]', err),
+    );
+
     dailyRadarCache = { at: Date.now(), dayKey, payload };
     res.json(payload);
   } catch (err) {
@@ -737,10 +758,18 @@ app.get('/api/daily-radar', rateLimit(40, 60_000, 'daily-radar'), async (_req, r
 /** Builder Scouts™ — timestamped calls on the shared ledger */
 app.get('/api/scout/leaderboard', rateLimit(60, 60_000, 'scout-board'), (_req, res) => {
   try {
+    try {
+      const curation = new Map(
+        INITIAL_PROJECTS.map((p) => [p.id, p.curation.status] as const),
+      );
+      resolveScoutOutcomes(curation);
+    } catch {
+      /* non-fatal */
+    }
     const limit = Math.min(50, Math.max(1, Number(_req.query.limit) || 25));
     res.json({
       leaderboard: listScoutLeaderboard(limit),
-      note: 'Ranked by Passport Scout XP + on-ledger call count.',
+      note: 'Ranked by Passport Scout XP + on-ledger call count. Accuracy = scored 30d hit/(hit+miss).',
     });
   } catch (err) {
     res.status(500).json({ error: safeErrorMessage(err) });
@@ -1338,6 +1367,94 @@ app.get('/api/telegram/trending', rateLimit(60, 60_000, 'tg-trending'), (_req, r
   }
 });
 
+/**
+ * Telegram → Index pipeline: queue a community-trending token for curation review.
+ * Public enqueue (rate-limited). Admin can list / set status.
+ */
+app.post(
+  '/api/index/candidates/from-telegram',
+  rateLimit(20, 60_000, 'index-from-tg'),
+  (req, res) => {
+    try {
+      getSqlite();
+      const tokenId = Number(req.body?.telegramTokenId ?? req.body?.id);
+      if (!Number.isFinite(tokenId)) {
+        return res.status(400).json({ error: 'telegramTokenId required' });
+      }
+      const token = listTrending(100).find((t) => t.id === tokenId);
+      if (!token) {
+        return res.status(404).json({
+          error: 'Token not in Community Trending (must clear vote threshold first)',
+        });
+      }
+      const row = upsertIndexCandidateFromTelegram({
+        telegramTokenId: token.id,
+        ticker: token.ticker,
+        name: token.name,
+        chain: token.chain || 'solana',
+        mint: token.mint,
+        description: token.description || '',
+        voteCount: token.vote_count,
+        chatTitle: token.chat_title || '',
+      });
+      res.json({
+        ok: true,
+        candidate: row,
+        note: 'Queued for Index review — not auto-listed for trade',
+      });
+    } catch (err) {
+      res.status(500).json({ error: safeErrorMessage(err, 'Failed to queue candidate') });
+    }
+  },
+);
+
+app.get('/api/index/candidates', rateLimit(40, 60_000, 'index-list'), (req, res) => {
+  try {
+    getSqlite();
+    const status = req.query.status ? String(req.query.status) : undefined;
+    const items = listIndexCandidates(status, Number(req.query.limit) || 50);
+    res.json({ items });
+  } catch (err) {
+    res.status(500).json({ error: safeErrorMessage(err, 'Failed to list candidates') });
+  }
+});
+
+app.post(
+  '/api/index/candidates/:id/status',
+  rateLimit(20, 60_000, 'index-status'),
+  (req, res) => {
+    try {
+      const admin =
+        process.env.FEEDBACK_ADMIN_TOKEN?.trim() ||
+        process.env.TELEGRAM_ADMIN_TOKEN?.trim();
+      if (!admin) {
+        return res.status(503).json({ error: 'Admin token not configured' });
+      }
+      const provided = String(
+        req.headers['x-admin-token'] || req.body?.adminToken || '',
+      );
+      if (provided !== admin) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const id = Number(req.params.id);
+      const status = String(req.body?.status || '') as
+        | 'pending'
+        | 'reviewed'
+        | 'accepted'
+        | 'rejected';
+      if (!['pending', 'reviewed', 'accepted', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+      getSqlite();
+      const row = setIndexCandidateStatus(id, status);
+      if (!row) return res.status(404).json({ error: 'Not found' });
+      res.json({ ok: true, candidate: row });
+    } catch (err) {
+      res.status(500).json({ error: safeErrorMessage(err, 'Failed to update status') });
+    }
+  },
+);
+
 /** Debug: tokens for a chat — always requires admin token */
 app.get('/api/telegram/tokens', rateLimit(30, 60_000, 'tg-tokens'), (req, res) => {
   try {
@@ -1397,7 +1514,7 @@ app.get('/api/telegram/bot-status', rateLimit(60, 60_000, 'tg-status'), async (_
   }
 });
 
-/** Mini App: list tokens open for voting (auth optional — marks voted if initData sent) */
+/** Mini App: list tokens open for voting (auth optional — marks cooldown if initData sent) */
 app.get(
   '/api/telegram/miniapp/tokens',
   rateLimit(60, 60_000, 'tg-mini-list'),
@@ -1416,36 +1533,44 @@ app.get(
           ? validateTelegramInitData(initData, botToken)
           : null;
 
-      const chatFilter = req.query.chat_id
+      // Prefer explicit deep-link chat_id; ignore private (positive) chat ids so
+      // opening from the bot DM / Menu still lists group-attached tokens.
+      const rawChat = req.query.chat_id
         ? Number(req.query.chat_id)
         : user?.chatId ?? null;
+      const chatFilter =
+        rawChat != null && Number.isFinite(rawChat) && rawChat < 0 ? rawChat : null;
 
-      const rows = listVotableTokens(
-        Number.isFinite(chatFilter as number) ? (chatFilter as number) : null,
-      );
+      const rows = listVotableTokens(chatFilter);
       const threshold = getTrendThreshold();
-      const items = rows.map((t) => ({
-        id: t.id,
-        ticker: t.ticker,
-        name: t.name,
-        chain: t.chain || 'solana',
-        mint: t.mint,
-        description: t.description,
-        logoUrl: t.logo_url,
-        bannerUrl: t.banner_url,
-        website: t.website,
-        twitter: t.twitter,
-        telegramUrl: t.telegram_url,
-        discord: t.discord,
-        voteCount: t.vote_count,
-        status: t.status,
-        chatTitle: t.chat_title,
-        chatId: t.chat_id,
-        voted: user ? hasUserVoted(t.id, user.userId) : false,
-        votesToTrending: Math.max(0, threshold - t.vote_count),
-      }));
+      const cooldownHours = getVoteCooldownHours();
+      const items = rows.map((t) => {
+        const cd = user ? getVoteCooldown(t.id, user.userId) : null;
+        return {
+          id: t.id,
+          ticker: t.ticker,
+          name: t.name,
+          chain: t.chain || 'solana',
+          mint: t.mint,
+          description: t.description,
+          logoUrl: t.logo_url,
+          bannerUrl: t.banner_url,
+          website: t.website,
+          twitter: t.twitter,
+          telegramUrl: t.telegram_url,
+          discord: t.discord,
+          voteCount: t.vote_count,
+          status: t.status,
+          chatTitle: t.chat_title,
+          chatId: t.chat_id,
+          voted: Boolean(cd?.onCooldown),
+          nextVoteAt: cd?.nextVoteAt ?? null,
+          votesToTrending: Math.max(0, threshold - t.vote_count),
+        };
+      });
       res.json({
         threshold,
+        cooldownHours,
         authenticated: Boolean(user),
         user: user
           ? {
@@ -1463,7 +1588,7 @@ app.get(
   },
 );
 
-/** Mini App: cast one vote — requires valid Telegram initData */
+/** Mini App: cast a vote — requires valid Telegram initData (once per cooldown window) */
 app.post(
   '/api/telegram/miniapp/vote',
   rateLimit(30, 60_000, 'tg-mini-vote'),
@@ -1495,12 +1620,17 @@ app.post(
       });
       if (result.ok === false) {
         const status =
-          result.reason === 'duplicate'
-            ? 409
+          result.reason === 'cooldown' || result.reason === 'duplicate'
+            ? 429
             : result.reason === 'not_found'
               ? 404
               : 400;
-        return res.status(status).json({ error: result.reason, ok: false });
+        return res.status(status).json({
+          error: result.reason === 'duplicate' ? 'cooldown' : result.reason,
+          ok: false,
+          nextVoteAt: result.nextVoteAt ?? null,
+          cooldownHours: getVoteCooldownHours(),
+        });
       }
       res.json({
         ok: true,
@@ -1508,6 +1638,8 @@ app.post(
         voteCount: result.token.vote_count,
         status: result.token.status,
         threshold: getTrendThreshold(),
+        cooldownHours: getVoteCooldownHours(),
+        nextVoteAt: new Date(Date.now() + getVoteCooldownHours() * 3600_000).toISOString(),
       });
     } catch (error: unknown) {
       console.error('Miniapp vote error:', error);

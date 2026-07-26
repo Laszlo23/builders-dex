@@ -20,8 +20,8 @@ export const STREAM_TICKS: Omit<FeedItem, 'id' | 'at'>[] = [
   },
   {
     kind: 'builder',
-    title: 'Crystal Ball™',
-    body: TODAY_BRIEF.events.find((e) => e.text.includes('Crystal'))?.text || 'Watchlist warming up.',
+    title: 'Genesis Index',
+    body: 'llama.cpp · Wormhole · Metaplex — live Builder Score™. Open Radar for deltas.',
   },
   {
     kind: 'market',

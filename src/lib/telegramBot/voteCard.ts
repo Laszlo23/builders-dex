@@ -1,6 +1,6 @@
 import { InlineKeyboard } from 'grammy';
 import type { TokenProfile } from './types';
-import { getTrendThreshold } from './repo';
+import { getTrendThreshold, getVoteCooldownHours } from './repo';
 import { getChain } from './chains';
 
 export function appBaseUrl(): string {
@@ -21,6 +21,10 @@ export function voteDeepLink(token: TokenProfile): string {
   return u.toString();
 }
 
+export function dexTrendingUrl(): string {
+  return `${appBaseUrl()}/#explore`;
+}
+
 function esc(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -34,13 +38,77 @@ function shortAddr(addr: string): string {
 }
 
 function httpsUrl(url: string | null | undefined): string | null {
-  if (!url || !/^https:\/\//i.test(url.trim())) return null;
-  return url.trim();
+  const raw = url?.trim();
+  if (!raw || !/^https:\/\//i.test(raw)) return null;
+  // Telegram rejects some button URLs if the scheme casing is weird (e.g. Https://)
+  return raw.replace(/^https:\/\//i, 'https://');
 }
 
-/** Marketing keyboard — vote + project links */
+/** DexScreener path segment for a Builders DEX chain id */
+function dexscreenerNetwork(chainId: string): string {
+  const map: Record<string, string> = {
+    solana: 'solana',
+    ethereum: 'ethereum',
+    base: 'base',
+    bsc: 'bsc',
+    polygon: 'polygon',
+    arbitrum: 'arbitrum',
+    avalanche: 'avalanche',
+    optimism: 'optimism',
+    sui: 'sui',
+    ton: 'ton',
+  };
+  return map[chainId] || 'solana';
+}
+
+export function chartUrl(token: TokenProfile): string | null {
+  if (!token.mint) return null;
+  return `https://dexscreener.com/${dexscreenerNetwork(token.chain)}/${token.mint}`;
+}
+
+export function buyUrl(token: TokenProfile): string | null {
+  if (!token.mint) return null;
+  if (token.chain === 'solana') {
+    return `https://jup.ag/swap/SOL-${encodeURIComponent(token.mint)}`;
+  }
+  if (token.chain === 'base') {
+    return `https://app.uniswap.org/swap?chain=base&outputCurrency=${encodeURIComponent(token.mint)}`;
+  }
+  if (token.chain === 'ethereum') {
+    return `https://app.uniswap.org/swap?chain=mainnet&outputCurrency=${encodeURIComponent(token.mint)}`;
+  }
+  if (token.chain === 'arbitrum') {
+    return `https://app.uniswap.org/swap?chain=arbitrum&outputCurrency=${encodeURIComponent(token.mint)}`;
+  }
+  if (token.chain === 'optimism') {
+    return `https://app.uniswap.org/swap?chain=optimism&outputCurrency=${encodeURIComponent(token.mint)}`;
+  }
+  if (token.chain === 'polygon') {
+    return `https://app.uniswap.org/swap?chain=polygon&outputCurrency=${encodeURIComponent(token.mint)}`;
+  }
+  if (token.chain === 'bsc') {
+    return `https://pancakeswap.finance/swap?outputCurrency=${encodeURIComponent(token.mint)}`;
+  }
+  return chartUrl(token);
+}
+
+/**
+ * Buy-bot style keyboard: Chart | Vote | Buy + trending row.
+ * Used on status cards and community vote posts.
+ *
+ * Important: do NOT use InlineKeyboard.webApp() here.
+ * Telegram only allows web_app buttons in private chats; in groups
+ * sendPhoto/sendMessage fails with BUTTON_TYPE_INVALID and the bot
+ * appears silent.
+ */
 export function voteCardKeyboard(token: TokenProfile): InlineKeyboard {
-  const kb = new InlineKeyboard().text('▲ Back this builder', `upvote:${token.ticker}`);
+  const kb = new InlineKeyboard();
+  const chart = chartUrl(token);
+  const buy = buyUrl(token);
+
+  if (chart) kb.url('📊 Chart', chart);
+  kb.text('👍 Vote', `upvote:${token.ticker}`);
+  if (buy) kb.url('💲 Buy', buy);
 
   const chain = getChain(token.chain);
   const links: { label: string; url: string }[] = [];
@@ -48,9 +116,9 @@ export function voteCardKeyboard(token: TokenProfile): InlineKeyboard {
   const twitter = httpsUrl(token.twitter);
   const telegramUrl = httpsUrl(token.telegram_url);
   const discord = httpsUrl(token.discord);
-  if (website) links.push({ label: '🌐 Website', url: website });
-  if (twitter) links.push({ label: '𝕏 Twitter', url: twitter });
-  if (telegramUrl) links.push({ label: '✈️ Telegram', url: telegramUrl });
+  if (website) links.push({ label: '🌐 Web', url: website });
+  if (twitter) links.push({ label: '𝕏', url: twitter });
+  if (telegramUrl) links.push({ label: '✈️ Tg', url: telegramUrl });
   if (discord) links.push({ label: '💬 Discord', url: discord });
   if (token.mint) {
     links.push({ label: '🔎 Contract', url: chain.explorerToken(token.mint) });
@@ -64,7 +132,9 @@ export function voteCardKeyboard(token: TokenProfile): InlineKeyboard {
     if (b) kb.url(b.label, b.url);
   }
 
-  kb.row().webApp('🗳️ Open vote card', voteDeepLink(token));
+  kb.row().url('🔥 Community Trending ↗️', dexTrendingUrl());
+  // URL (not web_app) so the same keyboard works in groups + DMs
+  kb.row().url('🗳️ Vote Mini App', voteDeepLink(token));
   return kb;
 }
 
@@ -120,8 +190,80 @@ export function voteCardCaptionHtml(token: TokenProfile): string {
   }
 
   lines.push('');
-  lines.push('Tap <b>▲ Back this builder</b> — one vote per member.');
+  lines.push('Tap <b>👍 Vote</b> — one vote every ' + getVoteCooldownHours() + 'h.');
   lines.push('<i>Community signal — not curated for trade.</i>');
+
+  let html = lines.join('\n');
+  if (html.length > 1024) {
+    html = `${html.slice(0, 1020)}…`;
+  }
+  return html;
+}
+
+/** Buy-bot style /status body (HTML). */
+export function statusCardHtml(token: TokenProfile): string {
+  const threshold = getTrendThreshold();
+  const remaining = Math.max(0, threshold - token.vote_count);
+  const chain = getChain(token.chain);
+  const desc = (token.description || '').trim().slice(0, 220);
+
+  const lines: string[] = [
+    '🔷 <b>TOKEN STATUS</b>',
+    '<i>by Builders DEX</i>',
+    '📢📢📢📢📢📢📢📢📢📢📢',
+    '',
+    `🪙 <b>$${esc(token.ticker)}</b> — ${esc(token.name)}`,
+    `⛓ <b>Chain:</b> ${esc(chain.label)}`,
+    `📌 <b>Status:</b> <code>${esc(token.status)}</code>`,
+  ];
+
+  if (token.status === 'trending') {
+    lines.push(`🔥 <b>Votes:</b> ${token.vote_count} · Community Trending`);
+  } else if (token.status === 'voting') {
+    lines.push(
+      `👍 <b>Votes:</b> ${token.vote_count} / ${threshold}` +
+        (remaining > 0 ? ` · ${remaining} to trending` : ''),
+    );
+  } else if (token.status === 'candidate') {
+    lines.push(
+      '⏳ <b>Votes:</b> not open yet — invite the bot to your community, then <code>/postvote ' +
+        esc(token.ticker) +
+        '</code>',
+    );
+  } else {
+    lines.push(`👍 <b>Votes:</b> ${token.vote_count}`);
+  }
+
+  if (token.mint) {
+    const explorer = chain.explorerToken(token.mint);
+    lines.push(
+      `🔎 <b>Contract:</b> <code>${esc(shortAddr(token.mint))}</code> · <a href="${esc(explorer)}">Explorer</a>`,
+    );
+  }
+
+  const socials: string[] = [];
+  const tg = httpsUrl(token.telegram_url);
+  const tw = httpsUrl(token.twitter);
+  const web = httpsUrl(token.website);
+  const dc = httpsUrl(token.discord);
+  if (tg) socials.push(`<a href="${esc(tg)}">Tg</a>`);
+  if (tw) socials.push(`<a href="${esc(tw)}">X</a>`);
+  if (web) socials.push(`<a href="${esc(web)}">Web</a>`);
+  if (dc) socials.push(`<a href="${esc(dc)}">Discord</a>`);
+  if (socials.length) {
+    lines.push(`📢 <b>Socials:</b> ${socials.join(' · ')}`);
+  }
+
+  lines.push(`💵 <b>Big-buy alert:</b> ~$${Math.round(token.big_buy_usd)}+`);
+
+  if (desc) {
+    lines.push('', `<i>${esc(desc)}</i>`);
+  }
+
+  lines.push(
+    '',
+    `<i>Tap 👍 Vote below — one vote every ${getVoteCooldownHours()}h.</i>`,
+  );
 
   let html = lines.join('\n');
   if (html.length > 1024) {
@@ -142,7 +284,7 @@ export function voteCardText(token: TokenProfile): string {
     token.description?.slice(0, 200) || '',
     token.mint ? `Contract: ${shortAddr(token.mint)}` : '',
     `${token.vote_count}/${threshold} votes`,
-    'Tap ▲ Back this builder',
+    'Tap 👍 Vote',
   ]
     .filter(Boolean)
     .join('\n')
@@ -165,15 +307,16 @@ export function spotlightIntroHtml(token: TokenProfile): string {
 
 export function welcomeNewGroupText(): string {
   const threshold = getTrendThreshold();
+  const cooldownH = getVoteCooldownHours();
   return [
     '*Builders DEX Token Bot* is in this community.',
     '',
-    '*Community managers*',
-    '1. `/newtoken` — use the menu (Chain, Logo, Banner, Contract, …)',
-    '2. Tap *Publish* → I post a marketing spotlight (logo + banner + links)',
-    `3. Members tap *▲ Back this builder* — at ${threshold} votes → Community Trending`,
+    '*Owners*',
+    '1. Create the token in a *private chat* with me: `/newtoken`',
+    '2. In this group, run `/postvote TICKER` to open voting',
+    `3. Members tap *👍 Vote* — once every ${cooldownH}h · at ${threshold} votes → Community Trending`,
     '',
-    'Members do not need commands — just press the button on the vote post.',
+    'Or run `/newtoken` here as an admin to create + post in one step.',
     '',
     '_Community signal — not curated for trade._',
   ].join('\n');

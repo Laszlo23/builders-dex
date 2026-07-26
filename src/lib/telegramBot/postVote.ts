@@ -3,6 +3,7 @@ import type { TokenProfile } from './types';
 import {
   logoCaptionHtml,
   spotlightIntroHtml,
+  statusCardHtml,
   voteCardCaptionHtml,
   voteCardKeyboard,
   voteCardReplyMarkupJson,
@@ -81,17 +82,75 @@ export async function sendVotePostFromContext(
   token: TokenProfile,
 ): Promise<void> {
   if (!ctx.chat) return;
-  await sendVotePostWithApi(ctx.api, ctx.chat.id, token);
+  try {
+    await sendVotePostWithApi(ctx.api, ctx.chat.id, token);
+  } catch (err) {
+    console.warn(
+      '[telegram] vote post failed, falling back to text card',
+      err instanceof Error ? err.message : err,
+    );
+    const caption = captionFor(token);
+    const keyboard = voteCardKeyboard(token);
+    await ctx.reply(caption, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard,
+      link_preview_options: { is_disabled: true },
+    });
+  }
 }
 
-/** Refresh vote counts on the message that had the Upvote button */
+/** Buy-bot style /status card with Chart · Vote · Buy buttons */
+export async function sendStatusCardFromContext(
+  ctx: Context,
+  token: TokenProfile,
+): Promise<void> {
+  if (!ctx.chat) return;
+  const caption = statusCardHtml(token);
+  const keyboard = voteCardKeyboard(token);
+  const logo = httpsOrNull(token.logo_url);
+  const banner = httpsOrNull(token.banner_url);
+  const photo = banner || logo;
+
+  try {
+    if (photo) {
+      await ctx.replyWithPhoto(photo, {
+        caption,
+        parse_mode: 'HTML',
+        reply_markup: keyboard,
+      });
+      return;
+    }
+
+    await ctx.reply(caption, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard,
+      link_preview_options: { is_disabled: true },
+    });
+  } catch (err) {
+    console.warn(
+      '[telegram] status card failed, falling back to text',
+      err instanceof Error ? err.message : err,
+    );
+    await ctx.reply(caption, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard,
+      link_preview_options: { is_disabled: true },
+    });
+  }
+}
+
+/** Refresh vote counts on the message that had the Vote button */
 export async function refreshVotePostMessage(
   ctx: Context,
   token: TokenProfile,
 ): Promise<void> {
   const msg = ctx.callbackQuery?.message;
   if (!msg) return;
-  const caption = captionFor(token);
+  const existing =
+    ('caption' in msg && msg.caption) || ('text' in msg && msg.text) || '';
+  const caption = String(existing).includes('TOKEN STATUS')
+    ? statusCardHtml(token)
+    : captionFor(token);
   const keyboard = voteCardKeyboard(token);
   try {
     if ('photo' in msg && msg.photo) {

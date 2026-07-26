@@ -90,6 +90,10 @@ export default function EarnView({
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-10 text-white sm:px-6">
+      <div className="mb-6 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
+        <strong className="font-semibold">Parked (simulation).</strong> Stake / LP here is not
+        on-chain. Core loop: Radar → Builders → Scout → Trade.
+      </div>
       {/* Emotional hero band with imagery */}
       <div className="relative mb-10 overflow-hidden rounded-[1.75rem] border border-accent/25">
         <OptimizedImage

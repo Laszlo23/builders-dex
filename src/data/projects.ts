@@ -14,7 +14,7 @@ export const BUILDERS_INDEX: BuildersIndex = {
   title: 'Builders Index™',
   market: 'Genesis Index · live scores',
   health: 88.0,
-  projectsTracked: 6,
+  projectsTracked: 4,
   projectsApproved: 3,
   qualityThreshold: 'Genesis Top 3',
   deltaLabel: 'Live GitHub citations',
@@ -22,7 +22,7 @@ export const BUILDERS_INDEX: BuildersIndex = {
 
 /** THE STANDARD — exclusivity funnel (Genesis ship) */
 export const THE_STANDARD: TheStandard = {
-  projectsAnalyzed: 6,
+  projectsAnalyzed: 4,
   earnedRecognition: 4,
   enteredNetwork: 3,
   approvedForTrading: 0,
@@ -39,146 +39,89 @@ export const INITIAL_BUILDERS: Builder[] = [
   {
     id: 'b1',
     name: 'Georgi Gerganov',
-    walletAddress: '0x99A8c...B29c',
+    walletAddress: 'github:ggerganov',
     avatarUrl: 'https://unavatar.io/github/ggerganov',
     reputationLevel: 'Genesis Builder',
     level: 5,
-    xp: 5200,
+    xp: 0,
     builderScore: 98,
-    codeContribution: 124,
-    communityImpact: 95,
-    securityReputation: 99,
-    followers: 1240,
+    codeContribution: 0,
+    communityImpact: 0,
+    securityReputation: 0,
+    followers: 0,
     projectsCreated: ['p1'],
-    contributionsCount: 420,
-    communityTrust: 97,
+    contributionsCount: 0,
+    communityTrust: 0,
     openSourceImpact: 'Exceptional',
-    achievements: [
-      { id: 'a1', name: 'Security Pioneer', icon: 'ShieldCheck', description: 'Audited over 50 custom smart contracts.', date: '2026-03-12' },
-      { id: 'a2', name: 'Open-Source Titan', icon: 'Code', description: 'Contributed 300+ PRs to major Web3 repos.', date: '2026-05-18' },
-    ],
-    nftsEarned: [
-      { id: 'nft1', name: 'Vanguard Builder ID', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80', level: 'Diamond' },
-    ],
+    achievements: [],
+    nftsEarned: [],
   },
   {
     id: 'b2',
     name: 'Aave Labs',
-    walletAddress: '0x2a1E3...5C19',
+    walletAddress: 'github:aave',
     avatarUrl: 'https://unavatar.io/twitter/aave',
     reputationLevel: 'Visionary',
     level: 4,
-    xp: 3800,
+    xp: 0,
     builderScore: 89,
-    codeContribution: 88,
-    communityImpact: 92,
-    securityReputation: 85,
-    followers: 720,
+    codeContribution: 0,
+    communityImpact: 0,
+    securityReputation: 0,
+    followers: 0,
     projectsCreated: ['p2'],
-    contributionsCount: 195,
-    communityTrust: 91,
+    contributionsCount: 0,
+    communityTrust: 0,
     openSourceImpact: 'High',
-    achievements: [
-      { id: 'a4', name: 'Liquidity Guru', icon: 'Droplets', description: 'Supplied and managed $100k+ in DEX pools.', date: '2026-04-01' },
-    ],
-    nftsEarned: [
-      { id: 'nft3', name: 'Architect Identity Card', image: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=150&q=80', level: 'Gold' },
-    ],
+    achievements: [],
+    nftsEarned: [],
   },
   {
     id: 'b3',
     name: 'Wormhole Foundation',
-    walletAddress: '0x7F20d...66Fa',
+    walletAddress: 'github:wormhole-foundation',
     avatarUrl: 'https://unavatar.io/twitter/wormhole',
     reputationLevel: 'Core Builder',
     level: 3,
-    xp: 2100,
+    xp: 0,
     builderScore: 94,
-    codeContribution: 65,
-    communityImpact: 74,
-    securityReputation: 80,
-    followers: 340,
+    codeContribution: 0,
+    communityImpact: 0,
+    securityReputation: 0,
+    followers: 0,
     projectsCreated: ['p3'],
-    contributionsCount: 94,
-    communityTrust: 88,
+    contributionsCount: 0,
+    communityTrust: 0,
     openSourceImpact: 'High',
-    achievements: [
-      { id: 'a6', name: 'Bug Exterminator', icon: 'Bug', description: 'Found critical vulnerabilities in 3 launchpad projects.', date: '2026-06-15' },
-    ],
-    nftsEarned: [
-      { id: 'nft4', name: 'Contributor Passport', image: 'https://images.unsplash.com/photo-1644024541275-dc9f1f0b052f?auto=format&fit=crop&w=100&q=80', level: 'Silver' },
-    ],
+    achievements: [],
+    nftsEarned: [],
   },
   {
     id: 'b4',
     name: 'Metaplex Foundation',
-    walletAddress: 'So1...Chen',
+    walletAddress: 'github:metaplex-foundation',
     avatarUrl: 'https://unavatar.io/twitter/metaplex',
     reputationLevel: 'Visionary',
     level: 4,
-    xp: 3600,
+    xp: 0,
     builderScore: 91,
-    codeContribution: 72,
-    communityImpact: 90,
-    securityReputation: 88,
-    followers: 890,
+    codeContribution: 0,
+    communityImpact: 0,
+    securityReputation: 0,
+    followers: 0,
     projectsCreated: ['p4'],
-    contributionsCount: 210,
-    communityTrust: 93,
-    openSourceImpact: 'High',
-    achievements: [],
-    nftsEarned: [],
-  },
-  {
-    id: 'b5',
-    name: 'Marcus Hale',
-    walletAddress: 'Mh1...Hale',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-    reputationLevel: 'Builder',
-    level: 2,
-    xp: 1400,
-    builderScore: 78,
-    codeContribution: 40,
-    communityImpact: 62,
-    securityReputation: 70,
-    followers: 180,
-    projectsCreated: [],
-    contributionsCount: 48,
-    communityTrust: 76,
-    openSourceImpact: 'Medium',
-    achievements: [],
-    nftsEarned: [],
-  },
-  {
-    id: 'b6',
-    name: 'Priya Nair',
-    walletAddress: 'Pn1...Nair',
-    avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80',
-    reputationLevel: 'Core Builder',
-    level: 3,
-    xp: 2400,
-    builderScore: 86,
-    codeContribution: 55,
-    communityImpact: 80,
-    securityReputation: 82,
-    followers: 410,
-    projectsCreated: [],
-    contributionsCount: 112,
-    communityTrust: 85,
+    contributionsCount: 0,
+    communityTrust: 0,
     openSourceImpact: 'High',
     achievements: [],
     nftsEarned: [],
   },
 ];
 
-/** Hall of Fame padding names for The Builder 100 display */
-const WALL_PAD = [
-  'Nova Relay', 'Kinetic Labs', 'Orbit Mesh', 'Cipher Grove', 'Lumen Protocol',
-  'Forge State', 'Pulse Index', 'Arc Vault', 'Signal Works', 'Helix Commerce',
-  'Drift Engine', 'Quartz Node', 'Axiom Soft', 'Tide Graph', 'Ember Stack',
-  'Prism DAO', 'Vector Field', 'Anchor Mint', 'Flux Ledger', 'Coral Runtime',
-];
-
+/**
+ * Builder wall — only real catalog builders / orgs.
+ * No filler names. Ranks grow as passports and Talent sync.
+ */
 export type Builder100Entry = {
   rank: number;
   builderId: string;
@@ -193,7 +136,7 @@ export type Builder100Entry = {
 
 export function getBuilder100(builders: Builder[], projects: Project[]): Builder100Entry[] {
   const ranked = [...builders].sort((a, b) => b.builderScore - a.builderScore);
-  const entries: Builder100Entry[] = ranked.map((b, i) => {
+  return ranked.map((b, i) => {
     const project = projects.find((p) => b.projectsCreated.includes(p.id));
     return {
       rank: i + 1,
@@ -207,23 +150,6 @@ export function getBuilder100(builders: Builder[], projects: Project[]): Builder
       real: true,
     };
   });
-
-  let rank = entries.length + 1;
-  for (const name of WALL_PAD) {
-    if (rank > 100) break;
-    entries.push({
-      rank,
-      builderId: `pad_${rank}`,
-      name,
-      founder: `${name.split(' ')[0]} Team`,
-      score: Math.round(Math.max(55, 84 - (rank - ranked.length) * 1.2)),
-      level: rank <= 40 ? 'Builder' : 'Rookie Builder',
-      avatarUrl: '',
-      real: false,
-    });
-    rank += 1;
-  }
-  return entries.slice(0, 100);
 }
 
 export const INITIAL_PROJECTS: Project[] = [
@@ -248,7 +174,7 @@ export const INITIAL_PROJECTS: Project[] = [
     category: 'AI + Web3',
     chain: 'Solana',
     rating: 4.9,
-    upvotes: 420,
+    upvotes: 0,
     githubRepo: 'ggerganov/llama.cpp',
     githubActivity: 12000,
     roadmap: [
@@ -282,15 +208,7 @@ export const INITIAL_PROJECTS: Project[] = [
       liquidityHealth: 40,
     }),
     curation: { status: 'curated', builderVerified: true, reviewedAt: '2026-07-26' },
-    comments: [
-      {
-        id: 'c1',
-        author: 'Builders DEX Index',
-        wallet: 'genesis',
-        text: 'Live score cites stars, push freshness, and public license — not a pitch deck.',
-        date: '2026-07-26 08:00',
-      },
-    ],
+    comments: [],
     quests: [
       {
         id: 'q_p1_1',
@@ -308,7 +226,7 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: false,
-    reputationDelta: 18,
+    reputationDelta: 0,
     communityMilestones: ['100k+ GitHub stars', 'Default local LLM runtime', 'Genesis Index #1'],
   },
   {
@@ -332,7 +250,7 @@ export const INITIAL_PROJECTS: Project[] = [
     category: 'DeFi',
     chain: 'Solana',
     rating: 4.7,
-    upvotes: 218,
+    upvotes: 0,
     githubRepo: 'aave/aave-v3-core',
     githubActivity: 32,
     roadmap: [
@@ -377,7 +295,7 @@ export const INITIAL_PROJECTS: Project[] = [
     socials: { twitter: 'https://x.com/aave', website: 'https://aave.com' },
     launchpadActive: false,
     liquidityLocked: true,
-    reputationDelta: 2,
+    reputationDelta: 0,
     communityMilestones: ['Multi-chain liquidity', 'Public audits'],
   },
   {
@@ -401,7 +319,7 @@ export const INITIAL_PROJECTS: Project[] = [
     category: 'Infrastructure',
     chain: 'Solana',
     rating: 4.6,
-    upvotes: 310,
+    upvotes: 0,
     githubRepo: 'wormhole-foundation/wormhole',
     githubActivity: 8000,
     roadmap: [
@@ -451,7 +369,7 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: true,
-    reputationDelta: 11,
+    reputationDelta: 0,
     communityMilestones: ['Multi-chain mainnet', 'Public monorepo', 'Genesis Index #2'],
   },
   {
@@ -475,7 +393,7 @@ export const INITIAL_PROJECTS: Project[] = [
     category: 'Creator Economy',
     chain: 'Solana',
     rating: 4.8,
-    upvotes: 298,
+    upvotes: 0,
     githubRepo: 'metaplex-foundation/mpl-token-metadata',
     githubActivity: 2000,
     roadmap: [
@@ -525,152 +443,13 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: false,
-    reputationDelta: 8,
+    reputationDelta: 0,
     communityMilestones: ['Solana NFT standard', 'Public programs', 'Genesis Index #3'],
-  },
-  {
-    id: 'p5',
-    name: 'GhostMint',
-    ticker: 'GHST',
-    tagline: 'Anonymous meme launchpad claiming "fair" launches.',
-    description: 'GhostMint marketed anonymous fair launches with no public repo and no named team.',
-    problem: 'Claimed to solve fair launch — without verifiable development.',
-    builderStory: 'Submitted with anonymous founders and a Telegram-only presence.',
-    foundedYear: 2026,
-    journey: 'Concept only',
-    whySelected: '',
-    marketCapLabel: 'N/A',
-    logoUrl: 'HelpCircle',
-    category: 'DeFi',
-    chain: 'Solana',
-    rating: 1.2,
-    upvotes: 4,
-    githubRepo: '—',
-    githubActivity: 0,
-    roadmap: [],
-    team: [],
-    raised: 0,
-    goal: 50000,
-    tokenPrice: 0,
-    tokenPriceHistory: [],
-    aiAnalysis: {
-      quality: 12,
-      market: 30,
-      risk: 95,
-      innovation: 10,
-      summary: 'Rejected: no active development, anonymous team, weak product progress.',
-    },
-    builderScore: makeBuilderScore({
-      development: 8,
-      innovation: 12,
-      community: 15,
-      transparency: 5,
-      productProgress: 6,
-      builderReputation: 10,
-      liquidityHealth: 5,
-    }),
-    curation: {
-      status: 'rejected',
-      builderVerified: false,
-      reviewedAt: '2026-07-08',
-      rejectionReasons: [
-        'No active development',
-        'Anonymous team',
-        'Weak product progress',
-      ],
-    },
-    comments: [],
-    quests: [],
-    socials: {},
-    launchpadActive: false,
-    liquidityLocked: false,
-    reputationDelta: -12,
-  },
-  {
-    id: 'p6',
-    name: 'PumpOracle',
-    ticker: 'PUMP',
-    tagline: 'Price oracle that never shipped a public commit.',
-    description: 'Claimed decentralized oracle network; repository was empty at review.',
-    problem: 'Oracle freshness without infrastructure.',
-    builderStory: 'Team declined identity verification during review.',
-    foundedYear: 2026,
-    journey: 'Whitepaper → Silence',
-    whySelected: '',
-    logoUrl: 'HelpCircle',
-    category: 'Infrastructure',
-    chain: 'Solana',
-    rating: 1.0,
-    upvotes: 2,
-    githubRepo: 'pump-oracle/empty',
-    githubActivity: 0,
-    roadmap: [],
-    team: [{ name: 'Anonymous', role: '—', avatarUrl: 'https://images.unsplash.com/photo-1614850715649-1d0106293bd1?auto=format&fit=crop&w=100&q=80' }],
-    raised: 0,
-    goal: 100000,
-    tokenPrice: 0,
-    tokenPriceHistory: [],
-    aiAnalysis: {
-      quality: 18,
-      market: 40,
-      risk: 90,
-      innovation: 22,
-      summary: 'Rejected for inactivity and refusal of team verification.',
-    },
-    builderScore: makeBuilderScore({
-      development: 10,
-      innovation: 20,
-      community: 12,
-      transparency: 8,
-      productProgress: 5,
-      builderReputation: 15,
-      liquidityHealth: 10,
-    }),
-    curation: {
-      status: 'rejected',
-      builderVerified: false,
-      reviewedAt: '2026-06-22',
-      rejectionReasons: [
-        'No active development',
-        'Anonymous team',
-        'No verifiable product usage',
-      ],
-    },
-    comments: [],
-    quests: [],
-    socials: {},
-    launchpadActive: false,
-    liquidityLocked: false,
-    reputationDelta: 3,
   },
 ];
 
-export const INITIAL_PROPOSALS: Proposal[] = [
-  {
-    id: 'prop1',
-    title: 'BD-GP-12: Matching Pool for High-Score AI & ZK Projects',
-    description:
-      'Allocate community reserve to quadratic funding for projects scoring 85+ on Builder Score™ in AI and ZK categories.',
-    creator: '0x99A8c...B29c',
-    votesFor: 12450000,
-    votesAgainst: 1200000,
-    status: 'active',
-    endsAt: '2026-07-28',
-    category: 'Grants',
-  },
-  {
-    id: 'prop2',
-    title: 'BD-UP-03: Passport Gas Sponsorship for Core Builders+',
-    description:
-      'Sponsor limited Solana fees daily for holders at Core Builder level and above to reward discovery and research.',
-    creator: '0x2a1E3...5C19',
-    votesFor: 8900000,
-    votesAgainst: 450000,
-    status: 'active',
-    endsAt: '2026-07-25',
-    category: 'Upgrades',
-  },
-];
+/** DAO proposals — empty until real governance is live (no fake vote theater). */
+export const INITIAL_PROPOSALS: Proposal[] = [];
 
 export const ALL_QUESTS: Quest[] = [
   {

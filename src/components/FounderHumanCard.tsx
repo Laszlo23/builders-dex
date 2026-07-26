@@ -9,6 +9,21 @@ type Props = {
 export default function FounderHumanCard({ founder, conversations = [] }: Props) {
   const [openId, setOpenId] = useState<string | null>(conversations[0]?.id ?? null);
 
+  const stats = [
+    founder.buildingYears > 0
+      ? { label: 'Building', value: `${founder.buildingYears} years` }
+      : null,
+    founder.previousFailures > 0
+      ? { label: 'Previous failures', value: String(founder.previousFailures) }
+      : null,
+    founder.openSourceCommits > 0
+      ? {
+          label: 'Open Source',
+          value: `${founder.openSourceCommits.toLocaleString()} commits`,
+        }
+      : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
   return (
     <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-surface p-6 md:p-8">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Builder</p>
@@ -26,18 +41,20 @@ export default function FounderHumanCard({ founder, conversations = [] }: Props)
         </div>
       </div>
 
-      <dl className="mt-5 grid grid-cols-3 gap-2">
-        {[
-          { label: 'Building', value: `${founder.buildingYears} years` },
-          { label: 'Previous failures', value: String(founder.previousFailures) },
-          { label: 'Open Source', value: `${founder.openSourceCommits.toLocaleString()} commits` },
-        ].map((r) => (
-          <div key={r.label} className="rounded-xl border border-white/8 bg-ink/50 px-3 py-2.5">
-            <dt className="font-mono text-[9px] uppercase text-steel">{r.label}</dt>
-            <dd className="mt-1 text-sm font-semibold text-white">{r.value}</dd>
-          </div>
-        ))}
-      </dl>
+      {stats.length > 0 ? (
+        <dl className="mt-5 grid grid-cols-3 gap-2">
+          {stats.map((r) => (
+            <div key={r.label} className="rounded-xl border border-white/8 bg-ink/50 px-3 py-2.5">
+              <dt className="font-mono text-[9px] uppercase text-steel">{r.label}</dt>
+              <dd className="mt-1 text-sm font-semibold text-white">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="mt-5 font-mono text-[10px] uppercase tracking-wider text-steel">
+          Identity verified via public profile · metrics from live GitHub score only
+        </p>
+      )}
 
       {conversations.length > 0 && (
         <div className="mt-6 border-t border-white/8 pt-5">

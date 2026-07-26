@@ -8,6 +8,10 @@ export type ScoutSubmissionRow = {
   rewardXp: number;
   earlyCall: boolean;
   createdAt: string;
+  outcome30d?: string | null;
+  outcome90d?: string | null;
+  scoredAt30d?: string | null;
+  scoredAt90d?: string | null;
 };
 
 export type ScoutLeaderboardRow = {
@@ -18,4 +22,6 @@ export type ScoutLeaderboardRow = {
   earlyCalls: number;
   levelName: string;
   verified: boolean;
+  /** Hit rate from scored 30d outcomes; null until enough outcomes exist */
+  accuracyPct: number | null;
 };

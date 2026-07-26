@@ -1,11 +1,32 @@
 import { getSqlite } from '../db/sqlite';
 import { isValidSolanaWallet } from '../reputation/repo';
 import { INITIAL_SCOUT_MISSIONS } from '../../data/reputation';
+import { accuracyForWallet } from './outcomes';
 import type { ScoutLeaderboardRow, ScoutSubmissionRow } from './types';
 
 export type { ScoutLeaderboardRow, ScoutSubmissionRow };
 
 const ANALYSIS_MIN = 40;
+
+const SUB_COLS = `id, wallet, mission_id, project_id, analysis, evidence_url,
+              reward_xp, early_call, created_at,
+              outcome_30d, outcome_90d, scored_at_30d, scored_at_90d`;
+
+type RawSub = {
+  id: number;
+  wallet: string;
+  mission_id: string;
+  project_id: string;
+  analysis: string;
+  evidence_url: string;
+  reward_xp: number;
+  early_call: number;
+  created_at: string;
+  outcome_30d: string | null;
+  outcome_90d: string | null;
+  scored_at_30d: string | null;
+  scored_at_90d: string | null;
+};
 
 export function getMissionById(missionId: string) {
   return INITIAL_SCOUT_MISSIONS.find((m) => m.id === missionId) ?? null;
@@ -16,42 +37,18 @@ export function listSubmissionsForWallet(wallet: string): ScoutSubmissionRow[] {
   if (!isValidSolanaWallet(w)) return [];
   const rows = getSqlite()
     .prepare(
-      `SELECT id, wallet, mission_id, project_id, analysis, evidence_url,
-              reward_xp, early_call, created_at
-       FROM scout_submissions WHERE wallet = ? ORDER BY created_at DESC`,
+      `SELECT ${SUB_COLS} FROM scout_submissions WHERE wallet = ? ORDER BY created_at DESC`,
     )
-    .all(w) as {
-    id: number;
-    wallet: string;
-    mission_id: string;
-    project_id: string;
-    analysis: string;
-    evidence_url: string;
-    reward_xp: number;
-    early_call: number;
-    created_at: string;
-  }[];
+    .all(w) as RawSub[];
   return rows.map(mapRow);
 }
 
 export function listRecentSubmissions(limit = 20): ScoutSubmissionRow[] {
   const rows = getSqlite()
     .prepare(
-      `SELECT id, wallet, mission_id, project_id, analysis, evidence_url,
-              reward_xp, early_call, created_at
-       FROM scout_submissions ORDER BY created_at DESC LIMIT ?`,
+      `SELECT ${SUB_COLS} FROM scout_submissions ORDER BY created_at DESC LIMIT ?`,
     )
-    .all(Math.min(50, Math.max(1, limit))) as {
-    id: number;
-    wallet: string;
-    mission_id: string;
-    project_id: string;
-    analysis: string;
-    evidence_url: string;
-    reward_xp: number;
-    early_call: number;
-    created_at: string;
-  }[];
+    .all(Math.min(50, Math.max(1, limit))) as RawSub[];
   return rows.map(mapRow);
 }
 
@@ -121,6 +118,7 @@ export function listScoutLeaderboard(limit = 25): ScoutLeaderboardRow[] {
       earlyCalls: Number(r.early_calls) || 0,
       levelName: r.level_name,
       verified: Boolean(r.verified),
+      accuracyPct: accuracyForWallet(r.wallet),
     });
   }
   for (const r of fromPassports) {
@@ -139,6 +137,7 @@ export function listScoutLeaderboard(limit = 25): ScoutLeaderboardRow[] {
       earlyCalls: 0,
       levelName: r.level_name,
       verified: Boolean(r.verified),
+      accuracyPct: accuracyForWallet(r.wallet),
     });
   }
 
@@ -186,23 +185,9 @@ export function submitScoutCall(input: {
 
   const existing = getSqlite()
     .prepare(
-      `SELECT id, wallet, mission_id, project_id, analysis, evidence_url,
-              reward_xp, early_call, created_at
-       FROM scout_submissions WHERE wallet = ? AND mission_id = ?`,
+      `SELECT ${SUB_COLS} FROM scout_submissions WHERE wallet = ? AND mission_id = ?`,
     )
-    .get(wallet, missionId) as
-    | {
-        id: number;
-        wallet: string;
-        mission_id: string;
-        project_id: string;
-        analysis: string;
-        evidence_url: string;
-        reward_xp: number;
-        early_call: number;
-        created_at: string;
-      }
-    | undefined;
+    .get(wallet, missionId) as RawSub | undefined;
 
   if (existing) {
     return { ok: true, submission: mapRow(existing), already: true };
@@ -226,37 +211,13 @@ export function submitScoutCall(input: {
     );
 
   const row = getSqlite()
-    .prepare(
-      `SELECT id, wallet, mission_id, project_id, analysis, evidence_url,
-              reward_xp, early_call, created_at
-       FROM scout_submissions WHERE id = ?`,
-    )
-    .get(Number(info.lastInsertRowid)) as {
-    id: number;
-    wallet: string;
-    mission_id: string;
-    project_id: string;
-    analysis: string;
-    evidence_url: string;
-    reward_xp: number;
-    early_call: number;
-    created_at: string;
-  };
+    .prepare(`SELECT ${SUB_COLS} FROM scout_submissions WHERE id = ?`)
+    .get(Number(info.lastInsertRowid)) as RawSub;
 
   return { ok: true, submission: mapRow(row), already: false };
 }
 
-function mapRow(r: {
-  id: number;
-  wallet: string;
-  mission_id: string;
-  project_id: string;
-  analysis: string;
-  evidence_url: string;
-  reward_xp: number;
-  early_call: number;
-  created_at: string;
-}): ScoutSubmissionRow {
+function mapRow(r: RawSub): ScoutSubmissionRow {
   return {
     id: r.id,
     wallet: r.wallet,
@@ -267,6 +228,10 @@ function mapRow(r: {
     rewardXp: r.reward_xp,
     earlyCall: Boolean(r.early_call),
     createdAt: r.created_at,
+    outcome30d: r.outcome_30d,
+    outcome90d: r.outcome_90d,
+    scoredAt30d: r.scored_at_30d,
+    scoredAt90d: r.scored_at_90d,
   };
 }
 

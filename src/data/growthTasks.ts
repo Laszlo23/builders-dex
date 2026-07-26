@@ -89,6 +89,16 @@ export const INITIAL_GROWTH_TASKS: GrowthTask[] = [
     completed: false,
   },
   {
+    id: 't_community_vote',
+    title: 'Vote for a community token',
+    description:
+      'Open @buildersdexbot and cast a Community Trending vote (once every 3 hours per token).',
+    xp: 120,
+    badge: 'Community Vote',
+    category: 'social',
+    completed: false,
+  },
+  {
     id: 't_follow_x',
     title: 'Follow Building Culture on X',
     description: 'Follow @buildingcultu3 on X — then claim.',
@@ -195,4 +205,5 @@ export const GROWTH_TASK_EXTERNAL: Record<string, string> = {
   t_follow_x: BRAND_SOCIALS.find((s) => s.id === 'x')!.href,
   t_join_discord: BRAND_SOCIALS.find((s) => s.id === 'discord')!.href,
   t_join_telegram: BRAND_SOCIALS.find((s) => s.id === 'telegram')!.href,
+  t_community_vote: 'https://t.me/buildersdexbot',
 };

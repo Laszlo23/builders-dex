@@ -72,7 +72,7 @@ const STEPS: { step: string; icon: LucideIcon; title: string; body: string }[] =
     step: '01',
     icon: Users,
     title: 'Builders enter',
-    body: 'Thousands submit. No shortcuts into the reputation graph.',
+    body: 'Apply to the catalog. No shortcuts into the reputation graph.',
   },
   {
     step: '02',

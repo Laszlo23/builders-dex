@@ -198,6 +198,40 @@ function migrate(database: Database.Database): void {
           ON scout_submissions(project_id);
       `,
     },
+    {
+      name: '007_scout_outcomes_index_radar',
+      sql: `
+        CREATE TABLE IF NOT EXISTS index_candidates (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          source TEXT NOT NULL DEFAULT 'telegram',
+          telegram_token_id INTEGER,
+          ticker TEXT NOT NULL,
+          name TEXT NOT NULL DEFAULT '',
+          chain TEXT NOT NULL DEFAULT 'solana',
+          mint TEXT,
+          description TEXT NOT NULL DEFAULT '',
+          vote_count INTEGER NOT NULL DEFAULT 0,
+          chat_title TEXT NOT NULL DEFAULT '',
+          status TEXT NOT NULL DEFAULT 'pending'
+            CHECK (status IN ('pending', 'reviewed', 'accepted', 'rejected')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(telegram_token_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_index_candidates_status
+          ON index_candidates(status);
+
+        CREATE TABLE IF NOT EXISTS radar_digest_sent (
+          day_key TEXT PRIMARY KEY,
+          sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `,
+    },
+    {
+      name: '008_vote_cooldown_repeatable',
+      sql: `SELECT 1;`,
+    },
   ];
 
   const mark = database.prepare(
@@ -241,6 +275,31 @@ function migrate(database: Database.Database): void {
           'chain',
           "TEXT NOT NULL DEFAULT 'solana'",
         );
+      }
+      if (m.name === '007_scout_outcomes_index_radar') {
+        addColumnIfMissing(database, 'scout_submissions', 'outcome_30d', 'TEXT');
+        addColumnIfMissing(database, 'scout_submissions', 'outcome_90d', 'TEXT');
+        addColumnIfMissing(database, 'scout_submissions', 'scored_at_30d', 'TEXT');
+        addColumnIfMissing(database, 'scout_submissions', 'scored_at_90d', 'TEXT');
+      }
+      if (m.name === '008_vote_cooldown_repeatable') {
+        database.exec(`
+          CREATE TABLE IF NOT EXISTS votes_v2 (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            token_id INTEGER NOT NULL,
+            telegram_user_id INTEGER NOT NULL,
+            username TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (token_id) REFERENCES token_profiles(id) ON DELETE CASCADE
+          );
+          INSERT INTO votes_v2 (id, token_id, telegram_user_id, username, created_at)
+            SELECT id, token_id, telegram_user_id, username, created_at FROM votes;
+          DROP TABLE votes;
+          ALTER TABLE votes_v2 RENAME TO votes;
+          CREATE INDEX IF NOT EXISTS idx_votes_token ON votes(token_id);
+          CREATE INDEX IF NOT EXISTS idx_votes_token_user_created
+            ON votes(token_id, telegram_user_id, created_at DESC);
+        `);
       }
       database.exec(m.sql);
       mark.run(m.name);

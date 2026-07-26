@@ -562,7 +562,14 @@ export default function ProfileView({
             </div>
             <div className="rounded-xl border border-white/8 bg-ink/50 px-3 py-2.5">
               <dt className="text-steel">Research Accuracy</dt>
-              <dd className="mt-1 text-lg text-white">{passport.researchAccuracy || 70}%</dd>
+              <dd className="mt-1 text-lg text-white">
+                {passport.researchAccuracy != null && passport.researchAccuracy > 0
+                  ? `${passport.researchAccuracy}%`
+                  : '—'}
+              </dd>
+              <dt className="mt-1 text-[10px] text-steel/80">
+                From scored 30d Scout outcomes (hit/miss) — not inflated on submit
+              </dt>
             </div>
             <div className="rounded-xl border border-white/8 bg-ink/50 px-3 py-2.5">
               <dt className="text-steel">Scout Reputation</dt>

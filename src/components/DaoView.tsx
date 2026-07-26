@@ -75,6 +75,10 @@ export default function DaoView({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 text-white space-y-10">
+      <div className="rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
+        <strong className="font-semibold">Parked (simulation).</strong> DAO stake/vote is not on-chain.
+        Core loop: Radar → Builders → Scout → Trade.
+      </div>
       
       {/* Title */}
       <div className="border-b border-white/[0.08] pb-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

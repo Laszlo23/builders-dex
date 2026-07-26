@@ -102,13 +102,9 @@ export function proofOfBuildingFor(project: Project): ProofOfBuilding {
             ? project.journey.split('→').pop()?.trim() || 'In progress'
             : 'Not deployed';
       case 'users':
-        return usersOk
-          ? `${Math.max(project.upvotes * 12, 4200).toLocaleString()} users`
-          : 'Early usage';
+        return usersOk ? 'Usage signal (unverified count)' : 'Early usage';
       case 'community':
-        return communityOk
-          ? `${Math.max(Math.round(project.upvotes * 28), 1200).toLocaleString()} members`
-          : 'Growing';
+        return communityOk ? 'Community signal (unverified count)' : 'Growing';
       case 'opensource':
         return opensourceOk ? 'Verified contributions' : 'Limited signal';
       case 'revenue':

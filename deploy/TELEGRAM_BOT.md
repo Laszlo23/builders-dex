@@ -8,6 +8,7 @@ Community groups register builder token profiles; members upvote once per token.
 TELEGRAM_BOT_TOKEN=<from @BotFather>
 TELEGRAM_WEBHOOK_SECRET=<long random string>
 TELEGRAM_TREND_THRESHOLD=25
+TELEGRAM_VOTE_COOLDOWN_HOURS=3
 TELEGRAM_DB_PATH=/var/www/dex-buildingculture/data/builder-bot.sqlite
 APP_URL=https://dex.buildingcultureid.space
 ```
@@ -68,26 +69,25 @@ curl -sS https://dex.buildingcultureid.space/api/telegram/trending
 
 ## Group setup (intended product flow)
 
-1. Invite `@buildersdexbot` into the community → bot posts a welcome / how-to message.
-2. **Community manager** runs `/newtoken` (mint, logo, name, description, banner, socials)  
-   — or uses the DEX form with `/chatid`.
-3. Bot **posts a vote message** in the chat with:
-   - **▲ Upvote here** (in-chat button — primary)
-   - **Open vote card** (Mini App deep-link)
-4. **Members** tap the button on that post (no commands). One vote per Telegram user.
-5. At threshold → Community Trending on DEX. Manager can `/postvote TICKER` to re-pin the card.
+1. **Owner DMs the bot** `/newtoken` → fill Chain, Logo, Banner, Contract, … → *Save token*.
+2. Invite `@buildersdexbot` into the community → bot posts a welcome / how-to message.
+3. **Owner (admin)** runs `/postvote TICKER` in the group → bot attaches the token and posts a vote card with **📊 Chart · 👍 Vote · 💲 Buy**.
+4. **Members** tap **👍 Vote** (or `/status TICKER`). One vote every **3 hours** per Telegram user per token.
+5. At threshold → Community Trending on DEX. Manager can `/postvote TICKER` again to re-pin the card.
 6. **Big buys:** bot posts whale buys (default ≥ `$TELEGRAM_BIG_BUY_USD`) for that mint.
+
+Admins can still run `/newtoken` inside the group to create + open voting in one step.
 
 ## Commands
 
 | Command | Who | Effect |
 |---------|-----|--------|
 | `/help` | anyone | Explain the bot |
-| `/newtoken …` | admin | Create `candidate` profile |
-| `/openvotes TICKER` | admin | `candidate` → `voting` |
-| `/upvote TICKER` | member | Unique vote |
-| `/tokens` | anyone | List chat profiles |
-| `/status TICKER` | anyone | Votes + DEX link when trending |
+| `/newtoken` | owner (DM) or group admin | Create token profile |
+| `/postvote TICKER` | group admin | Link private draft → open votes + post card |
+| `/status TICKER` | anyone | Rich card with Chart · Vote · Buy |
+| `/upvote TICKER` | member | Vote (once every 3h per token) |
+| `/tokens` | anyone | List profiles (DM = yours; group = chat) |
 
 ## APIs
 

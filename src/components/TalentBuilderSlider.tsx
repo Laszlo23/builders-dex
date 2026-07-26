@@ -47,11 +47,13 @@ export default function TalentBuilderSlider() {
               Builders we watch first
             </h2>
             <p className="mt-2 max-w-lg text-sm text-steel">
-              Avatars from Talent Protocol. Click opens their profile — identity before ticker.
+              {source === 'live'
+                ? 'Live Talent Protocol rankings. Click opens their Talent.app profile.'
+                : 'Curated Talent.app profiles (API fallback). Not Builders DEX members until they join.'}
             </p>
           </div>
           <span className="font-mono text-[10px] uppercase tracking-wider text-white/35">
-            {source === 'live' ? 'Live API' : 'Curated · API ready'}
+            {source === 'live' ? 'Live Talent API' : 'Curated Talent.app · not fake names'}
           </span>
         </div>
       </div>

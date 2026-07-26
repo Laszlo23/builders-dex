@@ -3,7 +3,6 @@ import { Radar, Crosshair, Swords, Activity, Trophy, Rss, BadgeCheck } from 'luc
 import { Project, ScoutMission, ScoutProfile } from '../types';
 import {
   ARENA_MATCH,
-  GENESIS_RADAR,
   TRUST_FLOW,
   progressBar,
 } from '../data/reputation';
@@ -180,7 +179,7 @@ export default function TerminalView({
         progress: Math.min(92, Math.max(40, p.builderScore.overall - 8)),
         projectId: p.id,
       }));
-    return [...fromProjects, ...GENESIS_RADAR].slice(0, 8);
+    return fromProjects.slice(0, 8);
   }, [projects]);
 
   const totalArena = arenaVotes.a + arenaVotes.b || 1;
@@ -296,32 +295,39 @@ export default function TerminalView({
               Weekly Builder Awards
             </p>
             <h2 className="font-display mt-1 text-xl font-bold">Come back for the ceremony</h2>
-            <ul className="mt-4 space-y-2">
-              {WEEKLY_AWARDS.map((a) => (
-                <li
-                  key={a.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5"
-                >
-                  <div>
-                    <p className="font-mono text-[9px] uppercase text-accent">{a.title}</p>
-                    <p className="text-sm font-semibold">{a.winner}</p>
-                    <p className="text-xs text-steel">{a.note}</p>
-                  </div>
-                  {a.projectId && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedProjectId(a.projectId!);
-                        setCurrentPath('project-detail');
-                      }}
-                      className="text-xs text-accent hover:underline"
-                    >
-                      Open →
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
+            {WEEKLY_AWARDS.length === 0 ? (
+              <p className="mt-4 rounded-xl border border-dashed border-white/12 px-3 py-6 text-sm text-steel">
+                Awards appear when scout / reputation ledgers produce real winners — no
+                placeholder names.
+              </p>
+            ) : (
+              <ul className="mt-4 space-y-2">
+                {WEEKLY_AWARDS.map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5"
+                  >
+                    <div>
+                      <p className="font-mono text-[9px] uppercase text-accent">{a.title}</p>
+                      <p className="text-sm font-semibold">{a.winner}</p>
+                      <p className="text-xs text-steel">{a.note}</p>
+                    </div>
+                    {a.projectId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProjectId(a.projectId!);
+                          setCurrentPath('project-detail');
+                        }}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        Open →
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -535,7 +541,11 @@ export default function TerminalView({
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-steel">Research Accuracy</dt>
-                  <dd>{userScout.researchAccuracy}%</dd>
+                  <dd>
+                    {userScout.researchAccuracy > 0
+                      ? `${userScout.researchAccuracy}%`
+                      : '— (await 30d outcomes)'}
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-steel">Scout Reputation</dt>
@@ -572,6 +582,7 @@ export default function TerminalView({
                       </p>
                       <p className="font-mono text-[10px] text-steel">
                         {s.submissionCount} calls · {s.earlyCalls} early
+                        {s.accuracyPct != null ? ` · ${s.accuracyPct}% acc` : ''}
                       </p>
                     </div>
                     <span className="font-mono text-xs text-accent">{s.scoutXp}</span>

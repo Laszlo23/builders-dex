@@ -24,6 +24,11 @@ export default function BuilderStoriesView({ onOpenProject }: Props) {
         </p>
       </header>
       <BuilderNetflixCard episodes={FOUNDER_EPISODES} onOpenProject={onOpenProject} />
+      {FOUNDER_EPISODES.length === 0 && (
+        <p className="mt-8 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-sm text-steel">
+          No founder episodes published yet. We only ship recorded stories — not placeholder cards.
+        </p>
+      )}
     </div>
   );
 }

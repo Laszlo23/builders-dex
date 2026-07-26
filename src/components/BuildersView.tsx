@@ -38,8 +38,8 @@ export default function BuildersView({
           The Builder 100
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-steel">
-          The top 100 builders pushing Solana forward. Climb this ranking with score, passport
-          level, and real contributions.
+          Real orgs and builders only — ranked by Builder Score™. No filler names. The wall
+          grows as passports sync and Talent / GitHub scores clear.
         </p>
       </div>
 

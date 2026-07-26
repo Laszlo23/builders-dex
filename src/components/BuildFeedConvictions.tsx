@@ -12,28 +12,36 @@ export function BuildFeedCard({
     <section className="rounded-[1.75rem] border border-white/10 bg-gradient-to-b from-white/[0.05] to-surface p-5 sm:p-6">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Build Feed™</p>
       <h2 className="font-display mt-1 text-xl font-bold">Watch builders building</h2>
-      <p className="mt-1 text-xs text-steel">Not a price feed — a progress feed.</p>
-      <ul className="mt-5 space-y-0">
-        {items.map((item, i) => (
-          <li
-            key={item.id}
-            className={`py-3.5 ${i < items.length - 1 ? 'border-b border-white/8' : ''}`}
-          >
-            <p className="font-mono text-[10px] text-steel">{item.when}</p>
-            <button
-              type="button"
-              disabled={!item.projectId || !onOpenProject}
-              onClick={() => item.projectId && onOpenProject?.(item.projectId)}
-              className="mt-1 text-left disabled:cursor-default"
+      <p className="mt-1 text-xs text-steel">
+        Not a price feed — a progress feed. Events appear when GitHub / radar signals land.
+      </p>
+      {items.length === 0 ? (
+        <p className="mt-5 rounded-xl border border-dashed border-white/12 px-4 py-8 text-center text-sm text-steel">
+          No live progress events yet — we do not invent activity.
+        </p>
+      ) : (
+        <ul className="mt-5 space-y-0">
+          {items.map((item, i) => (
+            <li
+              key={item.id}
+              className={`py-3.5 ${i < items.length - 1 ? 'border-b border-white/8' : ''}`}
             >
-              <p className="text-sm font-semibold text-white hover:text-accent">
-                {item.projectName}
-              </p>
-              <p className="mt-0.5 text-sm text-white/75">{item.event}</p>
-            </button>
-          </li>
-        ))}
-      </ul>
+              <p className="font-mono text-[10px] text-steel">{item.when}</p>
+              <button
+                type="button"
+                disabled={!item.projectId || !onOpenProject}
+                onClick={() => item.projectId && onOpenProject?.(item.projectId)}
+                className="mt-1 text-left disabled:cursor-default"
+              >
+                <p className="text-sm font-semibold text-white hover:text-accent">
+                  {item.projectName}
+                </p>
+                <p className="mt-0.5 text-sm text-white/75">{item.event}</p>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

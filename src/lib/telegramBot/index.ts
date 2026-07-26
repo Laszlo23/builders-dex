@@ -3,6 +3,8 @@ export type { TelegramBotHandle } from './bot';
 export {
   castVoteByTokenId,
   getTrendThreshold,
+  getVoteCooldown,
+  getVoteCooldownHours,
   hasUserVoted,
   listTokensByChatId,
   listTrending,

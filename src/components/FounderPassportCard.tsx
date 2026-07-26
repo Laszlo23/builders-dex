@@ -22,26 +22,11 @@ export default function FounderPassportCard({
 }: Props) {
   const protocols = previousProtocols ?? Math.max(founder.projectsCreated.length, 1);
 
-  const shareStats = legacy
-    ? [
-        { label: 'First Commit', value: legacy.firstCommit },
-        { label: 'People Inspired', value: legacy.peopleInspired.toLocaleString() },
-        { label: 'Protocols Shipped', value: String(legacy.protocolsShipped) },
-        { label: 'Open Source Hours', value: legacy.openSourceHours.toLocaleString() },
-        { label: 'Builders Mentored', value: String(legacy.buildersMentored) },
-        { label: 'Legacy Rank', value: legacy.legacyRank },
-      ]
-    : [
-        { label: 'Previous protocols', value: String(protocols) },
-        { label: 'Exits', value: String(exits) },
-        { label: 'Open-source', value: String(founder.contributionsCount || 18) },
-        { label: 'Building since', value: String(buildingSince) },
-        { label: 'People inspired', value: founder.followers.toLocaleString() },
-        {
-          label: 'Legacy Rank',
-          value: founder.reputationLevel.includes('Genesis') ? 'Genesis' : 'Core',
-        },
-      ];
+  const shareStats = [
+    { label: 'Projects linked', value: String(protocols) },
+    { label: 'Level', value: founder.reputationLevel },
+    { label: 'Passport', value: 'Verify via GitHub score' },
+  ];
 
   return (
     <section className="space-y-4">

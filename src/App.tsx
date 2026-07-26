@@ -658,8 +658,7 @@ export default function App() {
       wallet: wallet.address || 'Anon',
       text: commentText,
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      avatarUrl:
-        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+      avatarUrl: undefined,
     };
 
     setProjects((prev) =>
@@ -826,7 +825,7 @@ export default function App() {
         ...p,
         scoutXp: (p.scoutXp || 0) + rewardXp,
         earlyCalls: (p.earlyCalls || 0) + (result.earlyCall ? 1 : 0),
-        researchAccuracy: Math.min(99, (p.researchAccuracy || 70) + 2),
+        // researchAccuracy comes from scored 30/90d outcomes on the ledger — not inflated here
         projectsDiscovered: p.projectsDiscovered + 1,
         builderReputation: Math.min(100, p.builderReputation + 3),
         communityTrust: Math.min(100, p.communityTrust + 2),
@@ -1080,7 +1079,7 @@ export default function App() {
                     : 'Field Scout',
               projectsDiscovered: passport.projectsDiscovered,
               earlyCalls: passport.earlyCalls || 0,
-              researchAccuracy: passport.researchAccuracy || 70,
+              researchAccuracy: passport.researchAccuracy || 0,
               scoutReputation: Math.min(
                 100,
                 Math.round((passport.scoutXp || 0) / 20 + passport.builderReputation / 2)

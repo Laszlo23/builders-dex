@@ -20,22 +20,24 @@ export type DailyIntelligenceBrief = {
   defaultWatchlistUpdates: number;
 };
 
-/** Builder Intelligence Daily™ — morning habit loop */
+/**
+ * Offline fallback only — live brief comes from GET /api/daily-radar.
+ * Keep empty so we never ship dated fiction when the API is down.
+ */
 export const TODAY_BRIEF: DailyIntelligenceBrief = {
   greeting: 'GOOD MORNING',
   title: "Today's Builder Radar",
-  dateLabel: 'Jul 20, 2026',
+  dateLabel: 'Awaiting live radar',
   events: [
-    { kind: 'gained', text: '3 projects gained reputation' },
-    { kind: 'entered', text: '2 builders entered the top 100' },
-    { kind: 'lost', text: '1 project lost verification status' },
-    { kind: 'entered', text: 'Crystal Ball™: HyperSphere at 91% Top-100 probability' },
-    { kind: 'gained', text: '4 projects opened collaborator Needs' },
+    {
+      kind: 'entered',
+      text: 'Connect to load live Builder Score™ deltas and community trending.',
+    },
   ],
   marketPulse: [
-    { sector: 'AI', changePct: 14 },
-    { sector: 'DePIN', changePct: 8 },
-    { sector: 'RWA', changePct: 5 },
+    { sector: 'AI', changePct: 0 },
+    { sector: 'Infrastructure', changePct: 0 },
+    { sector: 'DeFi', changePct: 0 },
   ],
-  defaultWatchlistUpdates: 3,
+  defaultWatchlistUpdates: 0,
 };

@@ -71,7 +71,9 @@ export const SCORE_DIMENSION_DOCS: Record<
       'Curation status (curated / reviewed / pending / rejected)',
       'Repository age',
       'Team size',
-      'Optional Talent / Neynar when wired',
+      'GitHub activity when configured',
+      'Catalog curation status',
+      'Community Telegram votes (separate lane)',
     ],
   },
   liquidityHealth: {

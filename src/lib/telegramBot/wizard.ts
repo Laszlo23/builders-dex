@@ -126,7 +126,7 @@ export function buildMenuKeyboard(data: WizardData): InlineKeyboard {
     .row();
 
   if (requiredReady(data)) {
-    kb.text('🚀 Publish vote post', 'nw:publish').row();
+    kb.text('🚀 Save token', 'nw:publish').row();
   }
   kb.text('❌ Cancel', 'nw:cancel');
   return kb;
@@ -153,7 +153,7 @@ function menuText(data: WizardData, awaiting: AwaitingField): string {
   if (awaiting) {
     lines.push(`⏳ Waiting for: *${awaiting}* — paste it now.`);
   } else if (requiredReady(data)) {
-    lines.push('All required fields set — tap *Publish vote post*.');
+    lines.push('All required fields set — tap *Save token*.');
   } else {
     lines.push(
       'Required: Chain, Ticker, Name, Contract, Description, Logo, Banner.',
@@ -359,9 +359,16 @@ async function publishWizard(
   }
 
   try {
+    const isPrivate = ctx.chat?.type === 'private';
+    const chatTitle = isPrivate
+      ? ctx.from?.username
+        ? `@${ctx.from.username}`
+        : ctx.from?.first_name || 'Private chat'
+      : ctx.chat?.title || 'Telegram group';
+
     const profile = createTokenProfile({
       chatId: session.chatId,
-      chatTitle: ctx.chat?.title || 'Telegram group',
+      chatTitle,
       ticker: d.ticker,
       name: d.name,
       chain: d.chain,
@@ -377,12 +384,31 @@ async function publishWizard(
       servingBotKey: session.botKey,
       createdByUserId: session.userId,
     });
-    const voting = setTokenStatus(profile.id, 'voting')!;
     clearWizard(session.chatId, session.userId);
+
+    if (isPrivate) {
+      // Keep as candidate until the owner links it in a community with /postvote
+      await ctx.reply(
+        [
+          `✅ *$${profile.ticker}* saved in your private chat.`,
+          '',
+          '*Next steps*',
+          '1. Invite me to your community group',
+          `2. In that group, run \`/postvote ${profile.ticker}\``,
+          '3. Members tap *👍 Vote* on the post',
+          '',
+          `Preview anytime: \`/status ${profile.ticker}\``,
+        ].join('\n'),
+        { parse_mode: 'Markdown' },
+      );
+      return true;
+    }
+
+    const voting = setTokenStatus(profile.id, 'voting')!;
     await ctx.reply(
       [
         `✅ *$${voting.ticker}* listed.`,
-        'Members: tap *▲ Upvote here* on the vote post below.',
+        'Members: tap *👍 Vote* on the vote post below.',
       ].join('\n'),
       { parse_mode: 'Markdown' },
     );
