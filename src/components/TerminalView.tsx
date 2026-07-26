@@ -1,11 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { Radar, Crosshair, Swords, Activity, Trophy, Rss } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Radar, Crosshair, Swords, Activity, Trophy, Rss, BadgeCheck } from 'lucide-react';
 import { Project, ScoutMission, ScoutProfile } from '../types';
 import {
   ARENA_MATCH,
   GENESIS_RADAR,
-  SCOUT_LEADERBOARD,
-  TERMINAL_SECTORS,
   TRUST_FLOW,
   progressBar,
 } from '../data/reputation';
@@ -20,11 +18,22 @@ import {
 import { BUILD_FEED, Conviction } from '../data/builderEconomy';
 import BuildersManifesto from './BuildersManifesto';
 import { WEEKLY_AWARDS } from '../data/builderNetwork';
+import { fetchDailyRadar } from '../lib/dailyRadar/client';
+import type { DailyRadarPayload } from '../lib/dailyRadar/types';
+import {
+  fetchScoutLeaderboard,
+  fetchScoutRecent,
+} from '../lib/scout/client';
+import type { ScoutLeaderboardRow, ScoutSubmissionRow } from '../lib/scout/types';
 
 interface TerminalViewProps {
   projects: Project[];
   scoutMissions: ScoutMission[];
-  onCompleteScout: (id: string, analysis: string) => void;
+  onCompleteScout: (
+    id: string,
+    analysis: string,
+    meta: { projectId: string; evidenceUrl?: string },
+  ) => Promise<{ ok: boolean; error?: string; already?: boolean }>;
   onVoteArena: (side: 'a' | 'b') => void;
   arenaVotes: { a: number; b: number; userSide?: 'a' | 'b' };
   setSelectedProjectId: (id: string) => void;
@@ -33,6 +42,13 @@ interface TerminalViewProps {
   watchlistUpdates: number;
   userScout: ScoutProfile;
   convictions: Conviction[];
+  walletAddress?: string | null;
+  onConnectWallet?: () => void;
+}
+
+function shortWallet(w: string): string {
+  if (w.length < 10) return w;
+  return `${w.slice(0, 4)}…${w.slice(-4)}`;
 }
 
 function ProgressVisual({ pct }: { pct: number }) {
@@ -61,28 +77,94 @@ export default function TerminalView({
   watchlistUpdates,
   userScout,
   convictions,
+  walletAddress,
+  onConnectWallet,
 }: TerminalViewProps) {
   const [tab, setTab] = useState<'terminal' | 'radar' | 'scouts' | 'arena' | 'feed'>('terminal');
   const [analysisDraft, setAnalysisDraft] = useState<Record<string, string>>({});
+  const [evidenceDraft, setEvidenceDraft] = useState<Record<string, string>>({});
+  const [projectDraft, setProjectDraft] = useState<Record<string, string>>({});
   const [activeMission, setActiveMission] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [radar, setRadar] = useState<DailyRadarPayload | null>(null);
+  const [scoutBoard, setScoutBoard] = useState<ScoutLeaderboardRow[]>([]);
+  const [recentCalls, setRecentCalls] = useState<ScoutSubmissionRow[]>([]);
 
-  const rising = useMemo(
-    () =>
-      [...projects]
-        .filter((p) => p.curation.status === 'curated' && (p.reputationDelta ?? 0) > 0)
-        .sort((a, b) => (b.reputationDelta ?? 0) - (a.reputationDelta ?? 0))
-        .slice(0, 3),
-    [projects]
+  useEffect(() => {
+    let cancelled = false;
+    void fetchDailyRadar().then((r) => {
+      if (!cancelled && r) setRadar(r);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (tab !== 'scouts') return;
+    let cancelled = false;
+    void Promise.all([fetchScoutLeaderboard(12), fetchScoutRecent(8)]).then(
+      ([board, recent]) => {
+        if (cancelled) return;
+        setScoutBoard(board);
+        setRecentCalls(recent);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, scoutMissions]);
+
+  const scoutableProjects = useMemo(
+    () => projects.filter((p) => p.curation.status !== 'rejected'),
+    [projects],
   );
 
-  const falling = useMemo(
-    () =>
-      [...projects]
-        .filter((p) => (p.reputationDelta ?? 0) < 0)
-        .sort((a, b) => (a.reputationDelta ?? 0) - (b.reputationDelta ?? 0))
-        .slice(0, 3),
-    [projects]
-  );
+  const rising = useMemo(() => {
+    if (radar?.movers.rising.length) {
+      return radar.movers.rising.map((m) => ({
+        id: m.projectId,
+        name: m.name,
+        label: `${m.delta >= 0 ? '+' : ''}${m.delta} score`,
+      }));
+    }
+    return [...projects]
+      .filter((p) => p.curation.status === 'curated' && (p.reputationDelta ?? 0) > 0)
+      .sort((a, b) => (b.reputationDelta ?? 0) - (a.reputationDelta ?? 0))
+      .slice(0, 3)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        label: `+${p.reputationDelta} reputation`,
+      }));
+  }, [radar, projects]);
+
+  const falling = useMemo(() => {
+    if (radar?.movers.falling.length) {
+      return radar.movers.falling.map((m) => ({
+        id: m.projectId,
+        name: m.name,
+        label: `${m.delta} score`,
+      }));
+    }
+    return [...projects]
+      .filter((p) => (p.reputationDelta ?? 0) < 0)
+      .sort((a, b) => (a.reputationDelta ?? 0) - (b.reputationDelta ?? 0))
+      .slice(0, 3)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        label: `${p.reputationDelta} reputation`,
+      }));
+  }, [radar, projects]);
+
+  const sectorPulse = radar?.marketPulse?.length
+    ? radar.marketPulse
+    : [
+        { sector: 'AI', changePct: 0 },
+        { sector: 'Infrastructure', changePct: 0 },
+      ];
 
   const radarEntries = useMemo(() => {
     const fromProjects = projects
@@ -103,14 +185,41 @@ export default function TerminalView({
 
   const totalArena = arenaVotes.a + arenaVotes.b || 1;
 
-  const submitMission = (id: string) => {
+  const submitMission = async (id: string) => {
     const text = (analysisDraft[id] || '').trim();
-    if (text.length < 24) {
-      alert('Write at least a short analysis (24+ characters) before submitting.');
+    const mission = scoutMissions.find((m) => m.id === id);
+    const projectId = (projectDraft[id] || mission?.suggestedProjectId || '').trim();
+    const evidenceUrl = (evidenceDraft[id] || '').trim();
+
+    if (!walletAddress) {
+      setSubmitError('Connect a wallet to timestamp your call on the shared ledger.');
+      onConnectWallet?.();
       return;
     }
-    onCompleteScout(id, text);
+    if (!projectId) {
+      setSubmitError('Select a catalog project for this call.');
+      return;
+    }
+    if (text.length < 40) {
+      setSubmitError('Write at least 40 characters of analysis before submitting.');
+      return;
+    }
+
+    setSubmitting(id);
+    setSubmitError(null);
+    const result = await onCompleteScout(id, text, { projectId, evidenceUrl });
+    setSubmitting(null);
+    if (!result.ok) {
+      setSubmitError(result.error || 'Submit failed');
+      return;
+    }
     setActiveMission(null);
+    void Promise.all([fetchScoutLeaderboard(12), fetchScoutRecent(8)]).then(
+      ([board, recent]) => {
+        setScoutBoard(board);
+        setRecentCalls(recent);
+      },
+    );
   };
 
   return (
@@ -221,6 +330,9 @@ export default function TerminalView({
                 Builder Market
               </p>
               <h2 className="font-display mt-1 text-xl font-bold">Rising</h2>
+              <p className="mt-1 font-mono text-[10px] text-steel">
+                {radar ? 'Live score Δ vs prior day / seed' : 'Catalog deltas'}
+              </p>
               <ol className="mt-4 space-y-2">
                 {rising.map((p, i) => (
                   <li key={p.id}>
@@ -234,9 +346,7 @@ export default function TerminalView({
                     >
                       <span className="font-mono text-xs text-steel">#{i + 1}</span>
                       <span className="flex-1 text-sm font-semibold">{p.name}</span>
-                      <span className="font-mono text-xs text-accent">
-                        +{p.reputationDelta} reputation
-                      </span>
+                      <span className="font-mono text-xs text-accent">{p.label}</span>
                     </button>
                   </li>
                 ))}
@@ -258,9 +368,7 @@ export default function TerminalView({
                       className="flex w-full items-center gap-3 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5 text-left hover:border-white/20"
                     >
                       <span className="flex-1 text-sm font-semibold">{p.name}</span>
-                      <span className="font-mono text-xs text-steel">
-                        {p.reputationDelta} reputation
-                      </span>
+                      <span className="font-mono text-xs text-steel">{p.label}</span>
                     </button>
                   </li>
                 ))}
@@ -274,12 +382,12 @@ export default function TerminalView({
               <p className="font-mono text-[10px] uppercase tracking-wider text-accent">Market</p>
               <h2 className="font-display mt-1 text-xl font-bold">Sector pulse</h2>
               <div className="mt-5 space-y-2">
-                {TERMINAL_SECTORS.map((s) => (
+                {sectorPulse.map((s) => (
                   <div
-                    key={s.name}
+                    key={s.sector}
                     className="flex items-center justify-between rounded-xl border border-white/8 bg-ink/40 px-4 py-3"
                   >
-                    <span className="text-sm font-medium">{s.name}</span>
+                    <span className="text-sm font-medium">{s.sector}</span>
                     <span
                       className={`font-mono text-sm font-semibold ${
                         s.changePct >= 0 ? 'text-accent' : 'text-steel'
@@ -382,11 +490,32 @@ export default function TerminalView({
               </p>
               <h2 className="font-display mt-1 text-2xl font-bold">Builder Scouts™</h2>
               <p className="mt-1 text-sm text-steel">
-                Discover builders early. Research, verify, write — earn reputation that unlocks rooms.
+                Timestamped calls on the shared ledger — thesis, evidence, early-call credit.
               </p>
             </div>
             <p className="font-mono text-sm text-accent">Scout XP · {scoutXp}</p>
           </div>
+
+          {!walletAddress && (
+            <div className="rounded-xl border border-accent/25 bg-accent/5 px-4 py-3 text-sm text-steel">
+              Connect a wallet to publish Scout calls.{' '}
+              {onConnectWallet && (
+                <button
+                  type="button"
+                  onClick={onConnectWallet}
+                  className="font-semibold text-accent hover:underline"
+                >
+                  Connect →
+                </button>
+              )}
+            </div>
+          )}
+
+          {submitError && (
+            <p className="rounded-xl border border-white/15 bg-ink/50 px-4 py-2.5 text-sm text-steel">
+              {submitError}
+            </p>
+          )}
 
           <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
             <article className="rounded-2xl border border-accent/25 bg-accent/[0.06] p-5">
@@ -417,34 +546,65 @@ export default function TerminalView({
 
             <div>
               <p className="mb-3 font-mono text-[10px] uppercase tracking-wider text-steel">
-                Leaderboard
+                Live Scout leaderboard
               </p>
               <ul className="space-y-2">
-                {SCOUT_LEADERBOARD.map((s, i) => (
+                {scoutBoard.length === 0 && (
+                  <li className="rounded-xl border border-white/8 bg-ink/40 px-3 py-3 text-xs text-steel">
+                    No on-ledger Scout calls yet. Be first.
+                  </li>
+                )}
+                {scoutBoard.map((s, i) => (
                   <li
-                    key={s.id}
+                    key={s.wallet}
                     className="flex items-center gap-3 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5"
                   >
                     <span className="w-6 font-mono text-xs text-steel">#{i + 1}</span>
-                    {s.avatarUrl ? (
-                      <img src={s.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
-                    ) : (
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 font-mono text-[10px]">
-                        {s.name.slice(0, 2)}
-                      </span>
-                    )}
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 font-mono text-[10px]">
+                      {(s.displayName || s.wallet).slice(0, 2)}
+                    </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold">{s.name}</p>
+                      <p className="flex items-center gap-1 text-sm font-semibold">
+                        {s.displayName || shortWallet(s.wallet)}
+                        {s.verified && (
+                          <BadgeCheck className="h-3.5 w-3.5 text-accent" aria-label="Verified" />
+                        )}
+                      </p>
                       <p className="font-mono text-[10px] text-steel">
-                        {s.title} · {s.projectsDiscovered} discovered
+                        {s.submissionCount} calls · {s.earlyCalls} early
                       </p>
                     </div>
-                    <span className="font-mono text-xs text-accent">{s.scoutReputation}</span>
+                    <span className="font-mono text-xs text-accent">{s.scoutXp}</span>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
+
+          {recentCalls.length > 0 && (
+            <div>
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-steel">
+                Recent public calls
+              </p>
+              <ul className="space-y-2">
+                {recentCalls.map((c) => {
+                  const proj = projects.find((p) => p.id === c.projectId);
+                  return (
+                    <li
+                      key={c.id}
+                      className="rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5 text-xs text-steel"
+                    >
+                      <span className="font-mono text-accent">{shortWallet(c.wallet)}</span>
+                      {' · '}
+                      {proj?.name || c.projectId}
+                      {c.earlyCall ? ' · early call' : ''}
+                      <span className="mt-1 line-clamp-2 block text-white/70">{c.analysis}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
 
           <ul className="space-y-3">
             {scoutMissions.map((m) => (
@@ -459,30 +619,82 @@ export default function TerminalView({
                       +{m.rewardXp} Scout XP · {m.rewardLabel}
                     </p>
                     {!m.completed && activeMission === m.id && (
-                      <div className="mt-4">
-                        <label className="font-mono text-[10px] uppercase text-steel">
-                          Your analysis
-                        </label>
-                        <textarea
-                          value={analysisDraft[m.id] || ''}
-                          onChange={(e) =>
-                            setAnalysisDraft((prev) => ({ ...prev, [m.id]: e.target.value }))
-                          }
-                          rows={4}
-                          placeholder="What did you verify? Commits, team, product signal, risks…"
-                          className="mt-1.5 w-full rounded-xl border border-white/10 bg-ink px-3 py-2.5 text-sm text-white outline-none focus:border-accent/40"
-                        />
+                      <div className="mt-4 space-y-3">
+                        <div>
+                          <label className="font-mono text-[10px] uppercase text-steel">
+                            Catalog project
+                          </label>
+                          <select
+                            value={
+                              projectDraft[m.id] ||
+                              m.suggestedProjectId ||
+                              scoutableProjects[0]?.id ||
+                              ''
+                            }
+                            onChange={(e) =>
+                              setProjectDraft((prev) => ({
+                                ...prev,
+                                [m.id]: e.target.value,
+                              }))
+                            }
+                            className="mt-1.5 w-full rounded-xl border border-white/10 bg-ink px-3 py-2.5 text-sm text-white outline-none focus:border-accent/40"
+                          >
+                            {scoutableProjects.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} · {p.curation.status} · {p.category}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-mono text-[10px] uppercase text-steel">
+                            Evidence URL (optional)
+                          </label>
+                          <input
+                            type="url"
+                            value={evidenceDraft[m.id] || ''}
+                            onChange={(e) =>
+                              setEvidenceDraft((prev) => ({
+                                ...prev,
+                                [m.id]: e.target.value,
+                              }))
+                            }
+                            placeholder="https://github.com/…"
+                            className="mt-1.5 w-full rounded-xl border border-white/10 bg-ink px-3 py-2.5 text-sm text-white outline-none focus:border-accent/40"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-mono text-[10px] uppercase text-steel">
+                            Your analysis (40+ chars)
+                          </label>
+                          <textarea
+                            value={analysisDraft[m.id] || ''}
+                            onChange={(e) =>
+                              setAnalysisDraft((prev) => ({
+                                ...prev,
+                                [m.id]: e.target.value,
+                              }))
+                            }
+                            rows={4}
+                            placeholder="What did you verify? Commits, team, product signal, risks…"
+                            className="mt-1.5 w-full rounded-xl border border-white/10 bg-ink px-3 py-2.5 text-sm text-white outline-none focus:border-accent/40"
+                          />
+                        </div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <button
                             type="button"
-                            onClick={() => submitMission(m.id)}
-                            className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright"
+                            disabled={submitting === m.id}
+                            onClick={() => void submitMission(m.id)}
+                            className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright disabled:opacity-60"
                           >
-                            Submit analysis
+                            {submitting === m.id ? 'Publishing…' : 'Publish call'}
                           </button>
                           <button
                             type="button"
-                            onClick={() => setActiveMission(null)}
+                            onClick={() => {
+                              setActiveMission(null);
+                              setSubmitError(null);
+                            }}
                             className="rounded-full border border-white/12 px-4 py-2 text-xs text-steel hover:text-white"
                           >
                             Cancel
@@ -493,15 +705,24 @@ export default function TerminalView({
                   </div>
                   {m.completed ? (
                     <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 font-mono text-[11px] text-accent">
-                      <Trophy className="h-3.5 w-3.5" /> Completed
+                      <Trophy className="h-3.5 w-3.5" /> On ledger
                     </span>
                   ) : activeMission !== m.id ? (
                     <button
                       type="button"
-                      onClick={() => setActiveMission(m.id)}
+                      onClick={() => {
+                        setActiveMission(m.id);
+                        setSubmitError(null);
+                        if (m.suggestedProjectId && !projectDraft[m.id]) {
+                          setProjectDraft((prev) => ({
+                            ...prev,
+                            [m.id]: m.suggestedProjectId!,
+                          }));
+                        }
+                      }}
                       className="shrink-0 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright"
                     >
-                      Start analysis
+                      Start call
                     </button>
                   ) : null}
                 </div>

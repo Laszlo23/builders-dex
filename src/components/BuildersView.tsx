@@ -114,7 +114,8 @@ export default function BuildersView({
               ))}
             </div>
             <p className="border-t border-white/5 px-5 py-3 font-mono text-[10px] text-steel">
-              Showing top 25 of 100 · Full index updates weekly with Builder Score™
+              Showing {Math.min(25, wall.length)} builders from the live catalog · scores refresh with
+              GitHub citations
             </p>
           </div>
 

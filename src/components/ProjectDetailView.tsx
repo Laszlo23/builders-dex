@@ -49,9 +49,9 @@ import {
   educationalReviewFor,
   episodesFor,
   milestonesFor,
-  scoreTransparencyFor,
 } from '../data/builderPlatform';
-import ScoreTransparencyCard from './ScoreTransparencyCard';
+import LiveScoreCitationsCard from './LiveScoreCitationsCard';
+import { useLiveBuilderScore } from '../hooks/useLiveBuilderScore';
 import UsedByCard from './UsedByCard';
 import ProjectRealityCard from './ProjectRealityCard';
 import DualConvictionCard from './DualConvictionCard';
@@ -111,10 +111,23 @@ export default function ProjectDetailView({
   };
 
   const Icon = getIconComponent(project.logoUrl);
-  const dna = dnaFromScore(project.builderScore, project);
-  const proof = proofOfBuildingFor(project);
+  const {
+    live,
+    loading: scoreLoading,
+    score: liveScore,
+    mode: scoreMode,
+  } = useLiveBuilderScore(project.id, project.builderScore);
+  const dna = dnaFromScore(liveScore, project);
+  const proof = proofOfBuildingFor({
+    ...project,
+    builderScore: liveScore,
+    githubActivity: live?.github
+      ? Math.max(project.githubActivity, live.github.stars)
+      : project.githubActivity,
+    githubRepo: live?.githubRepo || project.githubRepo,
+  });
   const tradeMint = resolveTradeMint(project, tradeableMintSet);
-  const repChip = reputationChipFor(project, proof);
+  const repChip = reputationChipFor({ ...project, builderScore: liveScore }, proof);
   const founder =
     builders.find((b) => b.projectsCreated.includes(project.id)) ||
     builders.find((b) =>
@@ -124,7 +137,6 @@ export default function ProjectDetailView({
   const readMins = storyReadingMinutes(project);
   const journey = journeyFor(project);
   const signals = signalsFor(project.id);
-  const scoreWhy = scoreTransparencyFor(project.id, project.builderScore.overall);
   const usedBy = USED_BY[project.id];
   const reality = PROJECT_REALITY[project.id];
   const dualConviction = DUAL_CONVICTION[project.id];
@@ -258,7 +270,7 @@ export default function ProjectDetailView({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {project.curation.status !== 'rejected' && (
-              <BuilderScoreBadge overall={project.builderScore.overall} />
+              <BuilderScoreBadge overall={liveScore.overall} mode={scoreMode} />
             )}
             {tradeMint && (
               <button
@@ -274,7 +286,7 @@ export default function ProjectDetailView({
                 type="button"
                 onClick={() =>
                   onAskIntelligence(
-                    `Why is ${project.name} interesting? Builder Score™ is ${project.builderScore.overall}/100. Development ${project.builderScore.development}, Community ${project.builderScore.community}, Innovation ${project.builderScore.innovation}. Journey: ${project.journey}. Summarize main strength and main risk.`
+                    `Why is ${project.name} interesting? Builder Score™ is ${liveScore.overall}/100 (${scoreMode}). Development ${liveScore.development}, Community ${liveScore.community}, Innovation ${liveScore.innovation}. Journey: ${project.journey}. Cite which signals matter and main risk.`
                   )
                 }
                 className="inline-flex items-center gap-2 rounded-full border border-accent/30 px-4 py-2.5 text-xs font-semibold text-accent hover:bg-accent/10"
@@ -353,7 +365,7 @@ export default function ProjectDetailView({
               <span className="inline-flex items-center gap-1.5">
                 <Github className="h-3.5 w-3.5" /> {project.githubRepo}
               </span>
-              <span>{project.githubActivity.toLocaleString()} commits</span>
+              <span>{(live?.github?.stars ?? project.githubActivity).toLocaleString()}{(live?.github ? ' stars' : ' commits')}</span>
               <span>{project.chain}</span>
               {project.marketCapLabel && <span>{project.marketCapLabel}</span>}
             </div>
@@ -417,12 +429,12 @@ export default function ProjectDetailView({
                   onOpenRankings={() => setCurrentPath('builders')}
                 />
               )}
-              <ReputationUnlocksCard builderScore={project.builderScore.overall} mode="builder" />
+              <ReputationUnlocksCard builderScore={liveScore.overall} mode="builder" />
               <FeaturedStandardBadge
                 projectName={project.name}
                 unlocked={
                   project.curation.status === 'curated' &&
-                  project.builderScore.overall >= BUILDER_SCORE_UNLOCK
+                  liveScore.overall >= BUILDER_SCORE_UNLOCK
                 }
               />
             </>
@@ -503,17 +515,23 @@ export default function ProjectDetailView({
           )}
 
           {project.curation.status !== 'rejected' && (
-            <ScoreTransparencyCard data={scoreWhy} />
+            <LiveScoreCitationsCard
+              live={live}
+              loading={scoreLoading}
+              mode={scoreMode}
+              overall={liveScore.overall}
+            />
           )}
 
           {/* Score breakdown */}
           <section className="rounded-3xl border border-white/10 bg-surface p-6 md:p-8">
             <h2 className="font-sans text-lg font-bold">Builder Score™ breakdown</h2>
             <p className="mt-1 text-xs text-steel">
-              Development · Innovation · Community · Transparency · Product · Reputation · Liquidity
+              Live weighted dimensions · methodology {live?.version || '…'}
+              {scoreLoading ? ' · refreshing' : ''}
             </p>
             <div className="mt-6">
-              <ScoreBars score={project.builderScore} mode="all" />
+              <ScoreBars score={liveScore} mode="all" />
             </div>
           </section>
 

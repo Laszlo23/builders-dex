@@ -60,13 +60,13 @@ export const BUILDER_ARCHIVE: ArchiveEntry[] = [
   },
 ];
 
-/** Prestige — lower than YC */
+/** Prestige — Genesis Index honesty (not a fake funnel) */
 export const RECOGNITION_RATE = {
-  applications: 4892,
-  accepted: 127,
-  ratePct: 2.59,
-  comparison: 'Lower than Y Combinator.',
-  line: 'People should dream of getting accepted — not just apply.',
+  applications: 6,
+  accepted: 3,
+  ratePct: 50,
+  comparison: 'Genesis Index — live-scored, not mass listing.',
+  line: 'Six in the catalog. Three cleared Genesis with live Builder Score™ citations. Trading stays empty until Proof clears.',
 };
 
 export type HumanFounder = {

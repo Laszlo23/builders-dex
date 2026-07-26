@@ -11,17 +11,17 @@ export default function RecognitionRateCard({ onApply }: Props) {
   const rows = [
     {
       icon: FileStack,
-      label: 'Applications',
+      label: 'Catalog reviewed',
       value: RECOGNITION_RATE.applications.toLocaleString(),
     },
     {
       icon: BadgeCheck,
-      label: 'Accepted',
+      label: 'Genesis Index',
       value: RECOGNITION_RATE.accepted.toLocaleString(),
     },
     {
       icon: Percent,
-      label: 'Recognition',
+      label: 'Live-scored share',
       value: `${RECOGNITION_RATE.ratePct}%`,
     },
   ];
@@ -36,6 +36,9 @@ export default function RecognitionRateCard({ onApply }: Props) {
         Recognition Rate
       </h2>
       <p className="mt-3 max-w-xl text-sm text-steel">{RECOGNITION_RATE.line}</p>
+      <p className="mt-2 font-mono text-[10px] uppercase tracking-wider text-accent">
+        {RECOGNITION_RATE.comparison}
+      </p>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {rows.map((row, i) => {

@@ -52,7 +52,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
       },
       {
         heading: 'Contact',
-        paragraphs: ['Privacy requests: contact@buildersdex.app'],
+        paragraphs: ['Privacy requests: contact@buildingcultureid.space'],
       },
     ],
   },
@@ -86,9 +86,9 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
         heading: 'Reach us',
         paragraphs: [
           'Product help: open Support in the app (Support Agent) or Feedback for bugs and ideas.',
-          'General: hello@buildersdex.app',
-          'Listings & launchpad: apply@buildersdex.app',
-          'Press: press@buildersdex.app',
+          'General: hello@buildingcultureid.space',
+          'Listings & launchpad: apply@buildingcultureid.space',
+          'Press: press@buildingcultureid.space',
           'Vienna · Austria · Worldwide',
         ],
       },

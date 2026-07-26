@@ -57,7 +57,6 @@ export const TOKEN_CATALOG: CuratedToken[] = [
     name: 'Jupiter',
     decimals: 6,
     envKey: 'JUP',
-    projectId: 'p3',
     logoURI: 'https://static.jup.ag/jup/icon.png',
   },
   {
@@ -66,7 +65,6 @@ export const TOKEN_CATALOG: CuratedToken[] = [
     name: 'Bonk',
     decimals: 5,
     envKey: 'BONK',
-    projectId: 'p4',
     logoURI: 'https://arweave.net/hQiPZOsRZXGXbJjZFKdFavWBPZbe8xhZUaAsjC8kJRc',
   },
   {
@@ -75,7 +73,6 @@ export const TOKEN_CATALOG: CuratedToken[] = [
     name: 'dogwifhat',
     decimals: 6,
     envKey: 'WIF',
-    projectId: 'p2',
     logoURI:
       'https://bafkreibk3covs5pynxayczwtn2ckrmvagt3vrv3iciohxfoxjok53g35vy.ipfs.nftstorage.link',
   },
@@ -85,7 +82,6 @@ export const TOKEN_CATALOG: CuratedToken[] = [
     name: 'Raydium',
     decimals: 6,
     envKey: 'RAY',
-    projectId: 'p1',
     logoURI:
       'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R/logo.png',
   },

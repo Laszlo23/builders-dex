@@ -26,6 +26,7 @@ import {
 import DepthCard from './DepthCard';
 import GrowthSpinWheel from './GrowthSpinWheel';
 import { SpinPrize, canSpin } from '../data/growthWheel';
+import { SOCIAL_GO_THEN_CLAIM } from '../lib/earnProgress';
 import OptimizedImage from './OptimizedImage';
 
 interface EarnViewProps {
@@ -38,10 +39,13 @@ interface EarnViewProps {
   onProvideLiquidity: (poolId: string, amount: number) => void;
   lpDeposits: Record<string, number>;
   tasks: GrowthTask[];
+  startedTaskIds: string[];
+  onStartTask: (taskId: string) => void;
   onCompleteTask: (taskId: string) => void;
   onDailySpin: (prize: SpinPrize) => void;
   isStaker: boolean;
   setCurrentPath: (path: string) => void;
+  builderXp: number;
 }
 
 export default function EarnView({
@@ -54,10 +58,13 @@ export default function EarnView({
   onProvideLiquidity,
   lpDeposits,
   tasks,
+  startedTaskIds,
+  onStartTask,
   onCompleteTask,
   onDailySpin,
   isStaker,
   setCurrentPath,
+  builderXp,
 }: EarnViewProps) {
   const [stakeAmt, setStakeAmt] = useState('');
   const [unstakeAmt, setUnstakeAmt] = useState('');
@@ -102,7 +109,8 @@ export default function EarnView({
           </h1>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/75">
             Liquidity and stake are how members prove they believe in builders — not just browse
-            them. Unstaking takes {UNSTAKE_COOLDOWN_LABEL} so conviction stays real.
+            them. Unstaking takes {UNSTAKE_COOLDOWN_LABEL} so conviction stays real. Tasks and XP
+            save automatically ({builderXp.toLocaleString()} XP on this profile).
           </p>
         </div>
       </div>
@@ -115,8 +123,8 @@ export default function EarnView({
       )}
 
       <div className="rounded-2xl border border-accent/20 bg-accent/[0.06] px-4 py-3 font-mono text-xs text-accent">
-        Member growth · {doneTasks.length}/{tasks.length} missions complete · {socialOpen.length}{' '}
-        social tasks open
+        {builderXp.toLocaleString()} XP · {doneTasks.length}/{tasks.length} missions complete ·{' '}
+        {socialOpen.length} social open · progress saved
       </div>
 
       <div className="mt-8">
@@ -278,10 +286,15 @@ export default function EarnView({
             <h2 className="font-display text-xl font-bold">Growth tasks</h2>
           </div>
           <p className="mt-2 text-sm text-steel">
-            Every member helps grow the platform. Complete tasks for XP and badges.
+            Complete the action, then Claim. Progress is saved — refresh safe.
+            Social links: tap Go first, then Claim.
           </p>
           <ul className="mt-5 space-y-2">
-            {openTasks.map((t) => (
+            {openTasks.map((t) => {
+              const needsGoFirst = SOCIAL_GO_THEN_CLAIM.has(t.id);
+              const canClaim =
+                !needsGoFirst || startedTaskIds.includes(t.id);
+              return (
               <li
                 key={t.id}
                 className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-3"
@@ -300,6 +313,11 @@ export default function EarnView({
                           : 'Spun today · back in 24h'
                         : `+${t.xp} XP${t.badge ? ` · ${t.badge}` : ''}`}
                     </p>
+                    {needsGoFirst && !canClaim && (
+                      <p className="mt-1 text-[10px] text-steel/80">
+                        Tap Go, then Claim
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 flex-col gap-1.5">
                     {t.id === 't_daily_spin' ? (
@@ -320,6 +338,7 @@ export default function EarnView({
                           <button
                             type="button"
                             onClick={() => {
+                              onStartTask(t.id);
                               const external = GROWTH_TASK_EXTERNAL[t.id];
                               if (external) {
                                 window.open(external, '_blank', 'noopener,noreferrer');
@@ -334,8 +353,9 @@ export default function EarnView({
                         )}
                         <button
                           type="button"
+                          disabled={!canClaim}
                           onClick={() => onCompleteTask(t.id)}
-                          className="rounded-lg border border-accent/35 px-2.5 py-1 font-mono text-[10px] text-accent hover:bg-accent/10"
+                          className="rounded-lg border border-accent/35 px-2.5 py-1 font-mono text-[10px] text-accent hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           Claim
                         </button>
@@ -344,7 +364,8 @@ export default function EarnView({
                   </div>
                 </div>
               </li>
-            ))}
+              );
+            })}
             {doneTasks.map((t) => (
               <li
                 key={t.id}

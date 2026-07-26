@@ -166,13 +166,13 @@ TRADE IS THE LAST STEP.`,
     angle: 'Exclusivity funnel — scarcity as signal',
     copy: `THE STANDARD
 
-4,892 analyzed
-127 earned recognition
-23 entered the network
-2 approved for trading
+6 in catalog
+4 earned recognition
+3 entered Genesis Index
+0 approved for trading yet
 
 We don't list everything.
-We decide which builders matter.
+We decide which builders matter — with live Builder Score™ citations.
 
 dex.buildingcultureid.space`,
     hashtags: '#TheStandard #SolanaBuilders #BuildersDEX',
@@ -257,11 +257,11 @@ dex.buildingcultureid.space`,
     channel: 'X / Twitter',
     title: 'Builders Index™',
     angle: 'Market terminal metaphor',
-    copy: `Builders Index™ — Solana Innovation Market
+    copy: `Builders Index™ — Genesis Index
 
-Health 92.4
-Top 2.6% quality threshold
-4,892 tracked · 127 approved
+Health 88.0
+Quality bar: Genesis Top 3
+6 in catalog · 3 Genesis · 0 trading
 
 A quality index for builders — not a meme board.`,
     hashtags: '#BuildersIndex #Solana',

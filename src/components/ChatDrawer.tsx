@@ -108,7 +108,7 @@ Ask about Trade, Earn, Passport™, or listings. Flip to **Stream** for live pul
         {
           role: 'model',
           content:
-            'Couldn’t reach Support Agent. Try again shortly — or open **Feedback** / email contact@buildersdex.app.',
+            'Couldn’t reach Support Agent. Try again shortly — or open **Feedback** / email contact@buildingcultureid.space.',
         },
       ]);
     } finally {

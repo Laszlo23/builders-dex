@@ -10,6 +10,8 @@ import { ReputationChipBadge } from './ReputationUnlocksCard';
 import ProjectSocialLinks from './ProjectSocialLinks';
 import { educationalReviewFor } from '../data/builderPlatform';
 import OptimizedImage from './OptimizedImage';
+import CommunityTrendingSection from './CommunityTrendingSection';
+import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
 
 interface ExploreViewProps {
   projects: Project[];
@@ -38,6 +40,11 @@ export default function ExploreView({
   >('All');
   const [curatedOnly, setCuratedOnly] = useState(true);
   const [showRejected, setShowRejected] = useState(false);
+  const [lane, setLane] = useState<'curated' | 'community'>('curated');
+  const liveScores = useLiveScoreMap(projects.map((p) => p.id));
+
+  const scoreFor = (p: Project) =>
+    liveScores[p.id]?.overall ?? p.builderScore.overall;
 
   const getIconComponent = (logoName: string) => {
     switch (logoName) {
@@ -67,7 +74,7 @@ export default function ExploreView({
       }
       return matchesSearch && matchesCat && p.curation.status !== 'rejected';
     })
-    .sort((a, b) => b.builderScore.overall - a.builderScore.overall);
+    .sort((a, b) => scoreFor(b) - scoreFor(a));
 
   const openProject = (id: string) => {
     onDiscover?.(id);
@@ -86,7 +93,8 @@ export default function ExploreView({
                 Discover curated builders
               </h1>
           <p className="mt-2 max-w-xl text-sm text-steel">
-            Startup profiles with journey, selection rationale, and Builder Score™ — not hype cards.
+            Startup profiles with journey, selection rationale, and live Builder Score™
+            (GitHub-cited) — not hype cards.
           </p>
         </div>
         <div className="relative w-full md:w-80">
@@ -102,51 +110,84 @@ export default function ExploreView({
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        {(['All', 'AI + Web3', 'DeFi', 'Infrastructure', 'Creator Economy'] as const).map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setSelectedCategory(cat)}
-            className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
-              selectedCategory === cat
-                ? 'bg-accent text-ink'
-                : 'border border-white/10 text-steel hover:text-white'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
         <button
           type="button"
-          onClick={() => {
-            setShowRejected(false);
-            setCuratedOnly((v) => !v);
-          }}
+          onClick={() => setLane('curated')}
           className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
-            curatedOnly && !showRejected
-              ? 'border border-accent/40 text-accent'
-              : 'border border-white/10 text-steel'
+            lane === 'curated'
+              ? 'bg-accent text-ink'
+              : 'border border-white/10 text-steel hover:text-white'
           }`}
         >
-          {curatedOnly ? 'Curated only' : 'Include pending'}
+          Curated
         </button>
         <button
           type="button"
-          onClick={() => {
-            setShowRejected((v) => !v);
-            setCuratedOnly(true);
-          }}
+          onClick={() => setLane('community')}
           className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
-            showRejected
-              ? 'border border-white/25 text-steel'
-              : 'border border-white/10 text-steel'
+            lane === 'community'
+              ? 'bg-accent text-ink'
+              : 'border border-white/10 text-steel hover:text-white'
           }`}
         >
-          Why we rejected
+          Community Trending
         </button>
+        {lane === 'curated' &&
+          (['All', 'AI + Web3', 'DeFi', 'Infrastructure', 'Creator Economy'] as const).map(
+            (cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+                  selectedCategory === cat
+                    ? 'border border-accent/40 text-accent'
+                    : 'border border-white/10 text-steel hover:text-white'
+                }`}
+              >
+                {cat}
+              </button>
+            ),
+          )}
+        {lane === 'curated' && (
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setShowRejected(false);
+                setCuratedOnly((v) => !v);
+              }}
+              className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+                curatedOnly && !showRejected
+                  ? 'border border-accent/40 text-accent'
+                  : 'border border-white/10 text-steel'
+              }`}
+            >
+              {curatedOnly ? 'Curated only' : 'Include pending'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowRejected((v) => !v);
+                setCuratedOnly(true);
+              }}
+              className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+                showRejected
+                  ? 'border border-white/25 text-steel'
+                  : 'border border-white/10 text-steel'
+              }`}
+            >
+              Why we rejected
+            </button>
+          </>
+        )}
       </div>
 
-      {filteredProjects.length > 0 ? (
+      {lane === 'community' ? (
+        <div className="mt-8">
+          <CommunityTrendingSection compact onTrade={onTrade} />
+        </div>
+      ) : filteredProjects.length > 0 ? (
         <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filteredProjects.map((p) => {
             const Icon = getIconComponent(p.logoUrl);
@@ -170,7 +211,7 @@ export default function ExploreView({
                             Score
                           </span>
                           <span className="font-mono text-base font-bold leading-none text-white">
-                            {p.builderScore.overall}
+                            {scoreFor(p)}
                           </span>
                         </div>
                       </div>
@@ -202,7 +243,7 @@ export default function ExploreView({
                           Score
                         </span>
                         <span className="font-mono text-lg font-bold leading-none text-white">
-                          {p.builderScore.overall}
+                          {scoreFor(p)}
                         </span>
                       </div>
                     </div>

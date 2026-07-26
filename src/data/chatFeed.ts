@@ -47,7 +47,7 @@ export const STREAM_TICKS: Omit<FeedItem, 'id' | 'at'>[] = [
   {
     kind: 'builder',
     title: 'THE STANDARD',
-    body: 'Thousands analyzed → few recognized → fewer tradeable. Listing is earned.',
+    body: '6 in catalog → 3 Genesis live-scored → trading empty until Proof clears.',
   },
   {
     kind: 'social',

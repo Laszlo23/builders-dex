@@ -1,5 +1,10 @@
-import React from 'react';
-import { TODAY_BRIEF, DailyEventKind } from '../data/dailyIntelligence';
+import React, { useEffect, useState } from 'react';
+import {
+  TODAY_BRIEF,
+  DailyEventKind,
+  DailyIntelligenceBrief,
+} from '../data/dailyIntelligence';
+import { fetchDailyRadar } from '../lib/dailyRadar/client';
 
 const EVENT_MARK: Record<DailyEventKind, string> = {
   gained: '↑',
@@ -16,7 +21,26 @@ export default function DailyIntelligenceCard({
   watchlistUpdates,
   onOpenIntelligence,
 }: Props) {
-  const brief = TODAY_BRIEF;
+  const [brief, setBrief] = useState<DailyIntelligenceBrief>(TODAY_BRIEF);
+  const [sources, setSources] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchDailyRadar()
+      .then((radar) => {
+        if (cancelled || !radar) return;
+        setBrief(radar);
+        setSources(radar.sources || []);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const updates = watchlistUpdates ?? brief.defaultWatchlistUpdates;
 
   return (
@@ -29,7 +53,10 @@ export default function DailyIntelligenceCard({
           <h2 className="font-display mt-1 text-2xl font-bold tracking-tight">
             {brief.title}
           </h2>
-          <p className="mt-1 font-mono text-[10px] text-steel">{brief.dateLabel}</p>
+          <p className="mt-1 font-mono text-[10px] text-steel">
+            {brief.dateLabel}
+            {loading ? ' · loading live…' : ' · live'}
+          </p>
         </div>
         <span className="rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 font-mono text-[10px] text-accent">
           Builder Intelligence Daily™
@@ -55,7 +82,9 @@ export default function DailyIntelligenceCard({
       </ul>
 
       <div className="mt-5">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-steel">Market Pulse</p>
+        <p className="font-mono text-[10px] uppercase tracking-wider text-steel">
+          Market Pulse
+        </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {brief.marketPulse.map((p) => (
             <span
@@ -71,6 +100,12 @@ export default function DailyIntelligenceCard({
           ))}
         </div>
       </div>
+
+      {sources.length > 0 && (
+        <p className="mt-4 font-mono text-[10px] text-steel/80">
+          Sources · {sources.join(' · ')}
+        </p>
+      )}
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-4">
         <p className="text-sm text-white/80">

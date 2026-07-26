@@ -1,4 +1,19 @@
 import { BuilderScore, BuilderScoreDimension, PassportLevel, ProjectAIAnalysis } from '../types';
+import { SCORE_WEIGHTS } from './builderScore/methodology';
+
+export { SCORE_VERSION, SCORE_WEIGHTS, SCORE_DIMENSION_DOCS, METHODOLOGY_SUMMARY } from './builderScore/methodology';
+export {
+  computeLiveBuilderScore,
+  projectToScoreInputs,
+  parseGithubRepo,
+} from './builderScore/compute';
+export type {
+  ScoreCitation,
+  LiveBuilderScoreResult,
+  GithubRepoSignals,
+  ProjectScoreInputs,
+  CitationStatus,
+} from './builderScore/types';
 
 export const SCORE_DIMENSIONS: { key: BuilderScoreDimension; label: string }[] = [
   { key: 'development', label: 'Development' },
@@ -10,19 +25,9 @@ export const SCORE_DIMENSIONS: { key: BuilderScoreDimension; label: string }[] =
   { key: 'liquidityHealth', label: 'Liquidity Health' },
 ];
 
-const WEIGHTS: Record<BuilderScoreDimension, number> = {
-  development: 0.18,
-  innovation: 0.16,
-  community: 0.14,
-  transparency: 0.12,
-  productProgress: 0.14,
-  builderReputation: 0.14,
-  liquidityHealth: 0.12,
-};
-
 export function computeOverallScore(dims: Omit<BuilderScore, 'overall'>): number {
   const total = SCORE_DIMENSIONS.reduce(
-    (sum, d) => sum + dims[d.key] * WEIGHTS[d.key],
+    (sum, d) => sum + dims[d.key] * SCORE_WEIGHTS[d.key],
     0
   );
   return Math.round(Math.min(100, Math.max(0, total)));

@@ -37,11 +37,18 @@ export default function ScoreBars({ score, mode = 'all', compact = false }: Prop
   );
 }
 
-export function BuilderScoreBadge({ overall }: { overall: number }) {
+export function BuilderScoreBadge({
+  overall,
+  mode,
+}: {
+  overall: number;
+  mode?: 'live' | 'partial' | 'provisional' | 'seed';
+}) {
   return (
     <div className="depth-badge inline-flex flex-col items-center px-4 py-3">
       <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-accent">
         Builder Score™
+        {mode && mode !== 'seed' ? ` · ${mode}` : ''}
       </span>
       <span className="mt-1 font-mono text-3xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
         {overall}
@@ -74,7 +81,7 @@ export function CurationBadges({
   ].filter(Boolean) as string[];
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       {items.map((label) => (
         <span
           key={label}
@@ -83,6 +90,14 @@ export function CurationBadges({
           ✓ {label}
         </span>
       ))}
+      <a
+        href="/api/builder-score/methodology"
+        target="_blank"
+        rel="noreferrer"
+        className="font-mono text-[10px] text-steel underline-offset-2 hover:text-accent hover:underline"
+      >
+        Methodology
+      </a>
     </div>
   );
 }

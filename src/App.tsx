@@ -29,13 +29,31 @@ const VisionRoadmapManifestView = lazy(() => import('./components/VisionRoadmapM
 const InvestorModeView = lazy(() => import('./components/InvestorModeView'));
 const BuilderGraphExplorer = lazy(() => import('./components/BuilderGraphExplorer'));
 const BuilderStoriesView = lazy(() => import('./components/BuilderStoriesView'));
+const TelegramBotView = lazy(() => import('./components/TelegramBotView'));
+const TelegramVoteMiniApp = lazy(() => import('./components/TelegramVoteMiniApp'));
 
 import { INITIAL_PROJECTS, INITIAL_BUILDERS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
-import { INITIAL_GROWTH_TASKS, GrowthTask, PendingUnstake, createUnstakeRequest } from './data/earn';
+import { GrowthTask, PendingUnstake, createUnstakeRequest } from './data/earn';
 import { canSpin } from './data/growthWheel';
 import { ARENA_MATCH, INITIAL_SCOUT_MISSIONS } from './data/reputation';
 import { INITIAL_CONVICTIONS } from './data/builderEconomy';
 import { LEGAL_DOCS } from './data/legal';
+import {
+  SOCIAL_GO_THEN_CLAIM,
+  applyCompletedQuests,
+  applyCompletedTasks,
+  loadEarnProgress,
+  mergeProgressSnapshots,
+  saveEarnProgress,
+  snapshotFromAppState,
+} from './lib/earnProgress';
+import {
+  fetchReputation,
+  syncReputationToServer,
+} from './lib/reputation/client';
+import { upvoteMessage } from './lib/reputation/messages';
+import { submitScoutCall } from './lib/scout/client';
+import bs58 from 'bs58';
 import {
   Project,
   Builder,
@@ -82,16 +100,47 @@ function truncateAddress(address: string): string {
 }
 
 export default function App() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signMessage } = useWallet();
   const { setVisible } = useWalletModal();
   const { tokens: tradeableTokens, mintSet: tradeableMintSet } = useTradeableTokens();
 
-  const [currentPath, setCurrentPathRaw] = useState<string>('landing');
+  const [currentPath, setCurrentPathRaw] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'landing';
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
+    const q = new URLSearchParams(window.location.search);
+    if (path === '/tg' || hash === 'tg-vote' || q.get('app') === 'vote') {
+      return 'tg-vote';
+    }
+    // Mini App session → vote UI only (not full DEX)
+    if (window.Telegram?.WebApp?.initData) return 'tg-vote';
+    return 'landing';
+  });
   const setCurrentPath = (path: string) => {
     startTransition(() => {
       safeNavigate(path, setCurrentPathRaw);
     });
   };
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.initData) {
+      try {
+        tg.ready();
+        tg.expand();
+      } catch {
+        /* ignore */
+      }
+      if (currentPath !== 'tg-vote') setCurrentPath('tg-vote');
+    }
+    const onHash = () => {
+      const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
+      if (hash === 'tg-vote') setCurrentPath('tg-vote');
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once for Mini App
+  }, []);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('p1');
   const [swapOutputMint, setSwapOutputMint] = useState<string | null>(null);
   const [intelPrompt, setIntelPrompt] = useState<string | null>(null);
@@ -103,16 +152,12 @@ export default function App() {
     };
   }, []);
 
-  const [simBalances, setSimBalances] = useState<Record<string, number>>({
-    BUILD: 1200,
-    ETH: 1.84,
-    POL: 320,
-    SOL: 8.5,
-    SENT: 100,
-    AERO: 0,
-    SPHERE: 0,
-    LINK: 0,
-  });
+  const walletKey = publicKey?.toBase58() ?? null;
+  const boot = loadEarnProgress(null);
+
+  const [simBalances, setSimBalances] = useState<Record<string, number>>(
+    () => boot.simBalances,
+  );
 
   const wallet: UserWallet = {
     connected,
@@ -124,37 +169,47 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [builders] = useState<Builder[]>(INITIAL_BUILDERS);
   const [proposals, setProposals] = useState<Proposal[]>(INITIAL_PROPOSALS);
-  const [quests, setQuests] = useState<Quest[]>(ALL_QUESTS);
-  const [stakedBuild, setStakedBuild] = useState<number>(0);
-  const [pendingUnstake, setPendingUnstake] = useState<PendingUnstake | null>(null);
-  const [lpDeposits, setLpDeposits] = useState<Record<string, number>>({});
-  const [growthTasks, setGrowthTasks] = useState<GrowthTask[]>(INITIAL_GROWTH_TASKS);
-  const [builderXp, setBuilderXp] = useState<number>(1200);
-  const [contributionsCount, setContributionsCount] = useState<number>(45);
+  const [quests, setQuests] = useState<Quest[]>(() =>
+    applyCompletedQuests(ALL_QUESTS, boot.completedQuestIds),
+  );
+  const [stakedBuild, setStakedBuild] = useState<number>(() => boot.stakedBuild);
+  const [pendingUnstake, setPendingUnstake] = useState<PendingUnstake | null>(
+    () => boot.pendingUnstake,
+  );
+  const [lpDeposits, setLpDeposits] = useState<Record<string, number>>(
+    () => boot.lpDeposits,
+  );
+  const [growthTasks, setGrowthTasks] = useState<GrowthTask[]>(() =>
+    applyCompletedTasks(boot.completedTaskIds),
+  );
+  const [startedTaskIds, setStartedTaskIds] = useState<string[]>(
+    () => boot.startedTaskIds,
+  );
+  const [builderXp, setBuilderXp] = useState<number>(() => boot.builderXp);
+  const [contributionsCount, setContributionsCount] = useState<number>(
+    () => boot.contributionsCount,
+  );
   const [transactions, setTransactions] = useState<SwapTransaction[]>([]);
-  const [discoveredIds, setDiscoveredIds] = useState<Set<string>>(new Set());
-  const [passport, setPassport] = useState<PassportStats>({
-    projectsDiscovered: 0,
-    communitiesSupported: 0,
-    researchQuestsCompleted: 0,
-    builderReputation: 62,
-    communityTrust: 74,
-    openSourceImpact: 'Medium',
-    projectsCreated: 0,
-    previousContributions: 18,
-    activeUsers: 4200,
-    openSourceContributions: 126,
-    reputationAgeYears: 3,
-    earlyCalls: 0,
-    researchAccuracy: 70,
-    scoutXp: 0,
-  });
-  const [scoutMissions, setScoutMissions] = useState<ScoutMission[]>(INITIAL_SCOUT_MISSIONS);
+  const [discoveredIds, setDiscoveredIds] = useState<Set<string>>(
+    () => new Set(boot.discoveredIds),
+  );
+  const [passport, setPassport] = useState<PassportStats>(() => boot.passport);
+  const [scoutMissions, setScoutMissions] = useState<ScoutMission[]>(() =>
+    INITIAL_SCOUT_MISSIONS.map((m) =>
+      boot.completedScoutIds.includes(m.id)
+        ? { ...m, completed: true }
+        : m,
+    ),
+  );
   const [arenaVotes, setArenaVotes] = useState<{
     a: number;
     b: number;
     userSide?: 'a' | 'b';
-  }>({ a: ARENA_MATCH.a.votes, b: ARENA_MATCH.b.votes });
+  }>(() => ({
+    a: ARENA_MATCH.a.votes,
+    b: ARENA_MATCH.b.votes,
+    userSide: boot.arenaUserSide ?? undefined,
+  }));
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     try {
       const raw = localStorage.getItem('bdx_user_profile');
@@ -175,13 +230,176 @@ export default function App() {
   const [blogSlug, setBlogSlug] = useState<string | null>(null);
   const [convictions] = useState(INITIAL_CONVICTIONS);
   const [firstDiscoveryOpen, setFirstDiscoveryOpen] = useState(false);
-  const [hasCompletedFirstDiscovery, setHasCompletedFirstDiscovery] = useState(() => {
-    try {
-      return localStorage.getItem('bdx_first_discovery') === '1';
-    } catch {
-      return false;
-    }
-  });
+  const [hasCompletedFirstDiscovery, setHasCompletedFirstDiscovery] = useState(
+    () => boot.hasCompletedFirstDiscovery,
+  );
+  const [earnReady, setEarnReady] = useState(false);
+  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
+  const [ledgerSynced, setLedgerSynced] = useState(false);
+
+  const applyEarnSnapshot = (snap: ReturnType<typeof loadEarnProgress>) => {
+    setSimBalances(snap.simBalances);
+    setStakedBuild(snap.stakedBuild);
+    setPendingUnstake(snap.pendingUnstake);
+    setLpDeposits(snap.lpDeposits);
+    setGrowthTasks(applyCompletedTasks(snap.completedTaskIds));
+    setStartedTaskIds(snap.startedTaskIds);
+    setBuilderXp(snap.builderXp);
+    setContributionsCount(snap.contributionsCount);
+    setDiscoveredIds(new Set(snap.discoveredIds));
+    setPassport(snap.passport);
+    setQuests(applyCompletedQuests(ALL_QUESTS, snap.completedQuestIds));
+    setScoutMissions(
+      INITIAL_SCOUT_MISSIONS.map((m) =>
+        snap.completedScoutIds.includes(m.id) ? { ...m, completed: true } : m,
+      ),
+    );
+    setArenaVotes({
+      a: ARENA_MATCH.a.votes,
+      b: ARENA_MATCH.b.votes,
+      userSide: snap.arenaUserSide ?? undefined,
+    });
+    setHasCompletedFirstDiscovery(snap.hasCompletedFirstDiscovery);
+  };
+
+  /** Hydrate local progress, then merge shared ledger when wallet is connected */
+  useEffect(() => {
+    let cancelled = false;
+    setEarnReady(false);
+    setLedgerSynced(false);
+    const local = loadEarnProgress(walletKey);
+    applyEarnSnapshot(local);
+    setHydratedKey(walletKey ?? 'device');
+    setEarnReady(true);
+
+    if (!walletKey) return;
+
+    void (async () => {
+      try {
+        const remote = await fetchReputation(walletKey);
+        if (cancelled || !remote?.progress) {
+          setLedgerSynced(true);
+          return;
+        }
+        const merged = mergeProgressSnapshots(local, remote.progress);
+        if (cancelled) return;
+        applyEarnSnapshot(merged);
+        saveEarnProgress(walletKey, merged);
+        if (remote.displayName) {
+          setUserProfile((p) =>
+            p.displayName ? p : { ...p, displayName: remote.displayName },
+          );
+        }
+      } catch {
+        /* offline / empty ledger */
+      } finally {
+        if (!cancelled) setLedgerSynced(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- identity switch only
+  }, [walletKey]);
+
+  /** Persist Earn progress (wallet or device) */
+  useEffect(() => {
+    if (!earnReady) return;
+    if (hydratedKey !== (walletKey ?? 'device')) return;
+    saveEarnProgress(walletKey, {
+      version: 1,
+      builderXp,
+      contributionsCount,
+      completedTaskIds: growthTasks.filter((t) => t.completed).map((t) => t.id),
+      startedTaskIds,
+      discoveredIds: Array.from(discoveredIds),
+      stakedBuild,
+      lpDeposits,
+      pendingUnstake,
+      simBalances,
+      passport,
+      completedQuestIds: quests.filter((q) => q.completed).map((q) => q.id),
+      completedScoutIds: scoutMissions.filter((m) => m.completed).map((m) => m.id),
+      arenaUserSide: arenaVotes.userSide ?? null,
+      hasCompletedFirstDiscovery,
+      updatedAt: Date.now(),
+    });
+  }, [
+    earnReady,
+    hydratedKey,
+    walletKey,
+    builderXp,
+    contributionsCount,
+    growthTasks,
+    startedTaskIds,
+    discoveredIds,
+    stakedBuild,
+    lpDeposits,
+    pendingUnstake,
+    simBalances,
+    passport,
+    quests,
+    scoutMissions,
+    arenaVotes.userSide,
+    hasCompletedFirstDiscovery,
+  ]);
+
+  /** Push Passport to shared ledger (public) when wallet is connected */
+  useEffect(() => {
+    if (!earnReady || !ledgerSynced || !walletKey) return;
+    if (hydratedKey !== walletKey) return;
+    const handle = window.setTimeout(() => {
+      const snap = snapshotFromAppState({
+        builderXp,
+        contributionsCount,
+        completedTaskIds: growthTasks.filter((t) => t.completed).map((t) => t.id),
+        startedTaskIds,
+        discoveredIds: Array.from(discoveredIds),
+        stakedBuild,
+        lpDeposits,
+        pendingUnstake,
+        simBalances,
+        passport,
+        completedQuestIds: quests.filter((q) => q.completed).map((q) => q.id),
+        completedScoutIds: scoutMissions.filter((m) => m.completed).map((m) => m.id),
+        arenaUserSide: arenaVotes.userSide ?? null,
+        hasCompletedFirstDiscovery,
+      });
+      void syncReputationToServer({
+        wallet: walletKey,
+        displayName: userProfile.displayName,
+        progress: snap,
+        signMessage: signMessage
+          ? (msg) => signMessage(msg)
+          : undefined,
+      }).catch(() => {
+        /* best-effort sync */
+      });
+    }, 1800);
+    return () => window.clearTimeout(handle);
+  }, [
+    earnReady,
+    ledgerSynced,
+    hydratedKey,
+    walletKey,
+    builderXp,
+    contributionsCount,
+    growthTasks,
+    startedTaskIds,
+    discoveredIds,
+    stakedBuild,
+    lpDeposits,
+    pendingUnstake,
+    simBalances,
+    passport,
+    quests,
+    scoutMissions,
+    arenaVotes.userSide,
+    hasCompletedFirstDiscovery,
+    userProfile.displayName,
+    signMessage,
+  ]);
 
   useEffect(() => {
     if (hasCompletedFirstDiscovery) return;
@@ -218,11 +436,16 @@ export default function App() {
   const builderLevelName = getPassportLevel(builderXp);
 
   const handleAddXp = (amount: number) => {
+    if (amount <= 0) return;
     setBuilderXp((prev) => prev + amount);
     setPassport((p) => ({
       ...p,
       builderReputation: Math.min(100, p.builderReputation + Math.round(amount / 50)),
     }));
+  };
+
+  const handleStartGrowthTask = (taskId: string) => {
+    setStartedTaskIds((prev) => (prev.includes(taskId) ? prev : [...prev, taskId]));
   };
 
   const connectWallet = () => setVisible(true);
@@ -270,33 +493,48 @@ export default function App() {
   };
 
   const handleCompleteQuest = (questId: string) => {
-    setQuests((prev) =>
-      prev.map((q) => {
-        if (q.id === questId && !q.completed) {
-          handleAddXp(q.xp);
-          setContributionsCount((c) => c + 1);
-          setPassport((p) => ({
-            ...p,
-            researchQuestsCompleted: p.researchQuestsCompleted + 1,
-          }));
-          return { ...q, completed: true };
-        }
-        return q;
-      })
-    );
+    let xpGain = 0;
+    let didComplete = false;
+    setQuests((prev) => {
+      const q = prev.find((item) => item.id === questId);
+      if (!q || q.completed) return prev;
+      didComplete = true;
+      xpGain = q.xp;
+      return prev.map((item) =>
+        item.id === questId ? { ...item, completed: true } : item,
+      );
+    });
+    if (!didComplete) return;
+    handleAddXp(xpGain);
+    setContributionsCount((c) => c + 1);
+    setPassport((p) => ({
+      ...p,
+      researchQuestsCompleted: p.researchQuestsCompleted + 1,
+    }));
   };
 
   const handleCompleteGrowthTask = (taskId: string) => {
-    setGrowthTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId && !t.completed) {
-          handleAddXp(t.xp);
-          setContributionsCount((c) => c + 1);
-          return { ...t, completed: true };
-        }
-        return t;
-      })
-    );
+    if (
+      SOCIAL_GO_THEN_CLAIM.has(taskId) &&
+      !startedTaskIds.includes(taskId)
+    ) {
+      alert('Tap Go first to open the link, then come back and Claim.');
+      return;
+    }
+    let xpGain = 0;
+    let didComplete = false;
+    setGrowthTasks((prev) => {
+      const task = prev.find((t) => t.id === taskId);
+      if (!task || task.completed) return prev;
+      didComplete = true;
+      xpGain = task.xp;
+      return prev.map((t) =>
+        t.id === taskId ? { ...t, completed: true } : t,
+      );
+    });
+    if (!didComplete) return;
+    if (xpGain > 0) handleAddXp(xpGain);
+    setContributionsCount((c) => c + 1);
   };
 
   useEffect(() => {
@@ -341,21 +579,46 @@ export default function App() {
   };
 
   const handleUpvoteProject = (projectId: string) => {
+    let didUpvote = false;
     setProjects((prev) =>
       prev.map((p) => {
-        if (p.id === projectId) {
-          handleAddXp(50);
-          setPassport((pass) => ({
-            ...pass,
-            communitiesSupported: pass.communitiesSupported + 1,
-          }));
-          handleCompleteQuest('g_q3');
-          handleCompleteGrowthTask('t_upvote');
-          return { ...p, upvotes: p.upvotes + 1 };
-        }
-        return p;
-      })
+        if (p.id !== projectId) return p;
+        didUpvote = true;
+        return { ...p, upvotes: p.upvotes + 1 };
+      }),
     );
+    if (!didUpvote) return;
+    handleAddXp(50);
+    setPassport((pass) => ({
+      ...pass,
+      communitiesSupported: pass.communitiesSupported + 1,
+    }));
+    handleCompleteQuest('g_q3');
+    handleCompleteGrowthTask('t_upvote');
+    if (walletKey && signMessage) {
+      void (async () => {
+        try {
+          const updatedAt = Date.now();
+          const sig = await signMessage(
+            new TextEncoder().encode(
+              upvoteMessage({ wallet: walletKey, projectId, updatedAt }),
+            ),
+          );
+          await fetch('/api/reputation/upvote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              wallet: walletKey,
+              projectId,
+              updatedAt,
+              signature: bs58.encode(sig),
+            }),
+          });
+        } catch {
+          /* local upvote still counts; ledger requires signature */
+        }
+      })();
+    }
   };
 
   const handleFundProject = (amount: number, receivedAmt: number) => {
@@ -508,48 +771,98 @@ export default function App() {
   const openIntelligence = (prompt?: string) => {
     if (prompt) setIntelPrompt(prompt);
     setCurrentPath('ai');
-    handleCompleteQuest('g_q4');
-    handleCompleteGrowthTask('t_intel');
   };
 
-  const handleCompleteScout = (missionId: string, analysis: string) => {
-    setScoutMissions((prev) =>
-      prev.map((m) => {
-        if (m.id === missionId && !m.completed) {
-          handleAddXp(m.rewardXp);
-          handleCompleteGrowthTask('t_scout_mission');
-          setPassport((p) => ({
-            ...p,
-            scoutXp: (p.scoutXp || 0) + m.rewardXp,
-            earlyCalls: (p.earlyCalls || 0) + 1,
-            researchAccuracy: Math.min(99, (p.researchAccuracy || 70) + 2),
-            projectsDiscovered: p.projectsDiscovered + 1,
-            builderReputation: Math.min(100, p.builderReputation + 3),
-            communityTrust: Math.min(100, p.communityTrust + 2),
-            researchQuestsCompleted: p.researchQuestsCompleted + 1,
-          }));
-          setContributionsCount((c) => c + 1);
-          return { ...m, completed: true, analysis };
-        }
-        return m;
-      })
-    );
+  const handleCompleteScout = async (
+    missionId: string,
+    analysis: string,
+    meta: { projectId: string; evidenceUrl?: string },
+  ): Promise<{ ok: boolean; error?: string; already?: boolean }> => {
+    if (!walletKey) {
+      return { ok: false, error: 'Connect a wallet to publish your Scout call' };
+    }
+
+    const mission = scoutMissions.find((m) => m.id === missionId);
+    if (!mission || mission.completed) {
+      return { ok: false, error: 'Mission already completed' };
+    }
+
+    if (!signMessage) {
+      return { ok: false, error: 'Your wallet must support message signing' };
+    }
+
+    const result = await submitScoutCall({
+      wallet: walletKey,
+      missionId,
+      projectId: meta.projectId,
+      analysis,
+      evidenceUrl: meta.evidenceUrl,
+      signMessage: (msg) => signMessage(msg),
+    });
+
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+
+    if (!result.already) {
+      const rewardXp = result.rewardXp || mission.rewardXp;
+      setScoutMissions((prev) =>
+        prev.map((item) =>
+          item.id === missionId
+            ? {
+                ...item,
+                completed: true,
+                analysis,
+                projectId: meta.projectId,
+                evidenceUrl: meta.evidenceUrl,
+                submittedAt: new Date().toISOString(),
+              }
+            : item,
+        ),
+      );
+      handleAddXp(rewardXp);
+      handleCompleteGrowthTask('t_scout_mission');
+      setPassport((p) => ({
+        ...p,
+        scoutXp: (p.scoutXp || 0) + rewardXp,
+        earlyCalls: (p.earlyCalls || 0) + (result.earlyCall ? 1 : 0),
+        researchAccuracy: Math.min(99, (p.researchAccuracy || 70) + 2),
+        projectsDiscovered: p.projectsDiscovered + 1,
+        builderReputation: Math.min(100, p.builderReputation + 3),
+        communityTrust: Math.min(100, p.communityTrust + 2),
+        researchQuestsCompleted: p.researchQuestsCompleted + 1,
+      }));
+      setContributionsCount((c) => c + 1);
+    } else {
+      setScoutMissions((prev) =>
+        prev.map((item) =>
+          item.id === missionId
+            ? { ...item, completed: true, analysis, projectId: meta.projectId }
+            : item,
+        ),
+      );
+    }
+
+    return { ok: true, already: result.already };
   };
 
   const handleVoteArena = (side: 'a' | 'b') => {
+    let awarded = false;
     setArenaVotes((prev) => {
       if (prev.userSide) return prev;
-      handleAddXp(50);
-      setPassport((p) => ({
-        ...p,
-        communitiesSupported: p.communitiesSupported + 1,
-      }));
+      awarded = true;
       return {
         ...prev,
         [side]: prev[side] + 1,
         userSide: side,
       };
     });
+    if (!awarded) return;
+    handleAddXp(50);
+    setPassport((p) => ({
+      ...p,
+      communitiesSupported: p.communitiesSupported + 1,
+    }));
   };
 
   const renderView = () => {
@@ -566,6 +879,7 @@ export default function App() {
             tradeableMintSet={tradeableMintSet}
             tradeableTokens={tradeableTokens}
             onStartFirstDiscovery={() => setFirstDiscoveryOpen(true)}
+            highlightWallet={walletKey}
           />
         );
       case 'explore':
@@ -650,6 +964,10 @@ export default function App() {
         return (
           <FeedbackSupportView initialTab="support" setCurrentPath={setCurrentPath} />
         );
+      case 'telegram-bot':
+        return <TelegramBotView setCurrentPath={setCurrentPath} />;
+      case 'tg-vote':
+        return <TelegramVoteMiniApp />;
       case 'vision':
       case 'roadmap':
       case 'manifesto':
@@ -713,6 +1031,8 @@ export default function App() {
             onProvideLiquidity={handleProvideLiquidity}
             lpDeposits={lpDeposits}
             tasks={growthTasks}
+            startedTaskIds={startedTaskIds}
+            onStartTask={handleStartGrowthTask}
             onCompleteTask={handleCompleteGrowthTask}
             onDailySpin={(prize) => {
               handleAddXp(prize.xp);
@@ -730,6 +1050,7 @@ export default function App() {
             }}
             isStaker={stakedBuild > 0 || Boolean(pendingUnstake)}
             setCurrentPath={setCurrentPath}
+            builderXp={builderXp}
           />
         );
       case 'terminal':
@@ -746,6 +1067,8 @@ export default function App() {
             watchlistUpdates={
               discoveredIds.size > 0 ? discoveredIds.size : 3
             }
+            walletAddress={walletKey}
+            onConnectWallet={connectWallet}
             userScout={{
               id: 'you',
               name: userProfile.displayName || 'You',
@@ -770,6 +1093,10 @@ export default function App() {
         return (
           <AiView
             onAddXp={handleAddXp}
+            onIntelUsed={() => {
+              handleCompleteQuest('g_q4');
+              handleCompleteGrowthTask('t_intel');
+            }}
             initialPrompt={intelPrompt}
             onPromptConsumed={() => setIntelPrompt(null)}
             onOpenTerminal={() => setCurrentPath('terminal')}
@@ -843,6 +1170,7 @@ export default function App() {
             tradeableMintSet={tradeableMintSet}
             tradeableTokens={tradeableTokens}
             onStartFirstDiscovery={() => setFirstDiscoveryOpen(true)}
+            highlightWallet={walletKey}
           />
         );
     }
@@ -850,6 +1178,32 @@ export default function App() {
 
   const activeProject = projects.find((p) => p.id === selectedProjectId);
   const tradeableCount = tradeableTokens.length;
+
+  // Telegram Mini App: vote-only chrome (no DEX nav / wallet / chat)
+  if (currentPath === 'tg-vote') {
+    return (
+      <div className="min-h-[100dvh] bg-[#0b0f14] font-sans text-white">
+        <Seo path="tg-vote" />
+        <Suspense fallback={<RouteFallback />}>
+          <TelegramVoteMiniApp />
+        </Suspense>
+        {customAlert && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-sm space-y-4 rounded-3xl border border-accent/30 bg-surface/80 p-6 text-center">
+              <p className="whitespace-pre-line text-xs text-steel">{customAlert.message}</p>
+              <button
+                type="button"
+                onClick={() => setCustomAlert(null)}
+                className="w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-ink"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col justify-between bg-ink font-sans text-white selection:bg-accent selection:text-ink">

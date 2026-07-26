@@ -329,7 +329,7 @@ Ask anything. For product ideas, use the **Feedback** tab so the team gets a cle
         {
           role: 'model',
           content:
-            'I hit a snag reaching the model. Try again in a moment — or email **contact@buildersdex.app**. Common fixes: connect wallet for trades, refresh Earn after completing a task, check FAQ for THE STANDARD funnel.',
+            'I hit a snag reaching the model. Try again in a moment — or email **contact@buildingcultureid.space**. Common fixes: connect wallet for trades, refresh Earn after completing a task, check FAQ for THE STANDARD funnel.',
         },
       ]);
     } finally {

@@ -9,39 +9,47 @@ import {
 export const INITIAL_SCOUT_MISSIONS: ScoutMission[] = [
   {
     id: 'scout_ai',
-    title: 'Find an early-stage AI project',
-    description: 'Submit structured analysis on a pre-curation AI + Web3 builder.',
+    title: 'Call an early AI builder',
+    description:
+      'Pick a catalog AI project still early in the funnel. Thesis: why the team is real, what GitHub proves, and what could kill it.',
     focus: 'AI + Web3',
     rewardXp: 500,
     rewardLabel: '+Builder Reputation · Early Access',
     completed: false,
+    suggestedProjectId: 'p1',
   },
   {
     id: 'scout_depin',
-    title: 'Scout a DePIN signal',
-    description: 'Identify a hardware or network project with verifiable commits.',
-    focus: 'DePIN',
+    title: 'Scout a DePIN / infra signal',
+    description:
+      'Identify verifiable commits and deployment footprint. Link evidence (repo, docs, explorer).',
+    focus: 'DePIN / Infrastructure',
     rewardXp: 400,
     rewardLabel: '+Scout badge · Radar ping',
     completed: false,
+    suggestedProjectId: 'p3',
   },
   {
     id: 'scout_infra',
     title: 'Map an infrastructure builder',
-    description: 'Document light-client, oracle, or messaging teams before listing.',
+    description:
+      'Document bridges, oracles, or messaging before the crowd. Timestamped thesis on Builder Scouts™.',
     focus: 'Infrastructure',
     rewardXp: 450,
     rewardLabel: '+Community Trust',
     completed: false,
+    suggestedProjectId: 'p3',
   },
   {
     id: 'scout_rwa',
-    title: 'Surface an RWA experiment',
-    description: 'Find builders shipping real-world asset rails with transparency.',
-    focus: 'RWA',
+    title: 'Surface a reviewed DeFi / RWA-adjacent call',
+    description:
+      'Aave is under review — write why it should (or should not) enter Genesis next. Accuracy compounds on the ledger.',
+    focus: 'DeFi / RWA',
     rewardXp: 350,
     rewardLabel: '+Genesis Radar credit',
     completed: false,
+    suggestedProjectId: 'p2',
   },
 ];
 

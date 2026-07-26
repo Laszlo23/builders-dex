@@ -32,6 +32,8 @@ export const APP_ROUTES = [
   'investor',
   'builder-graph',
   'builder-stories',
+  'telegram-bot',
+  'tg-vote',
 ] as const;
 
 export type AppRoute = (typeof APP_ROUTES)[number];

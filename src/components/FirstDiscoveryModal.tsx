@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { FIRST_DISCOVERY_COPY } from '../data/builderEconomy';
+import { GENESIS_PROJECT_IDS } from '../data/genesisBuilders';
 import { Project } from '../types';
 
 type Props = {
@@ -22,10 +23,17 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
 
   if (!open) return null;
 
-  const picks = [...projects]
-    .filter((p) => p.curation.status === 'curated')
-    .sort((a, b) => b.builderScore.overall - a.builderScore.overall)
-    .slice(0, 3);
+  const picks =
+    GENESIS_PROJECT_IDS.map((id) => projects.find((p) => p.id === id)).filter(
+      (p): p is Project => Boolean(p),
+    ).length > 0
+      ? GENESIS_PROJECT_IDS.map((id) => projects.find((p) => p.id === id)).filter(
+          (p): p is Project => Boolean(p),
+        )
+      : [...projects]
+          .filter((p) => p.curation.status === 'curated')
+          .sort((a, b) => b.builderScore.overall - a.builderScore.overall)
+          .slice(0, 3);
 
   return (
     <div

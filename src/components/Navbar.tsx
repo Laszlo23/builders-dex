@@ -21,6 +21,7 @@ import {
   Eye,
   Map,
   ScrollText,
+  Bot,
 } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
@@ -36,35 +37,36 @@ interface NavbarProps {
 }
 
 const DESKTOP_NAV = [
+  { id: 'terminal', label: 'Radar', icon: Activity },
+  { id: 'explore', label: 'Builders', icon: Layers },
+  { id: 'ai', label: 'Analyst', icon: Sparkles },
   { id: 'swap', label: 'Trade', icon: ArrowLeftRight },
-  { id: 'explore', label: 'Explore', icon: Layers },
-  { id: 'terminal', label: 'Terminal', icon: Activity },
-  { id: 'launchpad', label: 'Accelerator', icon: Rocket },
-  { id: 'earn', label: 'Earn', icon: Coins },
 ] as const;
 
 const MORE_LINKS = [
   { id: 'landing', label: 'Home', icon: Home },
+  { id: 'earn', label: 'Earn', icon: Coins },
+  { id: 'launchpad', label: 'Accelerator', icon: Rocket },
   { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'team', label: 'Team', icon: Users },
   { id: 'builders', label: 'Rankings', icon: Trophy },
   { id: 'investor', label: 'Investor Mode', icon: Sparkles },
-  { id: 'ai', label: 'Intelligence™', icon: Sparkles },
   { id: 'profile', label: 'Passport™', icon: User },
   { id: 'apply', label: 'Apply', icon: FilePlus2 },
   { id: 'campaign', label: 'Share kit', icon: Share2 },
   { id: 'vision', label: 'Vision', icon: Eye },
   { id: 'roadmap', label: 'Roadmap', icon: Map },
   { id: 'manifesto', label: 'Manifest', icon: ScrollText },
+  { id: 'telegram-bot', label: 'Telegram bot', icon: Bot },
   { id: 'support', label: 'Support', icon: Headphones },
   { id: 'feedback', label: 'Feedback', icon: MessageSquareHeart },
 ] as const;
 
 const MOBILE_NAV = [
   { id: 'landing', label: 'Home', icon: Home },
-  { id: 'explore', label: 'Explore', icon: Layers },
+  { id: 'terminal', label: 'Radar', icon: Activity },
+  { id: 'explore', label: 'Builders', icon: Layers },
   { id: 'swap', label: 'Trade', icon: ArrowLeftRight },
-  { id: 'launchpad', label: 'Accel', icon: Rocket },
   { id: 'profile', label: 'Passport', icon: User },
 ] as const;
 

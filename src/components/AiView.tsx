@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Sparkles, Brain, ShieldAlert, Cpu } from 'lucide-react';
+import { Send, Sparkles, Brain, ShieldAlert, Cpu, Link2 } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'model';
   content: string;
+  toolsUsed?: { tool: string; label: string; detail: string }[];
 }
 
 interface AiViewProps {
   onAddXp: (xpAmt: number) => void;
+  onIntelUsed?: () => void;
   initialPrompt?: string | null;
   onPromptConsumed?: () => void;
   onOpenTerminal?: () => void;
@@ -15,6 +17,7 @@ interface AiViewProps {
 
 export default function AiView({
   onAddXp,
+  onIntelUsed,
   initialPrompt,
   onPromptConsumed,
   onOpenTerminal,
@@ -22,14 +25,14 @@ export default function AiView({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
-      content: `I am **Builder Intelligence™** — the research agent for Builders DEX.
+      content: `I am **Builder Intelligence™** — a tool-using research analyst.
 
-I help you find and evaluate builders using **Builder Score™**, market context, and risk framing.
+I call live tools before answering:
+• Catalog + live Builder Score™ (GitHub citations)
+• Daily Radar™ movers
+• Scout ledger + Telegram clears
 
-Ask like a researcher:
-• Find promising AI projects under $10M market cap
-• Compare HyperSphere vs AeroLend on quality signals
-• What would earn curation — and what gets rejected?`,
+Ask like a researcher. I will not invent projects.`,
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -45,24 +48,24 @@ Ask like a researcher:
 
   const presets = [
     {
-      title: 'AI under $10M',
+      title: 'Live AI builders',
       prompt:
-        'Find me promising AI projects under $10M market cap on Builders DEX. For each match: Builder Score™, reason (GitHub, releases, community), and main risk. Format as a short research brief.',
+        'Use tools to list catalog projects in AI, then pull live Builder Score™ for each match. Brief: overall, top citation, curation status, main risk.',
     },
     {
-      title: 'Why SentientAI?',
+      title: "Today's Radar",
       prompt:
-        'Why is SentientAI interesting? Builder Score™ 93/100. Journey: Prototype → Mainnet. State thesis, main strength, and main risk.',
+        'Call get_daily_radar and summarize rising/falling movers, sector pulse, and any Telegram clears. Cite the tool.',
     },
     {
-      title: 'Quality vs noise',
+      title: 'Scout ledger',
       prompt:
-        'Explain how Builder Score™ and THE STANDARD (4,892 analyzed → 127 recognized → 23 network → 2 tradeable) separate builders from noise.',
+        'List recent Scout calls and the Scout leaderboard from tools. Who called early and on which project?',
     },
     {
-      title: 'Rejection criteria',
+      title: 'Why reject?',
       prompt:
-        'What typically causes a project to be rejected on Builders DEX? List concrete failure modes (development, team, product) with examples.',
+        'From the catalog tool, list rejected projects with rejection reasons. Contrast with a curated Genesis project using live score.',
     },
   ];
 
@@ -81,12 +84,25 @@ Ask like a researcher:
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({
+          messages: updatedMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to reach Builder Intelligence™');
-      setMessages((prev) => [...prev, { role: 'model', content: data.text }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'model',
+          content: data.text,
+          toolsUsed: Array.isArray(data.toolsUsed) ? data.toolsUsed : [],
+        },
+      ]);
       onAddXp(100);
+      onIntelUsed?.();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Request failed';
       setConfigError(msg.includes('GEMINI_API_KEY') || msg.includes('Secrets'));
@@ -113,7 +129,7 @@ Ask like a researcher:
           Builder Intelligence™
         </h1>
         <p className="mt-2 text-sm text-steel">
-          AI research agent for the reputation economy — scores, matches, strengths, and risks.
+          Tool-using analyst — scores, radar, scouts, and Telegram clears with citations.
         </p>
         {onOpenTerminal && (
           <button
@@ -121,7 +137,7 @@ Ask like a researcher:
             onClick={onOpenTerminal}
             className="mt-3 inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-3.5 py-1.5 text-xs font-semibold text-accent hover:bg-accent/20"
           >
-            Today&apos;s brief — Builder Intelligence Daily™
+            Open Radar (Terminal) →
           </button>
         )}
       </div>
@@ -142,13 +158,29 @@ Ask like a researcher:
                   </div>
                 )}
                 <div
-                  className={`max-w-[85%] whitespace-pre-line rounded-xl border px-4 py-3 ${
+                  className={`max-w-[85%] space-y-2 rounded-xl border px-4 py-3 ${
                     m.role === 'user'
                       ? 'border-white/10 bg-ink text-white'
                       : 'border-accent/15 bg-ink/60 text-white/90'
                   }`}
                 >
-                  {m.content}
+                  <div className="whitespace-pre-line">{m.content}</div>
+                  {m.toolsUsed && m.toolsUsed.length > 0 && (
+                    <ul className="space-y-1 border-t border-white/8 pt-2">
+                      {m.toolsUsed.map((t, i) => (
+                        <li
+                          key={`${t.tool}-${i}`}
+                          className="flex items-start gap-1.5 font-mono text-[10px] text-accent/90"
+                        >
+                          <Link2 className="mt-0.5 h-3 w-3 shrink-0" />
+                          <span>
+                            {t.label}
+                            <span className="text-steel"> · {t.detail}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             ))}
@@ -156,7 +188,7 @@ Ask like a researcher:
             {loading && (
               <div className="flex items-center gap-3 font-mono text-sm text-steel">
                 <Cpu className="h-4 w-4 animate-spin text-accent" />
-                Running research analysis…
+                Calling live tools…
               </div>
             )}
 
@@ -180,13 +212,13 @@ Ask like a researcher:
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSendMessage(inputText);
+              void handleSendMessage(inputText);
             }}
             className="flex gap-2 border-t border-white/5 pt-3"
           >
             <input
               type="text"
-              placeholder='Ask: "Find promising AI projects under $10M…"'
+              placeholder='Ask: "Pull live scores for AI builders…"'
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="flex-1 rounded-xl border border-white/10 bg-ink px-4 py-2.5 text-xs text-white outline-none focus:border-accent/40"
@@ -204,28 +236,30 @@ Ask like a researcher:
         <div className="w-full space-y-3 lg:w-72">
           <div className="rounded-3xl border border-white/10 bg-surface p-5">
             <h3 className="font-mono text-[11px] uppercase tracking-widest text-steel">
-              Ask Builder Intelligence
+              Tool presets
             </h3>
             <div className="mt-3 space-y-2">
               {presets.map((t) => (
                 <button
                   key={t.title}
                   type="button"
-                  onClick={() => handleSendMessage(t.prompt)}
+                  onClick={() => void handleSendMessage(t.prompt)}
                   className="w-full rounded-2xl border border-white/8 bg-ink/40 p-3 text-left transition hover:border-accent/30"
                 >
                   <h4 className="text-xs font-bold text-white">{t.title}</h4>
-                  <p className="mt-0.5 line-clamp-2 font-mono text-[10px] text-steel">{t.prompt}</p>
+                  <p className="mt-0.5 line-clamp-2 font-mono text-[10px] text-steel">
+                    {t.prompt}
+                  </p>
                 </button>
               ))}
             </div>
           </div>
           <div className="rounded-3xl border border-accent/20 bg-accent/5 p-5">
             <p className="font-mono text-[10px] uppercase tracking-wider text-accent">
-              Research format
+              Loop
             </p>
             <p className="mt-2 text-xs leading-relaxed text-steel">
-              Matches · Builder Score™ · Reason · Risk — Bloomberg clarity, not casino hype.
+              Radar → Builders → Scout → Trade. Analyst cites live tools — not seed fiction.
             </p>
           </div>
         </div>

@@ -293,6 +293,11 @@ export interface ScoutMission {
   rewardLabel: string;
   completed: boolean;
   analysis?: string;
+  /** Catalog project suggested for this mission */
+  suggestedProjectId?: string;
+  projectId?: string;
+  evidenceUrl?: string;
+  submittedAt?: string;
 }
 
 export interface ScoutProfile {

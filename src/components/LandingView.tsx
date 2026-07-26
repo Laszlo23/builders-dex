@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { Project, Builder } from '../types';
 import { BUILDERS_INDEX, getBuilder100 } from '../data/projects';
+import { GENESIS_INDEX_COPY, GENESIS_PROJECT_IDS } from '../data/genesisBuilders';
+import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
 import { CuratedToken, getCuratedToken, resolveTradeMint } from '../data/curatedTokens';
 import VideoBackground from './VideoBackground';
 import ScoreBars, { BuilderScoreBadge, CurationBadges } from './ScoreBars';
@@ -33,11 +35,13 @@ import { BUILD_FEED } from '../data/builderEconomy';
 import { BRAND_CATEGORY, BRAND_PHILOSOPHY, BRAND_MISSION_RALLY } from '../data/brand';
 import AspirationNetworkSection from './AspirationNetworkSection';
 import CrystalBallCard from './CrystalBallCard';
+import ReputationLeaderboard from './ReputationLeaderboard';
 import RecognitionRateCard from './RecognitionRateCard';
 import BuilderArchiveCard from './BuilderArchiveCard';
 import TalentBuilderSlider from './TalentBuilderSlider';
 import FarcasterAppsFeed from './FarcasterAppsFeed';
 import ConvictionWinnersSection from './ConvictionWinnersSection';
+import CommunityTrendingSection from './CommunityTrendingSection';
 import BuilderGraphPrideBand from './BuilderGraphPrideBand';
 import EducationalReviewCard from './EducationalReviewCard';
 import { educationalReviewFor } from '../data/builderPlatform';
@@ -53,6 +57,7 @@ interface LandingViewProps {
   tradeableMintSet: Set<string>;
   tradeableTokens: CuratedToken[];
   onStartFirstDiscovery?: () => void;
+  highlightWallet?: string | null;
 }
 
 const HERO_PILLARS: { icon: LucideIcon; label: string }[] = [
@@ -114,11 +119,12 @@ export default function LandingView({
   tradeableMintSet,
   tradeableTokens,
   onStartFirstDiscovery,
+  highlightWallet,
 }: LandingViewProps) {
-  const featured = [...projects]
-    .filter((p) => p.curation.status === 'curated')
-    .sort((a, b) => b.builderScore.overall - a.builderScore.overall)
-    .slice(0, 3);
+  const featured = GENESIS_PROJECT_IDS.map(
+    (id) => projects.find((p) => p.id === id),
+  ).filter((p): p is Project => Boolean(p));
+  const liveScores = useLiveScoreMap(featured.map((p) => p.id));
 
   const wall = getBuilder100(builders, projects).slice(0, 10);
   const rejected = projects.filter((p) => p.curation.status === 'rejected').slice(0, 2);
@@ -295,6 +301,15 @@ export default function LandingView({
       {/* 5 — Mission rally + daily icons */}
       <AspirationNetworkSection setCurrentPath={setCurrentPath} aspirationIndex={0} />
 
+      <section className="relative border-b border-white/5 bg-ink px-4 py-14">
+        <div className="mx-auto max-w-5xl">
+          <ReputationLeaderboard
+            onOpenProfile={() => setCurrentPath('profile')}
+            highlightWallet={highlightWallet}
+          />
+        </div>
+      </section>
+
       {/* 6 — Crystal Ball */}
       <section className="border-b border-white/5 bg-ink px-4 py-16">
         <div className="mx-auto max-w-3xl">
@@ -360,17 +375,17 @@ export default function LandingView({
               {
                 icon: Layers,
                 n: BUILDERS_INDEX.projectsTracked.toLocaleString(),
-                label: 'Projects tracked',
+                label: 'In catalog',
               },
               {
                 icon: Trophy,
                 n: String(BUILDERS_INDEX.projectsApproved),
-                label: 'Approved',
+                label: 'Genesis Index',
               },
               {
                 icon: ShieldCheck,
                 n: BUILDERS_INDEX.qualityThreshold,
-                label: 'Quality threshold',
+                label: 'Quality bar',
               },
             ].map((row, i) => {
               const Icon = row.icon;
@@ -400,10 +415,11 @@ export default function LandingView({
         <div className="mx-auto max-w-5xl">
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
-              <SectionEyebrow icon={BookOpen}>Builder Stories</SectionEyebrow>
+              <SectionEyebrow icon={BookOpen}>{GENESIS_INDEX_COPY.eyebrow}</SectionEyebrow>
               <h2 className="font-display mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
-                Startup profiles, not ticker cards
+                {GENESIS_INDEX_COPY.title}
               </h2>
+              <p className="mt-2 max-w-xl text-sm text-steel">{GENESIS_INDEX_COPY.lead}</p>
             </div>
             <button
               type="button"
@@ -471,7 +487,16 @@ export default function LandingView({
                       &ldquo;{p.whySelected}&rdquo;
                     </p>
                     <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/8 pt-4">
-                      <BuilderScoreBadge overall={p.builderScore.overall} />
+                      <BuilderScoreBadge
+                        overall={liveScores[p.id]?.overall ?? p.builderScore.overall}
+                        mode={
+                          (liveScores[p.id]?.mode as
+                            | 'live'
+                            | 'partial'
+                            | 'provisional'
+                            | undefined) || 'seed'
+                        }
+                      />
                       <div className="min-w-0 flex-1">
                         <ScoreBars score={p.builderScore} mode="top3" compact />
                       </div>
@@ -521,6 +546,12 @@ export default function LandingView({
       <section className="border-b border-white/5 bg-ink px-4 py-16">
         <div className="mx-auto max-w-5xl">
           <ConvictionWinnersSection onTrade={onTrade} />
+        </div>
+      </section>
+
+      <section className="border-b border-white/5 bg-ink px-4 py-16">
+        <div className="mx-auto max-w-5xl">
+          <CommunityTrendingSection onTrade={onTrade} />
         </div>
       </section>
 

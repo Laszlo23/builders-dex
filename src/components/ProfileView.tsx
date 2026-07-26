@@ -22,6 +22,7 @@ import { CurationBadges } from './ScoreBars';
 import ProjectSubmitForm from './ProjectSubmitForm';
 import ReputationUnlocksCard from './ReputationUnlocksCard';
 import OnChainResumeCard from './OnChainResumeCard';
+import ReputationLeaderboard from './ReputationLeaderboard';
 import { USER_LEGACY_DEFAULT } from '../data/builderNetwork';
 
 const EMPTY_SOCIALS: UserSocials = {
@@ -246,7 +247,8 @@ export default function ProfileView({
 
       {savedFlash && (
         <p className="mt-4 rounded-xl border border-accent/30 bg-accent/10 px-4 py-2.5 text-sm text-accent">
-          Passport saved — changes persist on this device.
+          Passport saved — changes persist on this device
+          {wallet ? ' and sync to the shared ledger when your wallet is connected.' : '.'}
         </p>
       )}
 
@@ -749,6 +751,10 @@ export default function ProfileView({
             )}
           </ul>
         </section>
+      </div>
+
+      <div className="mt-10">
+        <ReputationLeaderboard highlightWallet={wallet?.address ?? null} />
       </div>
     </div>
   );
