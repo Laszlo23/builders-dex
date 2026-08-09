@@ -82,7 +82,7 @@ export default function Navbar({
   walletLabel,
   walletDomain,
 }: NavbarProps) {
-  const { publicKey, connected, disconnect } = useWallet();
+  const { publicKey, connected, connecting, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
   const [walletOpen, setWalletOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -250,7 +250,7 @@ export default function Navbar({
                     <button
                       type="button"
                       onClick={() => {
-                        disconnect();
+                        void disconnect();
                         setWalletOpen(false);
                       }}
                       className="w-full rounded-lg px-2 py-2 text-left text-xs text-steel hover:bg-white/[0.05]"
@@ -263,11 +263,12 @@ export default function Navbar({
             ) : (
               <button
                 type="button"
+                disabled={connecting}
                 onClick={() => setVisible(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-bold text-ink hover:bg-accent-bright"
+                className="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-bold text-ink hover:bg-accent-bright disabled:opacity-70"
               >
                 <Wallet className="h-3.5 w-3.5" />
-                Connect
+                {connecting ? 'Connecting…' : 'Connect'}
               </button>
             )}
           </div>

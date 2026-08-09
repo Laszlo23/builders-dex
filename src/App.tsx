@@ -45,11 +45,9 @@ import {
   loadEarnProgress,
   mergeProgressSnapshots,
   saveEarnProgress,
-  snapshotFromAppState,
 } from './lib/earnProgress';
 import {
   fetchReputation,
-  syncReputationToServer,
 } from './lib/reputation/client';
 import { upvoteMessage } from './lib/reputation/messages';
 import { submitScoutCall } from './lib/scout/client';
@@ -303,7 +301,10 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- identity switch only
   }, [walletKey]);
 
-  /** Persist Earn progress (wallet or device) */
+  /** Persist Earn progress (wallet or device) — local only.
+   *  Do NOT auto-call wallet signMessage here: that spam made Phantom/Solflare
+   *  look stuck in an endless "connecting" / approve loop. Server sync happens
+   *  on explicit signed actions (Scout, upvote) or a future "Publish Passport". */
   useEffect(() => {
     if (!earnReady) return;
     if (hydratedKey !== (walletKey ?? 'device')) return;
@@ -343,62 +344,6 @@ export default function App() {
     scoutMissions,
     arenaVotes.userSide,
     hasCompletedFirstDiscovery,
-  ]);
-
-  /** Push Passport to shared ledger (public) when wallet is connected */
-  useEffect(() => {
-    if (!earnReady || !ledgerSynced || !walletKey) return;
-    if (hydratedKey !== walletKey) return;
-    const handle = window.setTimeout(() => {
-      const snap = snapshotFromAppState({
-        builderXp,
-        contributionsCount,
-        completedTaskIds: growthTasks.filter((t) => t.completed).map((t) => t.id),
-        startedTaskIds,
-        discoveredIds: Array.from(discoveredIds),
-        stakedBuild,
-        lpDeposits,
-        pendingUnstake,
-        simBalances,
-        passport,
-        completedQuestIds: quests.filter((q) => q.completed).map((q) => q.id),
-        completedScoutIds: scoutMissions.filter((m) => m.completed).map((m) => m.id),
-        arenaUserSide: arenaVotes.userSide ?? null,
-        hasCompletedFirstDiscovery,
-      });
-      void syncReputationToServer({
-        wallet: walletKey,
-        displayName: userProfile.displayName,
-        progress: snap,
-        signMessage: signMessage
-          ? (msg) => signMessage(msg)
-          : undefined,
-      }).catch(() => {
-        /* best-effort sync */
-      });
-    }, 1800);
-    return () => window.clearTimeout(handle);
-  }, [
-    earnReady,
-    ledgerSynced,
-    hydratedKey,
-    walletKey,
-    builderXp,
-    contributionsCount,
-    growthTasks,
-    startedTaskIds,
-    discoveredIds,
-    stakedBuild,
-    lpDeposits,
-    pendingUnstake,
-    simBalances,
-    passport,
-    quests,
-    scoutMissions,
-    arenaVotes.userSide,
-    hasCompletedFirstDiscovery,
-    userProfile.displayName,
-    signMessage,
   ]);
 
   useEffect(() => {
