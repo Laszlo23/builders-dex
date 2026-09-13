@@ -8,6 +8,7 @@ Not another DEX — a curated discovery and trading protocol with **Builder Scor
 
 - Discovery-first Home, Explore, Rankings, Passport, Apply
 - Builder Score™ (7 dimensions) on every curated project
+- **On-chain Builder Passport** — Solana program anchoring Builder Score™ on-chain
 - Apply for Listing → pending review (not instantly tradeable)
 - Builder Passport™ levels: Rookie → Genesis
 - Builders Intelligence™ research assistant (Gemini)
@@ -64,3 +65,58 @@ Link Explore projects by setting `mint` on a project in [`src/data/projects.ts`]
 - `npm run build` — production client + server bundle
 - `npm run start` — serve production build
 - `npm run lint` — TypeScript check
+
+## On-Chain Programs
+
+The Builder Passport Solana program is located in [`programs/`](programs/). This Anchor program stores Builder Scores and Passport data on-chain.
+
+### Quick Start (Solana Programs)
+
+**Prerequisites:** Rust 1.98+, Solana CLI 4.2+, Anchor CLI 0.31+
+
+1. Build the program:
+   ```bash
+   cd programs
+   anchor build
+   ```
+
+2. Run tests:
+   ```bash
+   anchor test
+   ```
+
+3. Deploy to devnet:
+   ```bash
+   ./scripts/deploy-devnet.sh
+   ```
+
+4. Update `.env` with the deployed program ID:
+   ```bash
+   VITE_BUILDER_PASSPORT_PROGRAM_ID=<YOUR_PROGRAM_ID>
+   ```
+
+See [`programs/README.md`](programs/README.md) for full documentation, deployment instructions, and mainnet deployment guide.
+
+### Program Features
+
+- **PDA-based storage**: Each wallet gets a deterministic passport account
+- **Score tracking**: On-chain Builder Scores (0-10000 range)
+- **Level system**: Automatic level calculation (Rookie → Genesis)
+- **Admin-gated updates**: Secure score updates via authorized keys
+- **Frontend integration**: React hooks and utilities provided
+
+### Architecture
+
+```
+programs/
+├── programs/builder_passport/    # Anchor program source
+├── tests/                        # Integration tests
+├── scripts/                      # Deployment scripts
+└── target/                       # Build artifacts & IDL
+```
+
+Frontend integration files:
+- `src/lib/builderPassport.ts` - Core utilities
+- `src/hooks/useBuilderPassport.ts` - React hooks
+
+**Program ID**: `HM1CaGZRzdNC7pJxtj2jNwuxhYDbMQGt3xGAJk9iKakD` (update after deploying)
