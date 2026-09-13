@@ -51,8 +51,38 @@ export function safeNavigate(
 ): void {
   if (isAppRoute(path)) {
     setCurrentPath(path);
+    syncUrlToPath(path);
     return;
   }
   console.warn(`[nav] unknown route "${path}" → ${fallback}`);
   setCurrentPath(fallback);
+  syncUrlToPath(fallback);
+}
+
+function syncUrlToPath(path: AppRoute): void {
+  if (typeof window === 'undefined') return;
+  if (path === 'tg-vote') return;
+  
+  const url = path === 'landing' ? '/' : `/${path}`;
+  if (window.location.pathname !== url) {
+    window.history.pushState(null, '', url);
+  }
+}
+
+export function getPathFromUrl(): string {
+  if (typeof window === 'undefined') return 'landing';
+  
+  const path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
+  const q = new URLSearchParams(window.location.search);
+  
+  if (window.location.pathname === '/tg' || hash === 'tg-vote' || q.get('app') === 'vote') {
+    return 'tg-vote';
+  }
+  
+  if (window.Telegram?.WebApp?.initData) return 'tg-vote';
+  
+  if (!path || path === 'index.html') return 'landing';
+  
+  return isAppRoute(path) ? path : 'landing';
 }

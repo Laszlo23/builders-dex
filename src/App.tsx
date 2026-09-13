@@ -65,7 +65,7 @@ import {
 } from './types';
 import { getPassportLevel } from './lib/builderScore';
 import { useTradeableTokens, isMintTradeable } from './hooks/useTradeableTokens';
-import { safeNavigate } from './lib/routes';
+import { safeNavigate, getPathFromUrl } from './lib/routes';
 
 function RouteFallback() {
   return (
@@ -102,18 +102,7 @@ export default function App() {
   const { setVisible } = useWalletModal();
   const { tokens: tradeableTokens, mintSet: tradeableMintSet } = useTradeableTokens();
 
-  const [currentPath, setCurrentPathRaw] = useState<string>(() => {
-    if (typeof window === 'undefined') return 'landing';
-    const path = window.location.pathname.replace(/\/$/, '') || '/';
-    const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
-    const q = new URLSearchParams(window.location.search);
-    if (path === '/tg' || hash === 'tg-vote' || q.get('app') === 'vote') {
-      return 'tg-vote';
-    }
-    // Mini App session → vote UI only (not full DEX)
-    if (window.Telegram?.WebApp?.initData) return 'tg-vote';
-    return 'landing';
-  });
+  const [currentPath, setCurrentPathRaw] = useState<string>(() => getPathFromUrl());
   const setCurrentPath = (path: string) => {
     startTransition(() => {
       safeNavigate(path, setCurrentPathRaw);
@@ -135,10 +124,20 @@ export default function App() {
       const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
       if (hash === 'tg-vote') setCurrentPath('tg-vote');
     };
+    const onPopState = () => {
+      const path = getPathFromUrl();
+      if (path !== currentPath) {
+        setCurrentPathRaw(path);
+      }
+    };
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('popstate', onPopState);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once for Mini App
-  }, []);
+  }, [currentPath]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('p1');
   const [swapOutputMint, setSwapOutputMint] = useState<string | null>(null);
   const [intelPrompt, setIntelPrompt] = useState<string | null>(null);

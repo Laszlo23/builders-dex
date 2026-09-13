@@ -183,6 +183,54 @@ export default function ExploreView({
         )}
       </div>
 
+      {lane === 'curated' && !showRejected && (
+        <div className="mt-8">
+          <div className="mb-6 rounded-xl border border-accent/20 bg-gradient-to-br from-accent/5 to-transparent p-6">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full bg-accent/20 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-accent">
+                Featured Partner
+              </span>
+            </div>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex-1">
+                <h3 className="mb-2 font-display text-2xl font-bold text-white">
+                  Aura OS — AI Company OS
+                </h3>
+                <p className="mb-3 text-sm leading-relaxed text-steel">
+                  Own a company. Let AI make money. Built with Building Culture ecosystem — fair launch on Base, $29/mo or $299/yr. Real business validation from 1,000+ Vienna shops.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href="https://aibusiness.fun"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent/10 px-4 py-2 font-mono text-xs text-accent transition hover:bg-accent/20"
+                  >
+                    Visit aibusiness.fun
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProjectId('p5');
+                      openProject('p5');
+                    }}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 font-mono text-xs text-white transition hover:border-white/20 hover:bg-white/5"
+                  >
+                    View Full Story
+                  </button>
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="flex h-24 w-24 items-center justify-center rounded-xl bg-accent/10">
+                  <Layers className="h-12 w-12 text-accent" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {lane === 'community' ? (
         <div className="mt-8">
           <CommunityTrendingSection compact onTrade={onTrade} />
