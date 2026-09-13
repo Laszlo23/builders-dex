@@ -8,7 +8,7 @@ export function isGenesisProject(id: string): boolean {
 }
 
 export function sortGenesisFirst<T extends { id: string }>(items: T[]): T[] {
-  const rank = new Map(GENESIS_PROJECT_IDS.map((id, i) => [id, i]));
+  const rank = new Map<string, number>(GENESIS_PROJECT_IDS.map((id, i) => [id, i]));
   return [...items].sort((a, b) => {
     const ra = rank.has(a.id) ? rank.get(a.id)! : 100;
     const rb = rank.has(b.id) ? rank.get(b.id)! : 100;

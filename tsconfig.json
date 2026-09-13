@@ -22,6 +22,14 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "types": ["vite/client"]
-  }
+    "types": [
+      "vite/client"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "programs",
+    "wan2-2-fp8da-aoti-preview"
+  ]
 }
