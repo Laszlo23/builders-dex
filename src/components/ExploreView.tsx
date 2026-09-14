@@ -361,7 +361,7 @@ export default function ExploreView({
                         e.stopPropagation();
                         onUpvote(p.id);
                       }}
-                      className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 font-mono text-xs text-steel hover:border-accent/30 hover:text-accent"
+                      className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-xs text-steel hover:border-accent/30 hover:text-accent active:scale-95 min-h-[44px] min-w-[60px] flex items-center justify-center"
                     >
                       ▲ {p.upvotes}
                     </button>
@@ -379,7 +379,7 @@ export default function ExploreView({
                             e.stopPropagation();
                             onTrade(tradeMint);
                           }}
-                          className="rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-ink hover:bg-accent-bright"
+                          className="rounded-lg bg-accent px-4 py-2.5 text-xs font-bold text-ink hover:bg-accent-bright active:scale-95 min-h-[44px]"
                         >
                           Trade {tradeSymbol}
                         </button>
@@ -392,7 +392,7 @@ export default function ExploreView({
                         e.stopPropagation();
                         openProject(p.id);
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-white/12 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent"
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent active:scale-95 min-h-[44px]"
                     >
                       {isRejected ? 'Review' : 'Read story'} <ChevronRight className="h-4 w-4" />
                     </button>

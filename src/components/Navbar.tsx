@@ -265,9 +265,9 @@ export default function Navbar({
                 type="button"
                 disabled={connecting}
                 onClick={() => setVisible(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-bold text-ink hover:bg-accent-bright disabled:opacity-70"
+                className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright disabled:opacity-70 min-h-[44px] lg:min-h-0 lg:py-1.5"
               >
-                <Wallet className="h-3.5 w-3.5" />
+                <Wallet className="h-4 w-4 lg:h-3.5 lg:w-3.5" />
                 {connecting ? 'Connecting…' : 'Connect'}
               </button>
             )}
@@ -289,11 +289,11 @@ export default function Navbar({
                 key={item.id}
                 type="button"
                 onClick={() => setCurrentPath(item.id)}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-semibold ${
+                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-2.5 text-[10px] font-semibold min-h-[44px] ${
                   active ? 'text-accent' : 'text-steel'
                 }`}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <Icon className="h-5 w-5 shrink-0" />
                 <span className="truncate">{item.label}</span>
               </button>
             );

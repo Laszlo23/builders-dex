@@ -36,14 +36,14 @@ export default function LaunchView({
                 <button
                   type="button"
                   onClick={() => setCurrentPath('launchpad')}
-                  className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink"
+                  className="rounded-full bg-accent px-5 py-3 text-sm font-bold text-ink hover:bg-accent-bright active:scale-95 min-h-[48px]"
                 >
                   View Launchpad
                 </button>
                 <button
                   type="button"
                   onClick={() => setCurrentPath('profile')}
-                  className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold"
+                  className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold hover:border-accent/40 hover:bg-white/5 active:scale-95 min-h-[48px]"
                 >
                   Passport™
                 </button>
