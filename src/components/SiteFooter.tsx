@@ -75,7 +75,7 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
-          backgroundImage: 'url(/parallax/wall.webp), url(/parallax/wall.jpg)',
+          backgroundImage: 'url(/parallax/wall.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
