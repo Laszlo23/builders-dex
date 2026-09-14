@@ -238,6 +238,15 @@ export default function App() {
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
   const [ledgerSynced, setLedgerSynced] = useState(false);
 
+  // Scroll to top on navigation
+  useEffect(() => {
+    // Use instant behavior to avoid animation artifacts during agent edits
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Also reset document scroll position for browsers that need it
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [currentPath, selectedProjectId]);
+
   const applyEarnSnapshot = (snap: ReturnType<typeof loadEarnProgress>) => {
     setSimBalances(snap.simBalances);
     setStakedBuild(snap.stakedBuild);

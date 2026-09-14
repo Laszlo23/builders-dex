@@ -9,11 +9,53 @@ Not another DEX — a curated discovery and trading protocol with **Builder Scor
 - Discovery-first Home, Explore, Rankings, Passport, Apply
 - Builder Score™ (7 dimensions) on every curated project
 - **On-chain Builder Passport** — Solana program anchoring Builder Score™ on-chain
+- **Network mode toggle** — Switch between Mainnet (trading) and Devnet (passport minting)
 - Apply for Listing → pending review (not instantly tradeable)
 - Builder Passport™ levels: Rookie → Genesis
 - Builders Intelligence™ research assistant (Gemini)
 - Real Solana wallet + Jupiter swaps for allowlisted mints only
 - Brand assets, OG image, SEO meta / sitemap / robots
+
+## Network Mode: Mainnet vs Devnet
+
+The DEX supports **Mainnet** (default) and **Devnet** modes, selectable via the navbar toggle.
+
+### Mainnet Mode (Default)
+- Jupiter swaps and trading for approved tokens
+- Production RPC endpoint
+- Normal wallet operations
+
+### Devnet Mode
+- **Builder Passport minting** — Initialize your on-chain Passport PDA
+- Devnet RPC endpoint (`VITE_SOLANA_DEVNET_RPC_URL`)
+- Limited swap functionality (devnet tokens only)
+- Clear amber banner: "Devnet mode — Passport minting available · Swaps may be limited"
+
+### Network Toggle
+- Desktop: Chip in navbar (amber when Devnet, neutral when Mainnet)
+- Mobile: Toggle in wallet dropdown menu
+- **Persistent**: Network choice saved in `localStorage` across sessions
+- **Scroll reset**: All navigation changes scroll to top (`behavior: instant`)
+
+### Minting Your Builder Passport
+
+**Requirements:**
+- `VITE_BUILDER_PASSPORT_PROGRAM_ID` set in `.env` (currently `7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD` on devnet)
+- Network mode set to **Devnet**
+- Wallet connected with devnet SOL for transaction fees
+
+**Steps:**
+1. Click the network toggle in navbar to switch to **Devnet**
+2. Connect your wallet (ensure it's funded on devnet)
+3. Navigate to **Profile / Passport™** page
+4. Click **"Mint Builder Passport"** button in the On-Chain Passport section
+5. Approve the transaction in your wallet
+6. View your minted passport data: Level, Score, Last Updated
+7. Click **"View on Explorer"** to see your PDA on Solana Explorer (`?cluster=devnet`)
+
+**PDA Derivation**: `["builder-passport", walletPublicKey]`
+
+**Note**: The Builder Passport program is currently deployed to **devnet only**. Mainnet swaps continue to work normally when on Mainnet mode.
 
 ## Brand assets
 
@@ -43,7 +85,9 @@ cp .env.example .env
 |----------|----------|--------|
 | `JUPITER_API_KEY` | Recommended | From [portal.jup.ag](https://portal.jup.ag). Keyless works at very low RPS for prototypes. |
 | `GEMINI_API_KEY` | Optional | Only for Builder AI features |
-| `VITE_SOLANA_RPC_URL` | Optional | Defaults to public mainnet RPC |
+| `VITE_SOLANA_RPC_URL` | Optional | Mainnet RPC endpoint (defaults to `https://api.mainnet-beta.solana.com`) |
+| `VITE_SOLANA_DEVNET_RPC_URL` | Optional | Devnet RPC endpoint (defaults to `https://api.devnet.solana.com`) |
+| `VITE_BUILDER_PASSPORT_PROGRAM_ID` | Optional | Passport program ID. Set to `7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD` for devnet |
 
 3. Start the app:
 
@@ -118,5 +162,8 @@ programs/
 Frontend integration files:
 - `src/lib/builderPassport.ts` - Core utilities
 - `src/hooks/useBuilderPassport.ts` - React hooks
+- `src/providers/NetworkProvider.tsx` - Network mode context (Mainnet/Devnet)
 
-**Program ID**: `HM1CaGZRzdNC7pJxtj2jNwuxhYDbMQGt3xGAJk9iKakD` (update after deploying)
+**Program ID (Devnet)**: `7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD`
+
+Set `VITE_BUILDER_PASSPORT_PROGRAM_ID=7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD` in your `.env` to enable on-chain passport minting on devnet.

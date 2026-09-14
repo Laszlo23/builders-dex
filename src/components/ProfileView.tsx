@@ -8,7 +8,11 @@ import {
   FilePlus2,
   ExternalLink,
   Loader2,
+  Award,
+  CheckCircle,
 } from 'lucide-react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useNetwork } from '../providers/NetworkProvider';
 import {
   UserWallet,
   Quest,
@@ -24,6 +28,12 @@ import ReputationUnlocksCard from './ReputationUnlocksCard';
 import OnChainResumeCard from './OnChainResumeCard';
 import ReputationLeaderboard from './ReputationLeaderboard';
 import { USER_LEGACY_DEFAULT } from '../data/builderNetwork';
+import {
+  PASSPORT_DEPLOYED,
+  initializeBuilderPassport,
+  getPassportExplorerUrl,
+} from '../lib/builderPassport';
+import { useBuilderPassport } from '../hooks/useBuilderPassport';
 
 const EMPTY_SOCIALS: UserSocials = {
   x: '',
@@ -102,6 +112,11 @@ export default function ProfileView({
   setCurrentPath,
   connectWallet,
 }: ProfileViewProps) {
+  const { connection } = useConnection();
+  const { publicKey, signTransaction } = useWallet();
+  const { network } = useNetwork();
+  const { passport: onChainPassport, loading: passportLoading, refetch: refetchPassport } = useBuilderPassport();
+  
   const [editing, setEditing] = useState(!profile.displayName);
   const [draft, setDraft] = useState<UserProfile>({
     ...profile,
@@ -111,6 +126,9 @@ export default function ProfileView({
   const [savedFlash, setSavedFlash] = useState(false);
   const [neynarLoading, setNeynarLoading] = useState(false);
   const [neynar, setNeynar] = useState<NeynarResult | null>(null);
+  const [minting, setMinting] = useState(false);
+  const [mintSuccess, setMintSuccess] = useState(false);
+  const [mintError, setMintError] = useState<string | null>(null);
 
   useEffect(() => {
     setDraft({
@@ -186,14 +204,64 @@ export default function ProfileView({
     URL.revokeObjectURL(url);
   };
 
+  const handleMintPassport = async () => {
+    if (!publicKey || !signTransaction) {
+      alert('Please connect a wallet that supports transaction signing');
+      return;
+    }
+    
+    if (network !== 'devnet') {
+      alert('Switch to Devnet to mint your Builder Passport');
+      return;
+    }
+    
+    setMinting(true);
+    setMintError(null);
+    
+    try {
+      const signature = await initializeBuilderPassport(connection, publicKey, signTransaction);
+      setMintSuccess(true);
+      setMintError(null);
+      
+      // Refetch passport data after successful mint
+      setTimeout(() => {
+        void refetchPassport();
+      }, 2000);
+      
+      console.log('Passport minted! Signature:', signature);
+    } catch (error) {
+      console.error('Mint failed:', error);
+      setMintError(error instanceof Error ? error.message : 'Failed to mint passport');
+    } finally {
+      setMinting(false);
+    }
+  };
+
   const fieldClass =
     'w-full rounded-xl border border-white/12 bg-ink/80 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-steel/70 focus:border-accent/50 focus:ring-1 focus:ring-accent/20';
 
+  const showPassportMint = PASSPORT_DEPLOYED && network === 'devnet' && wallet.connected;
+  const explorerUrl = publicKey ? getPassportExplorerUrl(publicKey, network) : null;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 text-white sm:px-6">
-      <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
-        <strong className="font-semibold">On-chain Passport (devnet).</strong> Program <code className="text-[10px]">7MWC…QnD</code> is live on Solana devnet. UI still uses local XP unless wallet RPC is on devnet.
-      </div>
+      {network === 'devnet' && (
+        <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
+          <strong className="font-semibold">Devnet mode</strong> — Passport minting available · Swaps may be limited
+        </div>
+      )}
+      
+      {PASSPORT_DEPLOYED && network === 'mainnet' && (
+        <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
+          <strong className="font-semibold">On-chain Passport (devnet).</strong> Program <code className="text-[10px]">7MWC…QnD</code> is live on Solana devnet. Switch to Devnet to mint.
+        </div>
+      )}
+      
+      {!PASSPORT_DEPLOYED && (
+        <div className="mb-4 rounded-2xl border border-steel/25 bg-steel/5 px-4 py-3 text-sm text-white/85">
+          <strong className="font-semibold">Local simulation.</strong> Passport program in repo, not yet deployed. Stats stay browser-local until on-chain mint.
+        </div>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
@@ -253,6 +321,116 @@ export default function ProfileView({
           Passport saved — changes persist on this device
           {wallet ? ' and sync to the shared ledger when your wallet is connected.' : '.'}
         </p>
+      )}
+
+      {showPassportMint && (
+        <section className="pulse-card mt-6 rounded-3xl border border-accent/35 bg-gradient-to-br from-accent/15 via-surface to-ink p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
+                <Award className="mb-1 inline h-4 w-4" /> On-Chain Passport
+              </p>
+              <h2 className="font-display mt-1 text-xl font-bold">
+                {onChainPassport ? 'Your Builder Passport' : 'Mint Your Builder Passport'}
+              </h2>
+              <p className="mt-1 max-w-md text-xs text-steel">
+                {onChainPassport
+                  ? `Level ${onChainPassport.level} · Score ${onChainPassport.score}`
+                  : 'Initialize your on-chain Builder Passport PDA on Solana Devnet'}
+              </p>
+            </div>
+            {!onChainPassport && !passportLoading && (
+              <button
+                type="button"
+                onClick={handleMintPassport}
+                disabled={minting || mintSuccess}
+                className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-60"
+              >
+                {minting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Minting…
+                  </>
+                ) : mintSuccess ? (
+                  <>
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    Minted!
+                  </>
+                ) : (
+                  <>
+                    <Award className="h-3.5 w-3.5" />
+                    Mint Passport
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          
+          {passportLoading && (
+            <div className="mt-4 flex items-center gap-2 text-xs text-steel">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Loading on-chain data…
+            </div>
+          )}
+          
+          {onChainPassport && (
+            <div className="mt-4 rounded-2xl border border-white/10 bg-ink/50 px-4 py-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div>
+                  <p className="font-mono text-[10px] uppercase text-steel">Level</p>
+                  <p className="font-display text-2xl font-bold text-accent">
+                    {onChainPassport.level}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase text-steel">Score</p>
+                  <p className="font-display text-2xl font-bold text-white">
+                    {onChainPassport.score}
+                  </p>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-steel">
+                    Last updated: {new Date(onChainPassport.lastUpdated).toLocaleDateString()}
+                  </p>
+                  {explorerUrl && (
+                    <a
+                      href={explorerUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-xs text-accent hover:underline"
+                    >
+                      View on Explorer <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {mintSuccess && !onChainPassport && (
+            <div className="mt-4 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent">
+              Passport minted successfully! Refreshing on-chain data…
+            </div>
+          )}
+          
+          {mintError && (
+            <div className="mt-4 rounded-2xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+              {mintError}
+            </div>
+          )}
+          
+          {!wallet.connected && (
+            <div className="mt-4 rounded-2xl border border-white/10 bg-ink/50 px-4 py-3 text-xs text-steel">
+              Connect your wallet to mint your Builder Passport
+            </div>
+          )}
+          
+          {wallet.connected && network !== 'devnet' && (
+            <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs text-amber-300">
+              Switch to Devnet in the navbar to mint your passport
+            </div>
+          )}
+        </section>
       )}
 
       <div className="pulse-card mt-8 overflow-hidden rounded-3xl border border-accent/35 bg-gradient-to-br from-accent/15 via-surface to-ink">

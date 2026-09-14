@@ -22,9 +22,11 @@ import {
   Map,
   ScrollText,
   Bot,
+  Zap,
 } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { useNetwork } from '../providers/NetworkProvider';
 
 interface NavbarProps {
   currentPath: string;
@@ -85,6 +87,7 @@ export default function Navbar({
 }: NavbarProps) {
   const { publicKey, connected, connecting, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
+  const { network, setNetwork } = useNetwork();
   const [walletOpen, setWalletOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const walletRef = useRef<HTMLDivElement>(null);
@@ -214,8 +217,23 @@ export default function Navbar({
             </div>
           </nav>
 
-          {/* Wallet — right */}
-          <div className="relative z-10 flex shrink-0 items-center">
+          {/* Network toggle + Wallet — right */}
+          <div className="relative z-10 flex shrink-0 items-center gap-2">
+            {/* Network mode chip */}
+            <button
+              type="button"
+              onClick={() => setNetwork(network === 'mainnet' ? 'devnet' : 'mainnet')}
+              className={`hidden items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition sm:flex ${
+                network === 'devnet'
+                  ? 'border-amber-400/40 bg-amber-400/10 text-amber-300 hover:border-amber-400/60'
+                  : 'border-white/10 bg-white/[0.04] text-steel hover:border-white/20 hover:text-white'
+              }`}
+              title={`Switch to ${network === 'mainnet' ? 'Devnet' : 'Mainnet'}`}
+            >
+              <Zap className="h-3 w-3 shrink-0" />
+              <span>{network === 'mainnet' ? 'Mainnet' : 'Devnet'}</span>
+            </button>
+
             {connected && publicKey ? (
               <div className="relative" ref={walletRef}>
                 <button
@@ -232,6 +250,25 @@ export default function Navbar({
                 </button>
                 {walletOpen && (
                   <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-white/10 bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
+                    {/* Network indicator in dropdown */}
+                    <div className="mb-1 flex items-center justify-between border-b border-white/8 px-2 pb-2">
+                      <span className="font-mono text-[10px] uppercase text-steel">Network</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNetwork(network === 'mainnet' ? 'devnet' : 'mainnet');
+                          setWalletOpen(false);
+                        }}
+                        className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold ${
+                          network === 'devnet'
+                            ? 'bg-amber-400/15 text-amber-300'
+                            : 'bg-white/5 text-steel'
+                        }`}
+                      >
+                        <Zap className="h-2.5 w-2.5" />
+                        {network === 'mainnet' ? 'Mainnet' : 'Devnet'}
+                      </button>
+                    </div>
                     {walletDomain && (
                       <p className="px-2 py-1 font-mono text-[10px] text-accent">{walletDomain}</p>
                     )}
