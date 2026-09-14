@@ -112,7 +112,10 @@ export default function ExploreView({
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => setLane('curated')}
+          onClick={() => {
+            setLane('curated');
+            setShowRejected(false);
+          }}
           className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
             lane === 'curated'
               ? 'bg-accent text-ink'
@@ -123,7 +126,10 @@ export default function ExploreView({
         </button>
         <button
           type="button"
-          onClick={() => setLane('community')}
+          onClick={() => {
+            setLane('community');
+            setShowRejected(false);
+          }}
           className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
             lane === 'community'
               ? 'bg-accent text-ink'
@@ -138,9 +144,12 @@ export default function ExploreView({
               <button
                 key={cat}
                 type="button"
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setShowRejected(false);
+                }}
                 className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
-                  selectedCategory === cat
+                  selectedCategory === cat && !showRejected
                     ? 'border border-accent/40 text-accent'
                     : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
                 }`}
@@ -173,7 +182,7 @@ export default function ExploreView({
               }}
               className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
                 showRejected
-                  ? 'border border-white/25 text-steel'
+                  ? 'border border-accent/40 bg-accent/5 text-accent'
                   : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
               }`}
             >
@@ -366,8 +375,15 @@ className="min-h-[44px] rounded-lg border border-white/10 bg-white/[0.03] px-3 p
                   )}
                   <div className="ml-auto flex items-center gap-2">
                     {(() => {
+                      if (isRejected) return null;
                       const tradeMint = resolveTradeMint(p, tradeableMintSet);
-                      if (!tradeMint) return null;
+                      if (!tradeMint) {
+                        return (
+                          <span className="text-[10px] italic text-steel" title="No tradeable token linked or approved">
+                            No trade
+                          </span>
+                        );
+                      }
                       const tradeSymbol = getCuratedToken(tradeMint)?.symbol || p.ticker;
                       return (
                         <button

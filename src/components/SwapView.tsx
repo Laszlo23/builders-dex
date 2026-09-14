@@ -644,6 +644,9 @@ export default function SwapView({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[80] flex items-end justify-center bg-black/75 p-3 backdrop-blur-sm sm:items-center"
             onClick={() => setPickerSide(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setPickerSide(null);
+            }}
           >
             <motion.div
               initial={{ y: 20, opacity: 0 }}
@@ -658,6 +661,7 @@ export default function SwapView({
                   type="button"
                   onClick={() => setPickerSide(null)}
                   className="rounded p-1.5 text-steel hover:bg-white/5 hover:text-white"
+                  aria-label="Close token picker"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -667,6 +671,9 @@ export default function SwapView({
                 <input
                   value={tokenQuery}
                   onChange={(e) => setTokenQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setPickerSide(null);
+                  }}
                   placeholder="Search tradeable"
                   className="w-full rounded-lg border border-white/8 bg-ink py-2 pl-8 pr-3 text-sm outline-none focus:border-accent/35"
                   autoFocus

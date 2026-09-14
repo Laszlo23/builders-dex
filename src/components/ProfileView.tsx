@@ -191,6 +191,9 @@ export default function ProfileView({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 text-white sm:px-6">
+      <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
+        <strong className="font-semibold">Local simulation.</strong> Passport program in repo, not yet deployed. Stats stay browser-local until on-chain mint.
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
