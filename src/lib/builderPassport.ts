@@ -1,17 +1,24 @@
 /**
  * Builder Passport On-Chain Integration
  * 
- * Utilities for interacting with the Builder Passport Solana program.
- * Fetches passport PDAs and provides helpers for score display.
+ * ⚠️ NOT DEPLOYED — Program exists in repo but is not on any network.
+ * Local keypair pubkey: 7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD
+ * 
+ * Set VITE_BUILDER_PASSPORT_PROGRAM_ID only after deploying to devnet/mainnet.
+ * Until deployed, Passport stats remain local-only (localStorage simulation).
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
 
-// Program ID - Update this after deploying to devnet/mainnet
-export const BUILDER_PASSPORT_PROGRAM_ID = new PublicKey(
-  import.meta.env.VITE_BUILDER_PASSPORT_PROGRAM_ID || 
-  'HM1CaGZRzdNC7pJxtj2jNwuxhYDbMQGt3xGAJk9iKakD'
-);
+// Program ID - NOT YET DEPLOYED
+// Default is placeholder (not on any network). Set VITE_BUILDER_PASSPORT_PROGRAM_ID after deploy.
+const PROGRAM_ID_ENV = import.meta.env.VITE_BUILDER_PASSPORT_PROGRAM_ID;
+
+export const BUILDER_PASSPORT_PROGRAM_ID = PROGRAM_ID_ENV 
+  ? new PublicKey(PROGRAM_ID_ENV)
+  : null;
+
+export const PASSPORT_DEPLOYED = Boolean(PROGRAM_ID_ENV);
 
 export interface BuilderPassport {
   authority: PublicKey;
@@ -33,10 +40,12 @@ const LEVEL_NAMES = ['Rookie', 'Builder', 'Advanced', 'Expert', 'Genesis'];
 
 /**
  * Derive the PDA address for a builder's passport
+ * Returns null if program is not deployed
  */
 export function derivePassportPDA(
   walletAddress: PublicKey
-): [PublicKey, number] {
+): [PublicKey, number] | null {
+  if (!BUILDER_PASSPORT_PROGRAM_ID) return null;
   return PublicKey.findProgramAddressSync(
     [Buffer.from('builder-passport'), walletAddress.toBuffer()],
     BUILDER_PASSPORT_PROGRAM_ID
@@ -45,13 +54,17 @@ export function derivePassportPDA(
 
 /**
  * Fetch a builder's passport from the blockchain
+ * Returns null if program is not deployed or account doesn't exist
  */
 export async function fetchBuilderPassport(
   connection: Connection,
   walletAddress: PublicKey
 ): Promise<BuilderPassport | null> {
   try {
-    const [passportPDA] = derivePassportPDA(walletAddress);
+    if (!PASSPORT_DEPLOYED) return null;
+    const pda = derivePassportPDA(walletAddress);
+    if (!pda) return null;
+    const [passportPDA] = pda;
     const accountInfo = await connection.getAccountInfo(passportPDA);
 
     if (!accountInfo) {
@@ -118,23 +131,28 @@ export function getLevelColor(level: BuilderLevel): string {
 
 /**
  * Check if a wallet has an initialized passport
+ * Always returns false if program is not deployed
  */
 export async function hasBuilderPassport(
   connection: Connection,
   walletAddress: PublicKey
 ): Promise<boolean> {
+  if (!PASSPORT_DEPLOYED) return false;
   const passport = await fetchBuilderPassport(connection, walletAddress);
   return passport !== null;
 }
 
 /**
  * Get Solana Explorer URL for passport PDA
+ * Returns null if program is not deployed
  */
 export function getPassportExplorerUrl(
   walletAddress: PublicKey,
   cluster: 'mainnet' | 'devnet' = 'mainnet'
-): string {
-  const [passportPDA] = derivePassportPDA(walletAddress);
+): string | null {
+  const pda = derivePassportPDA(walletAddress);
+  if (!pda) return null;
+  const [passportPDA] = pda;
   const clusterParam = cluster === 'devnet' ? '?cluster=devnet' : '';
   return `https://explorer.solana.com/address/${passportPDA.toBase58()}${clusterParam}`;
 }
