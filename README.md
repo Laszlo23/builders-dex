@@ -130,6 +130,8 @@ PM2 restarts and server reboots keep all submissions because they're written to 
 
 The Builder Passport Solana program is located in [`programs/`](programs/). This Anchor program stores Builder Scores and Passport data on-chain.
 
+📋 **Roadmap**: See [`docs/builder-passport-roadmap.md`](docs/builder-passport-roadmap.md) for the full Builder Passport vision, including Phase 1 (PDA mint + oracle), Phase 2 (more signals), Phase 3 (mainnet), and Phase 4 (Solana Attestation Service spike).
+
 ### Quick Start (Solana Programs)
 
 **Prerequisites:** Rust 1.98+, Solana CLI 4.2+, Anchor CLI 0.31+
