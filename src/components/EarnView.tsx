@@ -257,9 +257,9 @@ export default function EarnView({
                   <button
                     type="submit"
                     disabled={stakedBuild <= 0}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-bold text-accent hover:bg-accent/20 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm font-bold text-accent hover:bg-accent/20 active:scale-95 disabled:opacity-40 disabled:active:scale-100 min-h-[48px]"
                   >
-                    <Unlock className="h-3.5 w-3.5" />
+                    <Unlock className="h-4 w-4" />
                     Unstake
                   </button>
                 </form>
