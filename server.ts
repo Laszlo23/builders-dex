@@ -1852,6 +1852,11 @@ async function startServer() {
     telegramBot = null;
   }
 
+  // Legacy route redirects (301 permanent) for SEO and bookmarks
+  app.get('/intelligence', (_req, res) => res.redirect(301, '/ai'));
+  app.get('/passport', (_req, res) => res.redirect(301, '/profile'));
+  app.get('/rankings', (_req, res) => res.redirect(301, '/builders'));
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
