@@ -132,10 +132,10 @@ export default function ShareCampaignView({
         {/* Meme drop hero */}
         <div className="relative mt-12 overflow-hidden rounded-[1.75rem] border border-accent/25 shadow-[0_40px_100px_-50px_rgba(0,0,0,0.9)]">
           <OptimizedImage
-            src="/campaign/meme-banner-wide.jpg"
+            src="/campaign/meme-banner-wide.webp"
             alt="Unruggable meme campaign"
             className="h-52 w-full object-cover sm:h-72 lg:h-80"
-          sizes="(max-width: 768px) 100vw, 800px"
+            sizes="(max-width: 768px) 100vw, 800px"
             />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
@@ -220,10 +220,10 @@ export default function ShareCampaignView({
         {/* Hero visual — classic kit */}
         <div className="relative mt-16 overflow-hidden rounded-[1.75rem] border border-white/12 shadow-[0_40px_100px_-50px_rgba(0,0,0,0.9)]">
           <OptimizedImage
-            src="/campaign/hook-wide.jpg"
+            src="/campaign/hook-wide.webp"
             alt="Builders DEX campaign"
             className="h-52 w-full object-cover sm:h-72 lg:h-80"
-          sizes="(max-width: 768px) 100vw, 800px"
+            sizes="(max-width: 768px) 100vw, 800px"
             />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/35 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
@@ -369,7 +369,7 @@ export default function ShareCampaignView({
                   <div className="relative min-h-[180px] overflow-hidden border-b border-white/8 lg:border-b-0 lg:border-r lg:border-white/8">
                     <OptimizedImage
                       src={post.asset}
-                      alt=""
+                      alt={`Campaign week ${post.week}: ${post.hook}`}
                       className="absolute inset-0 h-full w-full object-cover"
                     sizes="(max-width: 768px) 100vw, 400px"
                       />

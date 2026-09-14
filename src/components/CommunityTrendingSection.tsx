@@ -162,7 +162,7 @@ function TrendingCard({
                 <div className="relative h-24 w-full overflow-hidden bg-white/5">
                   <img
                     src={t.bannerUrl}
-                    alt=""
+                    alt={`${t.name} banner`}
                     className="h-full w-full object-cover"
                     loading="lazy"
                   />
@@ -174,7 +174,7 @@ function TrendingCard({
                     {t.logoUrl ? (
                       <img
                         src={t.logoUrl}
-                        alt=""
+                        alt={`${t.name} logo`}
                         className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
                         loading="lazy"
                       />

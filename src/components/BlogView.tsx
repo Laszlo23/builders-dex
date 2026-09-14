@@ -25,7 +25,7 @@ export default function BlogView({ setCurrentPath, blogSlug, setBlogSlug }: Blog
         <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-white/10">
           <OptimizedImage
             src={post.coverImage}
-            alt=""
+            alt={`Cover image for ${post.title}`}
             className="aspect-[16/9] w-full object-cover"
             sizes="(max-width: 768px) 100vw, 768px"
             priority
@@ -92,7 +92,7 @@ export default function BlogView({ setCurrentPath, blogSlug, setBlogSlug }: Blog
             <div className="relative aspect-[16/10] overflow-hidden">
               <OptimizedImage
                 src={p.coverImage}
-                alt=""
+                alt={`Cover image for ${p.title}`}
                 className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
                 sizes="(max-width: 768px) 100vw, 33vw"
               />

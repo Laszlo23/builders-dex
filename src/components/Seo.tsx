@@ -50,7 +50,7 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
         : base.title;
     const description = post?.excerpt || base.description;
     const url = absoluteUrl(post ? `/blog/${post.slug}` : base.path);
-    const image = absoluteUrl('/og-image.jpg');
+    const image = absoluteUrl('/og-image.webp');
 
     document.title = title;
     upsertMeta('name', 'description', description);
@@ -60,14 +60,50 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
     upsertMeta('name', 'twitter:title', title);
     upsertMeta('name', 'twitter:description', description);
     upsertMeta('name', 'twitter:image', image);
+    upsertMeta('name', 'twitter:image:width', '1280');
+    upsertMeta('name', 'twitter:image:height', '853');
     upsertMeta('property', 'og:type', post ? 'article' : 'website');
     upsertMeta('property', 'og:site_name', SITE_NAME);
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', url);
     upsertMeta('property', 'og:image', image);
+    upsertMeta('property', 'og:image:type', 'image/webp');
+    upsertMeta('property', 'og:image:width', '1280');
+    upsertMeta('property', 'og:image:height', '853');
     upsertMeta('property', 'og:image:alt', `${SITE_NAME} — Reputation layer of Web3`);
     upsertLink('canonical', url);
+
+    // Always add Organization schema
+    upsertJsonLd('builders-dex-org', {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/brand-mark.webp`,
+      description: 'A builder intelligence network with integrated trading on Solana',
+      sameAs: [
+        'https://x.com/BuildCultureID',
+        'https://github.com/Laszlo23/builders-dex',
+      ],
+    });
+
+    // Always add WebSite schema
+    upsertJsonLd('builders-dex-website', {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: 'Discover curated Solana builders and projects with quality ratings and integrated trading',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/explore?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    });
 
     if (post) {
       upsertJsonLd('builders-dex-jsonld', {
@@ -90,11 +126,15 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
         operatingSystem: 'Web',
         description,
         featureList: [
-          'Proof of Building™',
-          'Builder DNA™ & Passport™',
-          'Curated Solana swaps',
-          'Genesis Radar™ & Builder Scouts™',
+          'Curated Solana project discovery',
+          'Live Builder Score™ quality ratings',
+          'Jupiter-powered token swaps',
+          'Community-driven builder verification',
         ],
+        offers: {
+          '@type': 'Offer',
+          description: 'Free builder discovery and quality research. Swap fees via Jupiter protocol.',
+        },
       });
     }
   }, [path, projectName, blogSlug]);

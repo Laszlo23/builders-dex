@@ -80,7 +80,7 @@ export default function TradeShareModal({ trade, onClose, onShared }: Props) {
         </button>
 
         <div className="relative aspect-square overflow-hidden sm:aspect-[4/3]">
-          <OptimizedImage src={image} alt="" className="h-full w-full object-cover" sizes="400px" />
+          <OptimizedImage src={image} alt={`${project.name} trade share image`} className="h-full w-full object-cover" sizes="400px" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">

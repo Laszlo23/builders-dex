@@ -47,7 +47,7 @@ export default function AspirationNetworkSection({
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-25"
           style={{
-            backgroundImage: 'url(/campaign/story.webp), url(/campaign/story.jpg)',
+            backgroundImage: 'url(/campaign/story.webp)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}

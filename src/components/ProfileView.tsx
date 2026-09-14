@@ -337,7 +337,7 @@ export default function ProfileView({
                 {profile.avatarUrl ? (
                   <img
                     src={profile.avatarUrl}
-                    alt=""
+                    alt={`${profile.name || 'User'} avatar`}
                     className="h-16 w-16 rounded-2xl border border-white/10 object-cover"
                   />
                 ) : (
@@ -472,7 +472,7 @@ export default function ProfileView({
                 {neynar.pfpUrl && (
                   <img
                     src={neynar.pfpUrl}
-                    alt=""
+                    alt={`${neynar.displayName || neynar.username} profile picture`}
                     className="h-12 w-12 rounded-xl object-cover"
                   />
                 )}

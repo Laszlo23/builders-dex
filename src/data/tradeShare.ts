@@ -3,11 +3,11 @@
 export const BUILDING_CULTURE_HANDLE = 'buildingcultu3';
 
 export const TRADE_SHARE_IMAGES = [
-  '/campaign/meme-unruggable.jpg',
-  '/campaign/meme-no-more-zero.jpg',
-  '/campaign/meme-outsourced-dyor.jpg',
-  '/campaign/meme-touch-grass.jpg',
-  '/campaign/hook-trade-last.jpg',
+  '/campaign/meme-unruggable.webp',
+  '/campaign/meme-no-more-zero.webp',
+  '/campaign/meme-outsourced-dyor.webp',
+  '/campaign/meme-touch-grass.webp',
+  '/campaign/hook-trade-last.webp',
 ] as const;
 
 export type TradeSharePayload = {

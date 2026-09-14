@@ -75,7 +75,7 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
-          backgroundImage: 'url(/parallax/wall.webp), url(/parallax/wall.jpg)',
+          backgroundImage: 'url(/parallax/wall.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -87,8 +87,8 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
           <div className="max-w-sm">
             <div className="flex items-center gap-3">
               <img
-                src="/brand-mark.png"
-                alt=""
+                src="/brand-mark.webp"
+                alt="Builders DEX"
                 width={40}
                 height={40}
                 className="h-10 w-10 rounded-xl border border-accent/35 object-cover"

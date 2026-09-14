@@ -97,10 +97,10 @@ export default function EarnView({
       {/* Emotional hero band with imagery */}
       <div className="relative mb-10 overflow-hidden rounded-[1.75rem] border border-accent/25">
         <OptimizedImage
-          src="/campaign/hook-reputation.jpg"
+          src="/campaign/hook-reputation.webp"
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
-        sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="(max-width: 768px) 100vw, 50vw"
           />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/55" />
         <div className="relative px-6 py-10 sm:px-10 sm:py-12">
@@ -140,10 +140,10 @@ export default function EarnView({
         <DepthCard intensity="soft" className="overflow-hidden p-0">
           <div className="relative h-28 overflow-hidden">
             <OptimizedImage
-              src="/parallax/standard.jpg"
+              src="/parallax/standard.webp"
               alt=""
               className="h-full w-full object-cover opacity-60"
-            sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(max-width: 768px) 100vw, 50vw"
               />
             <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
             <div className="absolute bottom-3 left-5 flex items-center gap-2">
@@ -394,10 +394,10 @@ export default function EarnView({
       <section className="mt-12">
         <div className="relative mb-6 overflow-hidden rounded-2xl border border-white/10">
           <OptimizedImage
-            src="/parallax/index.jpg"
+            src="/parallax/index.webp"
             alt=""
             className="absolute inset-0 h-full w-full object-cover opacity-40"
-          sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 768px) 100vw, 50vw"
             />
           <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
           <div className="relative flex items-end justify-between gap-3 px-5 py-6">
