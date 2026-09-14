@@ -40,8 +40,22 @@ export type AppRoute = (typeof APP_ROUTES)[number];
 
 export const APP_ROUTE_SET = new Set<string>(APP_ROUTES);
 
+/** Legacy route aliases that map to current routes */
+const ROUTE_ALIASES: Record<string, AppRoute> = {
+  intelligence: 'ai',
+  passport: 'profile',
+  rankings: 'builders',
+};
+
 export function isAppRoute(path: string): path is AppRoute {
   return APP_ROUTE_SET.has(path);
+}
+
+/** Resolve a path to its canonical route (handles aliases) */
+function resolveRoute(path: string): AppRoute | null {
+  if (isAppRoute(path)) return path;
+  if (path in ROUTE_ALIASES) return ROUTE_ALIASES[path];
+  return null;
 }
 
 export function safeNavigate(
@@ -84,5 +98,15 @@ export function getPathFromUrl(): string {
   
   if (!path || path === 'index.html') return 'landing';
   
-  return isAppRoute(path) ? path : 'landing';
+  const resolved = resolveRoute(path);
+  if (resolved) {
+    // If this is an alias, redirect to the canonical URL
+    if (path !== resolved && path in ROUTE_ALIASES) {
+      const canonicalUrl = resolved === 'landing' ? '/' : `/${resolved}`;
+      window.history.replaceState(null, '', canonicalUrl);
+    }
+    return resolved;
+  }
+  
+  return 'landing';
 }
