@@ -103,6 +103,22 @@ Edit [`src/data/curatedTokens.ts`](src/data/curatedTokens.ts) to add/remove allo
 
 Link Explore projects by setting `mint` on a project in [`src/data/projects.ts`](src/data/projects.ts).
 
+## Apply / Builder Applications
+
+The `/apply` page collects full builder application packets (problem, description, deck, demo, socials, etc.) and persists them server-side.
+
+**API:**
+- `POST /api/applications` — Submit a builder application (rate-limited to 10/hour)
+- `GET /api/applications` — Admin endpoint to view all applications (requires `FEEDBACK_ADMIN_TOKEN`)
+
+**Storage:** Applications are appended to `data/applications.jsonl` as JSON Lines (one application per line). Each entry includes:
+- `id` — Unique application ID (e.g., `app_1234567890_abc123`)
+- `createdAt` — ISO timestamp
+- `ip` — Submitter IP (optionally hashed)
+- `payload` — Full application data (name, ticker, problem, description, contactEmail, whyBuildersDex, etc.)
+
+PM2 restarts and server reboots keep all submissions because they're written to disk.
+
 ## Scripts
 
 - `npm run dev` — Express + Vite middleware

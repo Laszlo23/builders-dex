@@ -1304,6 +1304,154 @@ const feedbackInbox: Array<{
   createdAt: string;
 }> = [];
 
+// Applications storage (persisted to disk)
+import fs from 'fs';
+const DATA_DIR = path.join(process.cwd(), 'data');
+const APPLICATIONS_FILE = path.join(DATA_DIR, 'applications.jsonl');
+
+// Ensure data directory exists
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[applications] Failed to create data directory:', err);
+}
+
+/** Submit a builder application — persists to data/applications.jsonl */
+app.post('/api/applications', rateLimit(10, 60_000, 'applications'), (req, res) => {
+  try {
+    const {
+      name,
+      ticker,
+      problem,
+      description,
+      contactEmail,
+      whyBuildersDex,
+      wallet,
+      tagline,
+      category,
+      githubRepo,
+      goal,
+      journey,
+      builderStory,
+      demoUrl,
+      pitchDeckUrl,
+      videoUrl,
+      whitepaperUrl,
+      hackathonName,
+      tracks,
+      techStack,
+      lookingFor,
+      teamSize,
+      fundingStatus,
+      previousLaunches,
+      socials,
+    } = req.body || {};
+
+    // Validate required fields
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Project name is required' });
+    }
+    if (!ticker || typeof ticker !== 'string' || !ticker.trim()) {
+      return res.status(400).json({ error: 'Ticker is required' });
+    }
+    if (!problem || typeof problem !== 'string' || !problem.trim()) {
+      return res.status(400).json({ error: 'Problem statement is required' });
+    }
+    if (!description || typeof description !== 'string' || !description.trim()) {
+      return res.status(400).json({ error: 'Description is required' });
+    }
+    if (!contactEmail || typeof contactEmail !== 'string' || !contactEmail.includes('@')) {
+      return res.status(400).json({ error: 'Valid contact email is required' });
+    }
+    if (!whyBuildersDex || typeof whyBuildersDex !== 'string' || !whyBuildersDex.trim()) {
+      return res.status(400).json({ error: 'Why Builders DEX is required' });
+    }
+
+    const id = `app_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const createdAt = new Date().toISOString();
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+    const entry = {
+      id,
+      createdAt,
+      ip: typeof ip === 'string' ? ip.split(',')[0].trim() : 'unknown',
+      payload: {
+        name: String(name).trim().slice(0, 120),
+        ticker: String(ticker).trim().toUpperCase().slice(0, 20),
+        problem: String(problem).trim().slice(0, 2000),
+        description: String(description).trim().slice(0, 4000),
+        contactEmail: String(contactEmail).trim().slice(0, 120),
+        whyBuildersDex: String(whyBuildersDex).trim().slice(0, 2000),
+        wallet: wallet && typeof wallet === 'string' ? wallet.trim().slice(0, 64) : undefined,
+        tagline: tagline && typeof tagline === 'string' ? String(tagline).trim().slice(0, 200) : undefined,
+        category: category && typeof category === 'string' ? String(category).slice(0, 80) : undefined,
+        githubRepo: githubRepo && typeof githubRepo === 'string' ? String(githubRepo).trim().slice(0, 200) : undefined,
+        goal: goal ? String(goal) : undefined,
+        journey: journey && typeof journey === 'string' ? String(journey).slice(0, 200) : undefined,
+        builderStory: builderStory && typeof builderStory === 'string' ? String(builderStory).trim().slice(0, 4000) : undefined,
+        demoUrl: demoUrl && typeof demoUrl === 'string' ? String(demoUrl).trim().slice(0, 500) : undefined,
+        pitchDeckUrl: pitchDeckUrl && typeof pitchDeckUrl === 'string' ? String(pitchDeckUrl).trim().slice(0, 500) : undefined,
+        videoUrl: videoUrl && typeof videoUrl === 'string' ? String(videoUrl).trim().slice(0, 500) : undefined,
+        whitepaperUrl: whitepaperUrl && typeof whitepaperUrl === 'string' ? String(whitepaperUrl).trim().slice(0, 500) : undefined,
+        hackathonName: hackathonName && typeof hackathonName === 'string' ? String(hackathonName).slice(0, 200) : undefined,
+        tracks: Array.isArray(tracks) ? tracks.slice(0, 10) : undefined,
+        techStack: Array.isArray(techStack) ? techStack.slice(0, 20) : undefined,
+        lookingFor: Array.isArray(lookingFor) ? lookingFor.slice(0, 20) : undefined,
+        teamSize: typeof teamSize === 'number' ? teamSize : undefined,
+        fundingStatus: fundingStatus && typeof fundingStatus === 'string' ? String(fundingStatus).slice(0, 100) : undefined,
+        previousLaunches: previousLaunches && typeof previousLaunches === 'string' ? String(previousLaunches).trim().slice(0, 1000) : undefined,
+        socials: socials && typeof socials === 'object' ? socials : undefined,
+      },
+    };
+
+    // Persist to JSONL file
+    try {
+      fs.appendFileSync(APPLICATIONS_FILE, JSON.stringify(entry) + '\n', 'utf8');
+    } catch (err) {
+      console.error('[applications] Failed to write to disk:', err);
+      return res.status(500).json({ error: 'Failed to save application' });
+    }
+
+    console.log('[application]', id, entry.payload.name, entry.payload.contactEmail);
+    res.json({ ok: true, id });
+  } catch (error: any) {
+    console.error('Application submit error:', error);
+    res.status(500).json({ error: safeErrorMessage(error, 'Failed to submit application') });
+  }
+});
+
+/** Admin endpoint to view all applications */
+app.get('/api/applications', (req, res) => {
+  const token = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
+  const provided = String(req.headers['x-admin-token'] || req.query.token || '');
+  if (!token || provided !== token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    if (!fs.existsSync(APPLICATIONS_FILE)) {
+      return res.json({ count: 0, items: [] });
+    }
+
+    const content = fs.readFileSync(APPLICATIONS_FILE, 'utf8');
+    const lines = content.trim().split('\n').filter(Boolean);
+    const items = lines.map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+
+    res.json({ count: items.length, items: items.reverse().slice(0, 100) });
+  } catch (error: any) {
+    console.error('Applications fetch error:', error);
+    res.status(500).json({ error: safeErrorMessage(error, 'Failed to fetch applications') });
+  }
+});
+
 app.post('/api/feedback', rateLimit(15, 60_000, 'feedback'), (req, res) => {
   try {
     const { category, rating, message, email, path: pagePath } = req.body || {};
