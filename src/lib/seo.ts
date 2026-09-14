@@ -85,7 +85,7 @@ const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
   builders: {
     title: 'The Builder 100 — Builders DEX',
     description: 'The Wall of Builders — top 100 builders pushing Solana forward.',
-    path: '/rankings',
+    path: '/builders',
   },
   dao: {
     title: 'DAO — Builders DEX',
@@ -107,12 +107,12 @@ const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
   ai: {
     title: 'AI Research — Builders DEX',
     description: 'AI-powered project analysis using live Builder Scores, GitHub activity, team data, and quality signals. Ask about any curated project.',
-    path: '/intelligence',
+    path: '/ai',
   },
   profile: {
     title: 'Passport — Builders DEX',
     description: 'Your builder profile and reputation tracking. Connect wallet, link social accounts, view XP progress, and discover projects.',
-    path: '/passport',
+    path: '/profile',
   },
   campaign: {
     title: 'Share Campaign — Builders DEX',
