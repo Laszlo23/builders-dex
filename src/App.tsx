@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState, startTransition } from 'react';
+import React, { Suspense, useEffect, useState, startTransition } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import Navbar from './components/Navbar';
@@ -6,31 +6,33 @@ import Seo from './components/Seo';
 import SiteFooter from './components/SiteFooter';
 import FirstDiscoveryModal from './components/FirstDiscoveryModal';
 import ChatDrawer, { ChatFab } from './components/ChatDrawer';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useWalletDisplayName } from './hooks/useWalletDisplayName';
+import { lazyWithRetry } from './lib/lazyWithRetry';
 
-const LandingView = lazy(() => import('./components/LandingView'));
-const ExploreView = lazy(() => import('./components/ExploreView'));
-const ProjectDetailView = lazy(() => import('./components/ProjectDetailView'));
-const SwapView = lazy(() => import('./components/SwapView'));
-const LaunchView = lazy(() => import('./components/LaunchView'));
-const LaunchpadView = lazy(() => import('./components/LaunchpadView'));
-const BuildersView = lazy(() => import('./components/BuildersView'));
-const DaoView = lazy(() => import('./components/DaoView'));
-const AiView = lazy(() => import('./components/AiView'));
-const ProfileView = lazy(() => import('./components/ProfileView'));
-const ShareCampaignView = lazy(() => import('./components/ShareCampaignView'));
-const EarnView = lazy(() => import('./components/EarnView'));
-const TerminalView = lazy(() => import('./components/TerminalView'));
-const TeamView = lazy(() => import('./components/TeamView'));
-const BlogView = lazy(() => import('./components/BlogView'));
-const LegalView = lazy(() => import('./components/LegalView'));
-const FeedbackSupportView = lazy(() => import('./components/FeedbackSupportView'));
-const VisionRoadmapManifestView = lazy(() => import('./components/VisionRoadmapManifestView'));
-const InvestorModeView = lazy(() => import('./components/InvestorModeView'));
-const BuilderGraphExplorer = lazy(() => import('./components/BuilderGraphExplorer'));
-const BuilderStoriesView = lazy(() => import('./components/BuilderStoriesView'));
-const TelegramBotView = lazy(() => import('./components/TelegramBotView'));
-const TelegramVoteMiniApp = lazy(() => import('./components/TelegramVoteMiniApp'));
+const LandingView = lazyWithRetry(() => import('./components/LandingView'));
+const ExploreView = lazyWithRetry(() => import('./components/ExploreView'));
+const ProjectDetailView = lazyWithRetry(() => import('./components/ProjectDetailView'));
+const SwapView = lazyWithRetry(() => import('./components/SwapView'));
+const LaunchView = lazyWithRetry(() => import('./components/LaunchView'));
+const LaunchpadView = lazyWithRetry(() => import('./components/LaunchpadView'));
+const BuildersView = lazyWithRetry(() => import('./components/BuildersView'));
+const DaoView = lazyWithRetry(() => import('./components/DaoView'));
+const AiView = lazyWithRetry(() => import('./components/AiView'));
+const ProfileView = lazyWithRetry(() => import('./components/ProfileView'));
+const ShareCampaignView = lazyWithRetry(() => import('./components/ShareCampaignView'));
+const EarnView = lazyWithRetry(() => import('./components/EarnView'));
+const TerminalView = lazyWithRetry(() => import('./components/TerminalView'));
+const TeamView = lazyWithRetry(() => import('./components/TeamView'));
+const BlogView = lazyWithRetry(() => import('./components/BlogView'));
+const LegalView = lazyWithRetry(() => import('./components/LegalView'));
+const FeedbackSupportView = lazyWithRetry(() => import('./components/FeedbackSupportView'));
+const VisionRoadmapManifestView = lazyWithRetry(() => import('./components/VisionRoadmapManifestView'));
+const InvestorModeView = lazyWithRetry(() => import('./components/InvestorModeView'));
+const BuilderGraphExplorer = lazyWithRetry(() => import('./components/BuilderGraphExplorer'));
+const BuilderStoriesView = lazyWithRetry(() => import('./components/BuilderStoriesView'));
+const TelegramBotView = lazyWithRetry(() => import('./components/TelegramBotView'));
+const TelegramVoteMiniApp = lazyWithRetry(() => import('./components/TelegramVoteMiniApp'));
 
 import { INITIAL_PROJECTS, INITIAL_BUILDERS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
 import { GrowthTask, PendingUnstake, createUnstakeRequest } from './data/earn';
@@ -118,17 +120,19 @@ export default function App() {
       } catch {
         /* ignore */
       }
-      if (currentPath !== 'tg-vote') setCurrentPath('tg-vote');
+      const initialPath = getPathFromUrl();
+      if (initialPath === 'tg-vote') setCurrentPath('tg-vote');
     }
     const onHash = () => {
       const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
-      if (hash === 'tg-vote') setCurrentPath('tg-vote');
+      if (hash === 'tg-vote') {
+        const path = getPathFromUrl();
+        setCurrentPathRaw(path);
+      }
     };
     const onPopState = () => {
       const path = getPathFromUrl();
-      if (path !== currentPath) {
-        setCurrentPathRaw(path);
-      }
+      setCurrentPathRaw(path);
     };
     window.addEventListener('hashchange', onHash);
     window.addEventListener('popstate', onPopState);
@@ -136,8 +140,8 @@ export default function App() {
       window.removeEventListener('hashchange', onHash);
       window.removeEventListener('popstate', onPopState);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once for Mini App
-  }, [currentPath]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once only
+  }, []);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('p1');
   const [swapOutputMint, setSwapOutputMint] = useState<string | null>(null);
   const [intelPrompt, setIntelPrompt] = useState<string | null>(null);
@@ -1127,9 +1131,11 @@ export default function App() {
     return (
       <div className="min-h-[100dvh] bg-[#0b0f14] font-sans text-white">
         <Seo path="tg-vote" />
-        <Suspense fallback={<RouteFallback />}>
-          <TelegramVoteMiniApp />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<RouteFallback />}>
+            <TelegramVoteMiniApp />
+          </Suspense>
+        </ErrorBoundary>
         {customAlert && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
             <div className="relative w-full max-w-sm space-y-4 rounded-3xl border border-accent/30 bg-surface/80 p-6 text-center">
@@ -1169,7 +1175,9 @@ export default function App() {
           walletDomain={walletDisplay.domain}
         />
         <main className="pt-2 pb-28 lg:pb-16">
-          <Suspense fallback={<RouteFallback />}>{renderView()}</Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>{renderView()}</Suspense>
+          </ErrorBoundary>
         </main>
       </div>
 

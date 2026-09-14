@@ -244,7 +244,7 @@ export default function TelegramVoteMiniApp() {
                 <div className="h-20 w-full overflow-hidden bg-white/5">
                   <img
                     src={t.bannerUrl}
-                    alt=""
+                    alt={`${t.name} banner`}
                     className="h-full w-full object-cover"
                     loading="lazy"
                   />
@@ -255,7 +255,7 @@ export default function TelegramVoteMiniApp() {
                   {t.logoUrl ? (
                     <img
                       src={t.logoUrl}
-                      alt=""
+                      alt={`${t.name} logo`}
                       className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-white/15"
                       loading="lazy"
                     />

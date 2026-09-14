@@ -255,7 +255,7 @@ export default function ExploreView({
                   <div className="relative h-36 overflow-hidden">
                     <OptimizedImage
                       src={p.coverImage}
-                      alt=""
+                      alt={`${p.name} project cover`}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       loading="lazy"
                     sizes="(max-width: 768px) 100vw, 50vw"

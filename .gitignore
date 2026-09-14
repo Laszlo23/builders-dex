@@ -13,4 +13,10 @@ data/*
 .cursor/
 .agents/
 skills-lock.json
+*.sqlite
+*.db
+.vscode/
+tmp/
+*.tmp
+.cache/
 

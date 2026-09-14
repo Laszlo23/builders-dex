@@ -30,7 +30,7 @@ export default function FounderHumanCard({ founder, conversations = [] }: Props)
       <div className="mt-3 flex flex-wrap items-start gap-4">
         <img
           src={founder.avatarUrl}
-          alt=""
+          alt={`${founder.name} avatar`}
           className="h-16 w-16 rounded-2xl border border-white/10 object-cover"
         />
         <div className="min-w-0 flex-1">

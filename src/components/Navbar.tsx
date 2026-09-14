@@ -133,8 +133,8 @@ export default function Navbar({
             aria-label="Builders DEX home"
           >
             <img
-              src="/brand-mark.png"
-              alt=""
+              src="/brand-mark.webp"
+              alt="Builders DEX"
               width={44}
               height={44}
               className="h-8 w-8 rounded-lg border border-accent/25 object-cover sm:h-11 sm:w-11"

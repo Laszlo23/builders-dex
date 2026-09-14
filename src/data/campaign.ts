@@ -58,63 +58,63 @@ export const CAMPAIGN_ASSETS: CampaignAsset[] = [
   {
     id: 'hook-wide',
     label: 'Wide banner',
-    path: '/campaign/hook-wide.jpg',
+    path: '/campaign/hook-wide.webp',
     ratio: '16:9',
     use: 'X header · LinkedIn · blog',
   },
   {
     id: 'hook-reputation',
     label: 'Reputation square',
-    path: '/campaign/hook-reputation.jpg',
+    path: '/campaign/hook-reputation.webp',
     ratio: '1:1',
     use: 'Feed · quote cards',
   },
   {
     id: 'hook-stories',
     label: 'Stories not tickers',
-    path: '/campaign/hook-stories.jpg',
+    path: '/campaign/hook-stories.webp',
     ratio: '1:1',
     use: 'X · Farcaster · LinkedIn',
   },
   {
     id: 'hook-trade-last',
     label: 'Trade is last',
-    path: '/campaign/hook-trade-last.jpg',
+    path: '/campaign/hook-trade-last.webp',
     ratio: '1:1',
     use: 'Contrast hooks',
   },
   {
     id: 'hook-standard',
     label: 'THE STANDARD story',
-    path: '/campaign/hook-standard.jpg',
+    path: '/campaign/hook-standard.webp',
     ratio: '9:16',
     use: 'Reels · Stories · Shorts',
   },
   {
     id: 'hook-builder100',
     label: 'Builder 100 story',
-    path: '/campaign/hook-builder100.jpg',
+    path: '/campaign/hook-builder100.webp',
     ratio: '9:16',
     use: 'IG / TikTok stories',
   },
   {
     id: 'og-wide',
     label: 'Legacy wide',
-    path: '/campaign/og-wide.jpg',
+    path: '/campaign/og-wide.webp',
     ratio: '16:9',
     use: 'Alt A/B test',
   },
   {
     id: 'square',
     label: 'Legacy square',
-    path: '/campaign/square.jpg',
+    path: '/campaign/square.webp',
     ratio: '1:1',
     use: 'Alt A/B test',
   },
   {
     id: 'story',
     label: 'Legacy story',
-    path: '/campaign/story.jpg',
+    path: '/campaign/story.webp',
     ratio: '9:16',
     use: 'Alt A/B test',
   },
@@ -140,7 +140,7 @@ Builders DEX = Proof of Building™ → discovery → curated trade.
 
 The place where tomorrow's protocols earn trust first.`,
     hashtags: '#BuildersDEX #Solana #Web3',
-    asset: '/campaign/hook-reputation.jpg',
+    asset: '/campaign/hook-reputation.webp',
   },
   {
     id: 'w1-x-contrast',
@@ -155,7 +155,7 @@ Builders DEX: verify the builder, then open the book.
 
 TRADE IS THE LAST STEP.`,
     hashtags: '#ProofOfBuilding #BuildersDEX',
-    asset: '/campaign/hook-trade-last.jpg',
+    asset: '/campaign/hook-trade-last.webp',
   },
   {
     id: 'w1-ig-standard',
@@ -176,7 +176,7 @@ We decide which builders matter — with live Builder Score™ citations.
 
 dex.buildingcultureid.space`,
     hashtags: '#TheStandard #SolanaBuilders #BuildersDEX',
-    asset: '/campaign/hook-standard.jpg',
+    asset: '/campaign/hook-standard.webp',
   },
   {
     id: 'w2-li-infra',
@@ -196,7 +196,7 @@ Builders DEX is building the reputation infrastructure of Web3:
 
 Not another venue. A standard.`,
     hashtags: '#Web3Infrastructure #Solana #Founders',
-    asset: '/campaign/hook-wide.jpg',
+    asset: '/campaign/hook-wide.webp',
   },
   {
     id: 'w2-x-stories',
@@ -212,7 +212,7 @@ founded year · journey · why selected · Builder Score™
 
 Startup profiles for Solana's next protocols.`,
     hashtags: '#BuilderStories #BuildersDEX',
-    asset: '/campaign/hook-stories.jpg',
+    asset: '/campaign/hook-stories.webp',
   },
   {
     id: 'w2-fc-short',
@@ -229,7 +229,7 @@ Builders DEX ships Proof of Building™ before the swap UI.
 
 trade is the last step.`,
     hashtags: 'buildersdex solana',
-    asset: '/campaign/hook-trade-last.jpg',
+    asset: '/campaign/hook-trade-last.webp',
   },
   {
     id: 'w3-ig-b100',
@@ -248,7 +248,7 @@ Hall of Fame lives on Builders DEX.
 
 dex.buildingcultureid.space`,
     hashtags: '#Builder100 #Solana #BuildersDEX',
-    asset: '/campaign/hook-builder100.jpg',
+    asset: '/campaign/hook-builder100.webp',
   },
   {
     id: 'w3-x-index',
@@ -265,7 +265,7 @@ Quality bar: Genesis Top 3
 
 A quality index for builders — not a meme board.`,
     hashtags: '#BuildersIndex #Solana',
-    asset: '/campaign/hook-wide.jpg',
+    asset: '/campaign/hook-wide.webp',
   },
   {
     id: 'w3-tg-brief',
@@ -285,7 +285,7 @@ This week: share one Builder Story you respect — not a chart.
 
 dex.buildingcultureid.space`,
     hashtags: '#BuildersDEX',
-    asset: '/campaign/hook-reputation.jpg',
+    asset: '/campaign/hook-reputation.webp',
   },
   {
     id: 'w4-li-passport',
@@ -302,7 +302,7 @@ scout XP · discoveries · contributions · trust signals
 Founders get a profile that travels with the product.
 Researchers get credit for finding what matters early.`,
     hashtags: '#BuilderPassport #Web3Careers',
-    asset: '/campaign/hook-stories.jpg',
+    asset: '/campaign/hook-stories.webp',
   },
   {
     id: 'w4-x-ab',
@@ -316,7 +316,7 @@ Builders DEX finds who deserves the route.
 
 Reputation layer of Web3.`,
     hashtags: '#BuildersDEX #Solana',
-    asset: '/campaign/hook-reputation.jpg',
+    asset: '/campaign/hook-reputation.webp',
   },
   {
     id: 'w4-ig-cta',
@@ -334,7 +334,7 @@ Download the share kit —
 
 dex.buildingcultureid.space → Share kit`,
     hashtags: '#BuildersDEX #ShareTheStandard',
-    asset: '/campaign/hook-standard.jpg',
+    asset: '/campaign/hook-standard.webp',
   },
 ];
 
@@ -343,42 +343,42 @@ export const MEME_CAMPAIGN_ASSETS: CampaignAsset[] = [
   {
     id: 'meme-banner',
     label: 'Unruggable banner',
-    path: '/campaign/meme-banner-wide.jpg',
+    path: '/campaign/meme-banner-wide.webp',
     ratio: '16:9',
     use: 'X header · LinkedIn · Telegram',
   },
   {
     id: 'meme-unruggable',
     label: 'UNRUGGABLE.',
-    path: '/campaign/meme-unruggable.jpg',
+    path: '/campaign/meme-unruggable.webp',
     ratio: '1:1',
     use: 'Feed · quote meme',
   },
   {
     id: 'meme-zero',
     label: 'NO MORE ZERO.',
-    path: '/campaign/meme-no-more-zero.jpg',
+    path: '/campaign/meme-no-more-zero.webp',
     ratio: '1:1',
     use: 'X · Farcaster',
   },
   {
     id: 'meme-dyor',
     label: 'I outsourced my DYOR',
-    path: '/campaign/meme-outsourced-dyor.jpg',
+    path: '/campaign/meme-outsourced-dyor.webp',
     ratio: '1:1',
     use: 'Feed · Relatable',
   },
   {
     id: 'meme-rug-season',
     label: 'Rug season is over',
-    path: '/campaign/meme-rug-season-over.jpg',
+    path: '/campaign/meme-rug-season-over.webp',
     ratio: '9:16',
     use: 'Stories · Reels · Shorts',
   },
   {
     id: 'meme-touch-grass',
     label: 'Touch grass / we touched the repo',
-    path: '/campaign/meme-touch-grass.jpg',
+    path: '/campaign/meme-touch-grass.webp',
     ratio: '1:1',
     use: 'X · IG · Farcaster',
   },
@@ -402,7 +402,7 @@ No vibes. No anonymous team. No zero tomorrow.
 
 dex.buildingcultureid.space`,
     hashtags: '#Unruggable #BuildersDEX #Solana',
-    asset: '/campaign/meme-unruggable.jpg',
+    asset: '/campaign/meme-unruggable.webp',
   },
   {
     id: 'meme-no-zero',
@@ -420,7 +420,7 @@ If it can't show Proof of Building™, it doesn't get the trade button.
 
 That's the whole product.`,
     hashtags: '#NoMoreZero #BuildersDEX',
-    asset: '/campaign/meme-no-more-zero.jpg',
+    asset: '/campaign/meme-no-more-zero.webp',
   },
   {
     id: 'meme-outsourced',
@@ -441,7 +441,7 @@ We touched the repo.
 
 dex.buildingcultureid.space`,
     hashtags: '#DYOR #BuildersDEX #Farcaster',
-    asset: '/campaign/meme-outsourced-dyor.jpg',
+    asset: '/campaign/meme-outsourced-dyor.webp',
   },
   {
     id: 'meme-rug-over',
@@ -460,7 +460,7 @@ someone already did the boring work for you.
 Swipe up your trust issues.
 Trade last.`,
     hashtags: '#RugSeasonIsOver #BuildersDEX',
-    asset: '/campaign/meme-rug-season-over.jpg',
+    asset: '/campaign/meme-rug-season-over.webp',
   },
   {
     id: 'meme-touch-grass',
@@ -480,7 +480,7 @@ We'll tell you if the proof holds.
 
 dex.buildingcultureid.space`,
     hashtags: '#TouchGrass #BuildersDEX',
-    asset: '/campaign/meme-touch-grass.jpg',
+    asset: '/campaign/meme-touch-grass.webp',
   },
   {
     id: 'meme-banner-x',
@@ -499,7 +499,7 @@ Reputation first. Trade last.
 
 That's how you stop losing to noise.`,
     hashtags: '#Web3 #Reputation #BuildersDEX',
-    asset: '/campaign/meme-banner-wide.jpg',
+    asset: '/campaign/meme-banner-wide.webp',
   },
 ];
 

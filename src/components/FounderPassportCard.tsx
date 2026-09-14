@@ -35,7 +35,7 @@ export default function FounderPassportCard({
           <div className="flex items-start gap-4">
             <img
               src={founder.avatarUrl}
-              alt=""
+              alt={`${founder.name} avatar`}
               className="h-14 w-14 rounded-2xl border border-white/10 object-cover"
             />
             <div>

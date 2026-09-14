@@ -72,7 +72,7 @@ export default function TalentBuilderSlider() {
               <span className="relative">
                 <img
                   src={b.avatarUrl}
-                  alt=""
+                  alt={`${b.name} avatar`}
                   width={64}
                   height={64}
                   loading="lazy"

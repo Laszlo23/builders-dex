@@ -145,7 +145,7 @@ export default function LandingView({
           >
             <div className="absolute inset-0 scale-150 rounded-full bg-accent/20 blur-3xl" />
             <OptimizedImage
-              src="/brand-mark.png"
+              src="/brand-mark.webp"
               alt="Builders DEX"
               width={80}
               height={80}
@@ -337,7 +337,7 @@ export default function LandingView({
                       className="flex shrink-0 items-center gap-2.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 hover:border-accent/40"
                     >
                       {t.logoURI ? (
-                        <img src={t.logoURI} alt="" className="h-5 w-5 rounded-full" />
+                        <img src={t.logoURI} alt={`${t.name} token logo`} className="h-5 w-5 rounded-full" />
                       ) : (
                         <span className="h-5 w-5 rounded-full bg-accent/20" />
                       )}
@@ -353,7 +353,7 @@ export default function LandingView({
       )}
 
       <ParallaxBand
-        image="/parallax/index.jpg"
+        image="/parallax/index.webp"
         eyebrow="Builders Index™"
         title="Solana Innovation Market"
         subtitle="A living quality index for the builders shaping the next era of Solana."
@@ -455,7 +455,7 @@ export default function LandingView({
                     >
                       <OptimizedImage
                         src={p.coverImage}
-                        alt=""
+                        alt={`${p.name} project cover`}
                         className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
                         sizes="(max-width: 640px) 100vw, 33vw"
                       />
@@ -581,7 +581,7 @@ export default function LandingView({
       />
 
       <ParallaxBand
-        image="/parallax/wall.jpg"
+        image="/parallax/wall.webp"
         eyebrow="Hall of Fame"
         title="The Builder 100"
         subtitle="The top builders pushing Solana forward. Climb the wall."
@@ -688,10 +688,10 @@ export default function LandingView({
           </div>
           <div className="relative overflow-hidden rounded-3xl border border-white/12">
             <OptimizedImage
-              src="/campaign/hook-reputation.jpg"
+              src="/campaign/hook-reputation.webp"
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
-             sizes="(max-width: 768px) 100vw, 50vw" />
+              sizes="(max-width: 768px) 100vw, 50vw" />
             <div className="absolute inset-0 bg-ink/70 backdrop-blur-[2px]" />
             <div className="relative p-8">
               <SectionEyebrow icon={Layers}>Unruggable meme drop</SectionEyebrow>

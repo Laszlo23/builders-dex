@@ -66,7 +66,7 @@ export default function BuildersView({
                   {entry.avatarUrl ? (
                     <img
                       src={entry.avatarUrl}
-                      alt=""
+                      alt={`${entry.name} avatar`}
                       className="h-9 w-9 rounded-full object-cover"
                     />
                   ) : (
