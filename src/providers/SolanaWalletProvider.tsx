@@ -10,9 +10,11 @@ import {
   type Adapter,
 } from '@solana/wallet-adapter-base';
 import '@solana/wallet-adapter-react-ui/styles.css';
+import { useNetwork } from './NetworkProvider';
 
 /** Solana mainnet — override with a private RPC in prod (Helius / Alchemy / etc.). */
-const DEFAULT_RPC = 'https://api.mainnet-beta.solana.com';
+const DEFAULT_MAINNET_RPC = 'https://api.mainnet-beta.solana.com';
+const DEFAULT_DEVNET_RPC = 'https://api.devnet.solana.com';
 const WALLET_STORAGE_KEY = 'buildersdex.walletName';
 
 type Props = {
@@ -37,7 +39,15 @@ function clearPersistedWallet(): void {
  * SolanaMobileWalletAdapter on Android.
  */
 export default function SolanaWalletProvider({ children }: Props) {
-  const endpoint = import.meta.env.VITE_SOLANA_RPC_URL || DEFAULT_RPC;
+  const { network } = useNetwork();
+  
+  const endpoint = useMemo(() => {
+    if (network === 'devnet') {
+      return import.meta.env.VITE_SOLANA_DEVNET_RPC_URL || DEFAULT_DEVNET_RPC;
+    }
+    return import.meta.env.VITE_SOLANA_RPC_URL || DEFAULT_MAINNET_RPC;
+  }, [network]);
+  
   const wallets = useMemo(() => [], []);
 
   const onError = useCallback((error: WalletError, adapter?: Adapter) => {

@@ -156,3 +156,61 @@ export function getPassportExplorerUrl(
   const clusterParam = cluster === 'devnet' ? '?cluster=devnet' : '';
   return `https://explorer.solana.com/address/${passportPDA.toBase58()}${clusterParam}`;
 }
+
+/**
+ * Initialize a Builder Passport on-chain (mint)
+ * Returns transaction signature on success, throws on error
+ */
+export async function initializeBuilderPassport(
+  connection: Connection,
+  walletAddress: PublicKey,
+  signTransaction: (tx: any) => Promise<any>
+): Promise<string> {
+  if (!BUILDER_PASSPORT_PROGRAM_ID) {
+    throw new Error('Builder Passport program not deployed');
+  }
+
+  const pda = derivePassportPDA(walletAddress);
+  if (!pda) {
+    throw new Error('Could not derive passport PDA');
+  }
+
+  const [passportPDA] = pda;
+
+  // Check if already exists
+  const existing = await connection.getAccountInfo(passportPDA);
+  if (existing) {
+    throw new Error('Builder Passport already minted for this wallet');
+  }
+
+  // Import web3.js types
+  const { Transaction, SystemProgram, TransactionInstruction } = await import('@solana/web3.js');
+
+  // Build initialize instruction
+  // Instruction discriminator for "initialize" (first 8 bytes of sha256("global:initialize"))
+  const discriminator = Buffer.from([175, 175, 109, 31, 13, 152, 155, 237]);
+  
+  const keys = [
+    { pubkey: passportPDA, isSigner: false, isWritable: true },
+    { pubkey: walletAddress, isSigner: true, isWritable: true },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+  ];
+
+  const ix = new TransactionInstruction({
+    keys,
+    programId: BUILDER_PASSPORT_PROGRAM_ID,
+    data: discriminator,
+  });
+
+  const tx = new Transaction().add(ix);
+  tx.feePayer = walletAddress;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await signTransaction(tx);
+  const signature = await connection.sendRawTransaction(signed.serialize());
+  
+  // Wait for confirmation
+  await connection.confirmTransaction(signature, 'confirmed');
+  
+  return signature;
+}
