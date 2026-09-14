@@ -240,8 +240,8 @@ export default function App() {
 
   // Scroll to top on navigation
   useEffect(() => {
-    // Use instant behavior to avoid animation artifacts during agent edits
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Use auto for broader browser support (Safari compatibility)
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     // Also reset document scroll position for browsers that need it
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
