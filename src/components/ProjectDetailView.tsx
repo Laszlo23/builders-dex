@@ -212,7 +212,7 @@ export default function ProjectDetailView({
           <div className="relative h-52 sm:h-72 lg:h-80">
             <OptimizedImage
               src={project.coverImage}
-              alt=""
+              alt={`${project.name} project cover`}
               className="h-full w-full object-cover"
             sizes="100vw"
               priority
@@ -588,7 +588,7 @@ export default function ProjectDetailView({
                 >
                   <img
                     src={member.avatarUrl}
-                    alt=""
+                    alt={`${member.name} avatar`}
                     className="h-10 w-10 rounded-full object-cover"
                   />
                   <div>

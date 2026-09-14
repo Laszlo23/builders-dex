@@ -337,7 +337,7 @@ export default function LandingView({
                       className="flex shrink-0 items-center gap-2.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 hover:border-accent/40"
                     >
                       {t.logoURI ? (
-                        <img src={t.logoURI} alt="" className="h-5 w-5 rounded-full" />
+                        <img src={t.logoURI} alt={`${t.name} token logo`} className="h-5 w-5 rounded-full" />
                       ) : (
                         <span className="h-5 w-5 rounded-full bg-accent/20" />
                       )}
@@ -455,7 +455,7 @@ export default function LandingView({
                     >
                       <OptimizedImage
                         src={p.coverImage}
-                        alt=""
+                        alt={`${p.name} project cover`}
                         className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
                         sizes="(max-width: 640px) 100vw, 33vw"
                       />

@@ -19,7 +19,7 @@ export default function BuilderNetflixCard({
       <div className="relative aspect-[16/9] max-h-[280px] w-full overflow-hidden bg-ink">
         <OptimizedImage
           src={ep.coverImage}
-          alt=""
+          alt={`${ep.title} cover`}
           className="h-full w-full object-cover opacity-70"
           onError={(e) => {
             (e.target as HTMLImageElement).src = ep.avatarUrl;
@@ -65,7 +65,7 @@ export default function BuilderNetflixCard({
             >
               <OptimizedImage
                 src={e.coverImage}
-                alt=""
+                alt={`${e.title} thumbnail`}
                 className="h-16 w-28 object-cover"
                 onError={(ev) => {
                   (ev.target as HTMLImageElement).src = e.avatarUrl;

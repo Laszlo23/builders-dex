@@ -88,7 +88,7 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
             <div className="flex items-center gap-3">
               <img
                 src="/brand-mark.webp"
-                alt=""
+                alt="Builders DEX"
                 width={40}
                 height={40}
                 className="h-10 w-10 rounded-xl border border-accent/35 object-cover"

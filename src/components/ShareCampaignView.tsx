@@ -369,7 +369,7 @@ export default function ShareCampaignView({
                   <div className="relative min-h-[180px] overflow-hidden border-b border-white/8 lg:border-b-0 lg:border-r lg:border-white/8">
                     <OptimizedImage
                       src={post.asset}
-                      alt=""
+                      alt={`Campaign week ${post.week}: ${post.hook}`}
                       className="absolute inset-0 h-full w-full object-cover"
                     sizes="(max-width: 768px) 100vw, 400px"
                       />
