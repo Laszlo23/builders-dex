@@ -33,6 +33,8 @@ export default function DepthCard({
   const glareBackground = useMotionTemplate`radial-gradient(520px circle at ${glareX}% ${glareY}%, rgba(200, 232, 104,0.18), rgba(255,255,255,0.08) 35%, transparent 58%)`;
 
   const onMove = (e: React.MouseEvent) => {
+    // Skip tilt effect if hovering over interactive elements
+    if ((e.target as HTMLElement).closest('button, a')) return;
     if (window.matchMedia('(pointer: coarse)').matches) return;
     const el = ref.current;
     if (!el) return;
@@ -84,7 +86,7 @@ export default function DepthCard({
             opacity: hovered ? 1 : 0.25,
           }}
         />
-        <div className="relative z-10 h-full isolate">{children}</div>
+        <div className="relative z-10 h-full isolate [&_button]:pointer-events-auto [&_a]:pointer-events-auto">{children}</div>
       </motion.div>
     </div>
   );
