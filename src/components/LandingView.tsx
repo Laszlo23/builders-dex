@@ -46,6 +46,8 @@ import BuilderGraphPrideBand from './BuilderGraphPrideBand';
 import EducationalReviewCard from './EducationalReviewCard';
 import { educationalReviewFor } from '../data/builderPlatform';
 import OptimizedImage from './OptimizedImage';
+import DailyScoutCard from './DailyScoutCard';
+import { getDailyProject, getCurrentRitualStreak, recordRitualCompletion } from '../lib/dailyScoutRitual';
 
 interface LandingViewProps {
   setCurrentPath: (path: string) => void;
@@ -128,6 +130,13 @@ export default function LandingView({
 
   const wall = getBuilder100(builders, projects).slice(0, 10);
   const rejected = projects.filter((p) => p.curation.status === 'rejected').slice(0, 2);
+  const dailyProject = getDailyProject(projects);
+  const ritualStreak = getCurrentRitualStreak();
+
+  const handleDailyScoutCall = () => {
+    recordRitualCompletion();
+    setCurrentPath('terminal');
+  };
 
   return (
     <div className="relative text-white">
@@ -231,14 +240,27 @@ export default function LandingView({
         </div>
       </section>
 
-      {/* 2 — Manifesto */}
+      {/* 2 — Daily Scout Ritual */}
+      {dailyProject && (
+        <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-12">
+          <div className="mx-auto max-w-3xl">
+            <DailyScoutCard
+              project={dailyProject}
+              streak={ritualStreak.consecutiveDays}
+              onMakeCall={handleDailyScoutCall}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* 3 — Manifesto */}
       <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-12">
         <div className="mx-auto max-w-3xl">
           <BuildersManifesto />
         </div>
       </section>
 
-      {/* 3 — Prestige (one job) */}
+      {/* 4 — Prestige (one job) */}
       <section className="border-b border-white/5 bg-ink px-4 py-16">
         <div className="mx-auto max-w-5xl">
           <RecognitionRateCard onApply={() => setCurrentPath('apply')} />
@@ -263,7 +285,7 @@ export default function LandingView({
         </div>
       </section>
 
-      {/* 4 — How it works (icons) */}
+      {/* 5 — How it works (icons) */}
       <section className="relative border-b border-white/5 bg-ink px-4 py-20">
         <div className="mx-auto max-w-5xl">
           <SectionEyebrow icon={GitBranch}>The standard path</SectionEyebrow>
@@ -298,7 +320,7 @@ export default function LandingView({
         </div>
       </section>
 
-      {/* 5 — Mission rally + daily icons */}
+      {/* 6 — Mission rally + daily icons */}
       <AspirationNetworkSection setCurrentPath={setCurrentPath} aspirationIndex={0} />
 
       <section className="relative border-b border-white/5 bg-ink px-4 py-14">
@@ -310,7 +332,7 @@ export default function LandingView({
         </div>
       </section>
 
-      {/* 6 — Crystal Ball */}
+      {/* 7 — Crystal Ball */}
       <section className="border-b border-white/5 bg-ink px-4 py-16">
         <div className="mx-auto max-w-3xl">
           <CrystalBallCard compact onOpenProject={(id) => onOpenStory(id)} />
