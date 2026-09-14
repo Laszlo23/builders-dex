@@ -35,6 +35,9 @@ import TradeShareModal from './TradeShareModal';
 
 type SwapStatus = 'idle' | 'quoting' | 'ready' | 'confirming' | 'success' | 'error';
 
+let inFlightMetadataRequest: Promise<Record<string, number>> | null = null;
+let lastMetadataMintsKey: string | null = null;
+
 interface SwapViewProps {
   transactions: SwapTransaction[];
   onSwapComplete: (tx: SwapTransaction) => void;
@@ -161,18 +164,45 @@ export default function SwapView({
   useEffect(() => {
     if (!pairReady || tradeableTokens.length === 0) return;
     let cancelled = false;
-    fetchTokenMetadata(tradeableTokens.map((t) => t.mint))
-      .then((rows) => {
-        if (cancelled) return;
-        const next: Record<string, number> = {};
-        for (const row of rows) {
-          if (row.id && typeof row.usdPrice === 'number') {
-            next[row.id] = row.usdPrice;
-          }
+
+    const fetchPrices = async () => {
+      const mintsKey = tradeableTokens.map((t) => t.mint).sort().join(',');
+      
+      if (inFlightMetadataRequest && lastMetadataMintsKey === mintsKey) {
+        try {
+          const prices = await inFlightMetadataRequest;
+          if (!cancelled) setUsdPrices(prices);
+        } catch {
+          // Ignore errors from shared request
         }
-        setUsdPrices(next);
-      })
-      .catch(() => {});
+        return;
+      }
+
+      lastMetadataMintsKey = mintsKey;
+      inFlightMetadataRequest = fetchTokenMetadata(tradeableTokens.map((t) => t.mint))
+        .then((rows) => {
+          const next: Record<string, number> = {};
+          for (const row of rows) {
+            if (row.id && typeof row.usdPrice === 'number') {
+              next[row.id] = row.usdPrice;
+            }
+          }
+          return next;
+        })
+        .finally(() => {
+          inFlightMetadataRequest = null;
+        });
+
+      try {
+        const prices = await inFlightMetadataRequest;
+        if (!cancelled) setUsdPrices(prices);
+      } catch {
+        // Ignore errors
+      }
+    };
+
+    void fetchPrices();
+
     return () => {
       cancelled = true;
     };
