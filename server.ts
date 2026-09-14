@@ -94,6 +94,15 @@ import {
   clampSlippageBps,
 } from './src/lib/serverSecurity';
 import { getSqlite } from './src/lib/db/sqlite';
+import { bumpScoreForScout, bumpScoreForApplication } from './src/lib/passportOracle';
+import { PublicKey } from '@solana/web3.js';
+import {
+  submitApplication,
+  getApplicationById,
+  listApplications,
+  getApplicationsByWallet,
+  reviewApplication,
+} from './src/lib/applications/repo';
 import {
   castVoteByTokenId,
   defaultBigBuyUsd,
@@ -768,6 +777,141 @@ app.get('/api/daily-radar', rateLimit(40, 60_000, 'daily-radar'), async (_req, r
   }
 });
 
+/** Applications API — project application submissions and reviews */
+app.post('/api/applications', rateLimit(10, 60_000, 'app-submit'), (req, res) => {
+  try {
+    const wallet = String(req.body?.wallet || '').trim();
+    const projectName = String(req.body?.projectName || '').trim();
+    const projectDescription = String(req.body?.projectDescription || '').trim();
+    const githubRepo = req.body?.githubRepo ? String(req.body.githubRepo).trim() : undefined;
+    const website = req.body?.website ? String(req.body.website).trim() : undefined;
+
+    if (!isValidSolanaWallet(wallet)) {
+      return res.status(400).json({ error: 'Invalid wallet address' });
+    }
+    if (!projectName || projectName.length < 3) {
+      return res.status(400).json({ error: 'Project name required (min 3 chars)' });
+    }
+    if (!projectDescription || projectDescription.length < 50) {
+      return res.status(400).json({ error: 'Project description required (min 50 chars)' });
+    }
+
+    const app = submitApplication({
+      wallet,
+      projectName,
+      projectDescription,
+      githubRepo,
+      website,
+    });
+
+    res.json({
+      ok: true,
+      application: app,
+      note: 'Application submitted for review',
+    });
+  } catch (err) {
+    console.error('[applications/submit]', err);
+    res.status(500).json({ error: safeErrorMessage(err, 'Failed to submit application') });
+  }
+});
+
+app.get('/api/applications', rateLimit(40, 60_000, 'app-list'), (req, res) => {
+  try {
+    const admin = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
+    if (!admin) {
+      return res.status(503).json({ error: 'Admin token not configured' });
+    }
+    const provided = String(req.headers['x-admin-token'] || req.query.token || '');
+    if (provided !== admin) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const status = req.query.status 
+      ? String(req.query.status) as 'pending' | 'approved' | 'rejected'
+      : undefined;
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
+
+    const applications = listApplications(status, limit);
+    res.json({ applications, count: applications.length });
+  } catch (err) {
+    console.error('[applications/list]', err);
+    res.status(500).json({ error: safeErrorMessage(err, 'Failed to list applications') });
+  }
+});
+
+app.get('/api/applications/wallet/:wallet', rateLimit(40, 60_000, 'app-wallet'), (req, res) => {
+  try {
+    const wallet = String(req.params.wallet || '').trim();
+    if (!isValidSolanaWallet(wallet)) {
+      return res.status(400).json({ error: 'Invalid wallet address' });
+    }
+
+    const applications = getApplicationsByWallet(wallet);
+    res.json({ applications, count: applications.length });
+  } catch (err) {
+    console.error('[applications/wallet]', err);
+    res.status(500).json({ error: safeErrorMessage(err, 'Failed to fetch applications') });
+  }
+});
+
+app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), async (req, res) => {
+  try {
+    const admin = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
+    if (!admin) {
+      return res.status(503).json({ error: 'Admin token not configured' });
+    }
+    const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
+    if (provided !== admin) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const id = String(req.params.id || '').trim();
+    const status = String(req.body?.status || '').trim() as 'approved' | 'rejected';
+    const reviewNotes = req.body?.reviewNotes ? String(req.body.reviewNotes).trim() : undefined;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Status must be approved or rejected' });
+    }
+
+    const app = getApplicationById(id);
+    if (!app) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    if (app.reviewStatus !== 'pending') {
+      return res.status(400).json({ error: 'Application already reviewed' });
+    }
+
+    const reviewed = reviewApplication(id, status, 'admin', reviewNotes);
+
+    // If approved, bump on-chain passport score
+    let oracleResult = null;
+    if (status === 'approved' && reviewed && isValidSolanaWallet(reviewed.wallet)) {
+      try {
+        const walletPubkey = new PublicKey(reviewed.wallet);
+        oracleResult = await bumpScoreForApplication(walletPubkey, reviewed.id);
+        if (!oracleResult.success) {
+          console.warn('[passport-oracle] Application bump failed:', oracleResult.error);
+        }
+      } catch (err) {
+        console.warn('[passport-oracle] Application bump error:', err);
+      }
+    }
+
+    res.json({
+      ok: true,
+      application: reviewed,
+      oracleBump: oracleResult?.success ? {
+        signature: oracleResult.signature,
+        points: 100,
+      } : null,
+    });
+  } catch (err) {
+    console.error('[applications/review]', err);
+    res.status(500).json({ error: safeErrorMessage(err, 'Failed to review application') });
+  }
+});
+
 /** Builder Scouts™ — timestamped calls on the shared ledger */
 app.get('/api/scout/leaderboard', rateLimit(60, 60_000, 'scout-board'), (_req, res) => {
   try {
@@ -814,7 +958,7 @@ app.get(
   },
 );
 
-app.post('/api/scout/submit', rateLimit(20, 60_000, 'scout-submit'), (req, res) => {
+app.post('/api/scout/submit', rateLimit(20, 60_000, 'scout-submit'), async (req, res) => {
   try {
     const wallet = String(req.body?.wallet || '').trim();
     const missionId = String(req.body?.missionId || '').trim();
@@ -854,7 +998,19 @@ app.post('/api/scout/submit', rateLimit(20, 60_000, 'scout-submit'), (req, res) 
     });
 
     if (!result.ok) {
-      return res.status(400).json({ error: result.error });
+      return res.status(400).json({ error: (result as { ok: false; error: string }).error });
+    }
+
+    // Attempt to bump on-chain passport score (async, non-blocking)
+    if (!result.already && isValidSolanaWallet(wallet)) {
+      try {
+        const walletPubkey = new PublicKey(wallet);
+        void bumpScoreForScout(walletPubkey).catch((err) => {
+          console.warn('[passport-oracle] Scout bump failed:', err);
+        });
+      } catch (err) {
+        console.warn('[passport-oracle] Scout bump error:', err);
+      }
     }
 
     res.json({
@@ -866,7 +1022,7 @@ app.post('/api/scout/submit', rateLimit(20, 60_000, 'scout-submit'), (req, res) 
     });
   } catch (err) {
     console.warn('[scout/submit]', err);
-    res.status(500).json({ error: safeErrorMessage(err) });
+    res.status(500).json({ error: safeErrorMessage(err, 'Failed to submit scout call') });
   }
 });
 
