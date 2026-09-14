@@ -120,17 +120,19 @@ export default function App() {
       } catch {
         /* ignore */
       }
-      if (currentPath !== 'tg-vote') setCurrentPath('tg-vote');
+      const initialPath = getPathFromUrl();
+      if (initialPath === 'tg-vote') setCurrentPath('tg-vote');
     }
     const onHash = () => {
       const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
-      if (hash === 'tg-vote') setCurrentPath('tg-vote');
+      if (hash === 'tg-vote') {
+        const path = getPathFromUrl();
+        setCurrentPathRaw(path);
+      }
     };
     const onPopState = () => {
       const path = getPathFromUrl();
-      if (path !== currentPath) {
-        setCurrentPathRaw(path);
-      }
+      setCurrentPathRaw(path);
     };
     window.addEventListener('hashchange', onHash);
     window.addEventListener('popstate', onPopState);
@@ -138,8 +140,8 @@ export default function App() {
       window.removeEventListener('hashchange', onHash);
       window.removeEventListener('popstate', onPopState);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once for Mini App
-  }, [currentPath]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once only
+  }, []);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('p1');
   const [swapOutputMint, setSwapOutputMint] = useState<string | null>(null);
   const [intelPrompt, setIntelPrompt] = useState<string | null>(null);
