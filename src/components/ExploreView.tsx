@@ -360,8 +360,7 @@ export default function ExploreView({
                         e.stopPropagation();
                         onUpvote(p.id);
                       }}
-                      className="min-h-[44px] rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-xs text-steel transition hover:border-accent/30 hover:text-accent active:scale-95"
-                    >
+className="min-h-[44px] rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-xs text-steel transition hover:border-accent/30 hover:text-accent active:scale-95"                    >
                       ▲ {p.upvotes}
                     </button>
                   )}
@@ -377,8 +376,7 @@ export default function ExploreView({
                             e.stopPropagation();
                             onTrade(tradeMint);
                           }}
-                          className="min-h-[44px] rounded-lg bg-accent px-4 py-2 text-xs font-bold text-ink transition hover:bg-accent-bright active:scale-95"
-                        >
+className="min-h-[44px] rounded-lg bg-accent px-4 py-2 text-xs font-bold text-ink transition hover:bg-accent-bright active:scale-95"                        >
                           Trade {tradeSymbol}
                         </button>
                       );
@@ -389,8 +387,7 @@ export default function ExploreView({
                         e.stopPropagation();
                         openProject(p.id);
                       }}
-                      className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white transition hover:border-accent/40 hover:text-accent active:scale-95"
-                    >
+className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white transition hover:border-accent/40 hover:text-accent active:scale-95"                    >
                       {isRejected ? 'Review' : 'Read story'} <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>

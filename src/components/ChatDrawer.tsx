@@ -333,7 +333,7 @@ export function ChatFab({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="fixed bottom-[4.75rem] right-4 z-[100] flex h-12 w-12 items-center justify-center rounded-full border border-accent/40 bg-accent text-ink shadow-[0_12px_40px_-10px_rgba(200,232,104,0.55)] transition hover:bg-accent-bright lg:bottom-6"
+      className="fixed bottom-[4.75rem] right-4 z-[100] flex h-14 w-14 items-center justify-center rounded-full border border-accent/40 bg-accent text-ink shadow-[0_12px_40px_-10px_rgba(200,232,104,0.55)] transition hover:bg-accent-bright active:scale-95 lg:bottom-6 lg:h-12 lg:w-12"
       aria-label="Open chat"
     >
       <Sparkles className="h-5 w-5" />

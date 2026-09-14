@@ -485,9 +485,9 @@ export default function SwapView({
               <button
                 type="button"
                 onClick={() => setPickerSide('from')}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] py-1.5 pl-1.5 pr-3 hover:border-accent/40"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] py-2 pl-1.5 pr-3 hover:border-accent/40 active:scale-95 min-h-[44px]"
               >
-                <TokenLogo token={inputToken} size={22} />
+                <TokenLogo token={inputToken} size={24} />
                 <span className="text-sm font-semibold">{inputToken.symbol}</span>
               </button>
             </div>
@@ -497,10 +497,10 @@ export default function SwapView({
             <button
               type="button"
               onClick={invertTokens}
-              className="rounded-full border border-white/12 bg-surface p-2 text-steel shadow-lg hover:border-accent/40 hover:text-accent"
+              className="rounded-full border border-white/12 bg-surface p-3 text-steel shadow-lg hover:border-accent/40 hover:text-accent active:scale-95 min-h-[48px] min-w-[48px] flex items-center justify-center"
               aria-label="Invert"
             >
-              <ArrowDownUp className="h-4 w-4" />
+              <ArrowDownUp className="h-5 w-5" />
             </button>
           </div>
 
@@ -516,9 +516,9 @@ export default function SwapView({
               <button
                 type="button"
                 onClick={() => setPickerSide('to')}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] py-1.5 pl-1.5 pr-3 hover:border-accent/40"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] py-2 pl-1.5 pr-3 hover:border-accent/40 active:scale-95 min-h-[44px]"
               >
-                <TokenLogo token={outputToken} size={22} />
+                <TokenLogo token={outputToken} size={24} />
                 <span className="text-sm font-semibold">{outputToken.symbol}</span>
               </button>
             </div>
@@ -543,11 +543,11 @@ export default function SwapView({
             type="button"
             disabled={ctaDisabled}
             onClick={handleSwap}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-bold text-ink transition hover:bg-accent-bright disabled:cursor-not-allowed disabled:opacity-35"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-4 text-sm font-bold text-ink transition hover:bg-accent-bright active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-35 disabled:active:scale-100 min-h-[56px]"
           >
-            {!connected && <Wallet className="h-4 w-4" />}
+            {!connected && <Wallet className="h-5 w-5" />}
             {(quoting || status === 'confirming' || tokensLoading) && (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             )}
             {ctaLabel}
           </button>

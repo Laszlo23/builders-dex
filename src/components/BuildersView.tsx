@@ -88,7 +88,7 @@ export default function BuildersView({
                         setSelectedProjectId(entry.projectId!);
                         setCurrentPath('project-detail');
                       }}
-                      className="hidden rounded-lg border border-white/10 px-2.5 py-1 font-mono text-[10px] text-steel hover:border-accent/40 hover:text-accent sm:inline"
+                      className="hidden rounded-lg border border-white/10 px-3 py-2 font-mono text-xs text-steel hover:border-accent/40 hover:text-accent active:scale-95 sm:inline min-h-[40px]"
                     >
                       Story
                     </button>
@@ -101,7 +101,7 @@ export default function BuildersView({
                         setFollowingMap((m) => ({ ...m, [entry.builderId]: true }));
                         onFollowBuilder(entry.builderId);
                       }}
-                      className={`rounded-lg px-2.5 py-1 font-mono text-[10px] ${
+                      className={`rounded-lg px-3 py-2 font-mono text-xs active:scale-95 min-h-[40px] ${
                         followingMap[entry.builderId]
                           ? 'bg-accent/15 text-accent'
                           : 'border border-white/10 text-steel hover:text-white'

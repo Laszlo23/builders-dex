@@ -39,11 +39,13 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
     <div
       className="fixed inset-0 z-[120] flex items-end justify-center bg-black/75 p-3 backdrop-blur-md sm:items-center"
       onClick={onClose}
+      onTouchEnd={onClose}
       role="presentation"
     >
       <div
         className="relative w-full max-w-lg overflow-hidden rounded-[1.75rem] border border-accent/30 bg-gradient-to-b from-white/[0.07] to-ink shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]"
         onClick={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="first-discovery-title"
@@ -84,7 +86,7 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
                 <button
                   type="button"
                   onClick={() => onPick(p.id)}
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-left transition hover:border-accent/40 hover:bg-accent/[0.06]"
+                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-accent/40 hover:bg-accent/[0.06] active:scale-[0.99] min-h-[60px]"
                 >
                   <div>
                     <p className="font-semibold text-white">{p.name}</p>
@@ -101,9 +103,9 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
           <button
             type="button"
             onClick={() => picks[0] && onPick(picks[0].id)}
-            className="btn-sheen mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-accent py-3.5 text-sm font-bold text-ink hover:bg-accent-bright"
+            className="btn-sheen mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-accent py-4 text-sm font-bold text-ink hover:bg-accent-bright active:scale-[0.98] min-h-[56px]"
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-5 w-5" />
             {FIRST_DISCOVERY_COPY.cta}
           </button>
         </div>
