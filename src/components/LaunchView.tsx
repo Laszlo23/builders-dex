@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, FilePlus2 } from 'lucide-react';
+import { CheckCircle2, FilePlus2, Loader2 } from 'lucide-react';
 import { UserWallet, Project } from '../types';
 import ProjectSubmitForm from './ProjectSubmitForm';
 
@@ -19,6 +19,9 @@ export default function LaunchView({
   setCurrentPath,
 }: LaunchViewProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [confirmationId, setConfirmationId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (submitted) {
     return (
@@ -30,6 +33,11 @@ export default function LaunchView({
             Your hackathon-grade packet is <span className="text-accent">under review</span>. It
             will not become tradeable until Proof of Building™ passes.
           </p>
+          {confirmationId && (
+            <p className="mt-2 font-mono text-xs text-steel/70">
+              Reference: <span className="text-accent">{confirmationId}</span>
+            </p>
+          )}
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {setCurrentPath && (
               <>
@@ -66,6 +74,21 @@ export default function LaunchView({
         you belong on the reputation layer.
       </p>
 
+      {submitError && (
+        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+          <p className="text-sm text-red-400">
+            <strong>Error:</strong> {submitError}
+          </p>
+          <button
+            type="button"
+            onClick={() => setSubmitError(null)}
+            className="mt-2 text-xs text-red-300 underline hover:text-red-200"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <div className="pulse-card mt-8 rounded-3xl border border-white/12 bg-gradient-to-b from-white/[0.06] to-surface/90 p-6 md:p-8">
         <div className="mb-6 flex items-center gap-2">
           <FilePlus2 className="h-5 w-5 text-accent" />
@@ -77,9 +100,61 @@ export default function LaunchView({
           founderName={wallet.connected ? wallet.address : 'Founder'}
           walletConnected={wallet.connected}
           onConnect={connectWallet}
-          onSubmit={(p) => {
-            onLaunch(p);
-            setSubmitted(true);
+          isSubmitting={isSubmitting}
+          onSubmit={async (p) => {
+            setSubmitError(null);
+            setIsSubmitting(true);
+
+            try {
+              // Submit to API first
+              const response = await fetch('/api/applications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  name: p.name,
+                  ticker: p.ticker,
+                  problem: p.problem,
+                  description: p.description,
+                  contactEmail: p.application?.contactEmail,
+                  whyBuildersDex: p.application?.whyBuildersDex,
+                  wallet: wallet.connected ? wallet.address : undefined,
+                  tagline: p.tagline,
+                  category: p.category,
+                  githubRepo: p.githubRepo,
+                  goal: p.goal,
+                  journey: p.journey,
+                  builderStory: p.builderStory,
+                  demoUrl: p.application?.demoUrl,
+                  pitchDeckUrl: p.application?.pitchDeckUrl,
+                  videoUrl: p.application?.videoUrl,
+                  whitepaperUrl: p.application?.whitepaperUrl,
+                  hackathonName: p.application?.hackathonName,
+                  tracks: p.application?.tracks,
+                  techStack: p.application?.techStack,
+                  lookingFor: p.application?.lookingFor,
+                  teamSize: p.application?.teamSize,
+                  fundingStatus: p.application?.fundingStatus,
+                  previousLaunches: p.application?.previousLaunches,
+                  socials: p.application?.socials,
+                }),
+              });
+
+              if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to submit application');
+              }
+
+              const result = await response.json();
+
+              // On success, update local state and show confirmation
+              onLaunch(p);
+              setConfirmationId(result.id);
+              setSubmitted(true);
+            } catch (error) {
+              setSubmitError(error instanceof Error ? error.message : 'Network error. Please try again.');
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
         />
       </div>
