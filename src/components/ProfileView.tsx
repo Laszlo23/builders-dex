@@ -192,7 +192,7 @@ export default function ProfileView({
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 text-white sm:px-6">
       <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
-        <strong className="font-semibold">Local simulation.</strong> Passport program in repo, not yet deployed. Stats stay browser-local until on-chain mint.
+        <strong className="font-semibold">On-chain Passport (devnet).</strong> Program <code className="text-[10px]">7MWC…QnD</code> is live on Solana devnet. UI still uses local XP unless wallet RPC is on devnet.
       </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>

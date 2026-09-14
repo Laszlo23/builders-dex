@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("HM1CaGZRzdNC7pJxtj2jNwuxhYDbMQGt3xGAJk9iKakD");
+declare_id!("7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD");
 
 #[program]
 pub mod builder_passport {
