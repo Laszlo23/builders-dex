@@ -51,25 +51,25 @@ const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     path: '/',
   },
   swap: {
-    title: 'Trusted Trading — Builders DEX',
+    title: 'Swap — Builders DEX',
     description:
-      'Swap allowlisted Solana tokens after verified reputation history — trading is the final step.',
+      'Curated Solana token swaps via Jupiter. Trade Builder-verified projects with confidence. Quality screening first, liquidity second.',
     path: '/swap',
   },
   terminal: {
-    title: 'Builder Terminal™ — Builders DEX',
+    title: 'Terminal — Builders DEX',
     description:
-      'Build Feed™, War Room, Genesis Radar™, Scouts™, Convictions — watch builders building.',
+      'Real-time Builder activity feed: Scout calls, conviction updates, quality signals, and community discoveries. Watch builders building.',
     path: '/terminal',
   },
   explore: {
-    title: 'Builder Stories — Builders DEX',
-    description: 'Startup profiles with Builder Score™, journey, and why they were selected.',
+    title: 'Explore — Builders DEX',
+    description: 'Curated Solana projects with Builder Score™ ratings, team transparency, proof of building, and community trust signals.',
     path: '/explore',
   },
   'project-detail': {
-    title: 'Builder Story — Builders DEX',
-    description: 'Builder Score™, team transparency, roadmap, and Builder Intelligence™ research.',
+    title: 'Project — Builders DEX',
+    description: 'Live Builder Score™ analysis, team profiles, proof of building, community sentiment, and AI research assistant.',
     path: '/explore',
   },
   apply: {
@@ -88,14 +88,14 @@ const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     path: '/rankings',
   },
   dao: {
-    title: 'Governance — Builders DEX',
-    description: 'Protocol governance for the Builders DEX intelligence layer.',
+    title: 'DAO — Builders DEX',
+    description: 'Governance simulation showing future community voting on curation standards, listings, and protocol parameters.',
     path: '/dao',
   },
   earn: {
     title: 'Earn — Builders DEX',
     description:
-      'Provide liquidity, stake $BUILD for platform perks, and complete growth tasks that power the intelligence layer.',
+      'Simulated liquidity provision, staking, and growth tasks. Demo features showing future tokenomics and community rewards.',
     path: '/earn',
   },
   launchpad: {
@@ -105,13 +105,13 @@ const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     path: '/launchpad',
   },
   ai: {
-    title: 'Builder Intelligence™ — Builders DEX',
-    description: 'AI research agent for curated Solana builders — matches, scores, strengths, and risks.',
+    title: 'AI Research — Builders DEX',
+    description: 'AI-powered project analysis using live Builder Scores, GitHub activity, team data, and quality signals. Ask about any curated project.',
     path: '/intelligence',
   },
   profile: {
-    title: 'Builder Passport™ — Builders DEX',
-    description: 'Editable reputation passport — link X, Farcaster, and submit projects.',
+    title: 'Passport — Builders DEX',
+    description: 'Your builder profile and reputation tracking. Connect wallet, link social accounts, view XP progress, and discover projects.',
     path: '/passport',
   },
   campaign: {

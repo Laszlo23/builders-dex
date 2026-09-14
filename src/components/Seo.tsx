@@ -90,11 +90,15 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
         operatingSystem: 'Web',
         description,
         featureList: [
-          'Proof of Building™',
-          'Builder DNA™ & Passport™',
-          'Curated Solana swaps',
-          'Genesis Radar™ & Builder Scouts™',
+          'Curated Solana project discovery',
+          'Live Builder Score™ quality ratings',
+          'Jupiter-powered token swaps',
+          'Community-driven builder verification',
         ],
+        offers: {
+          '@type': 'Offer',
+          description: 'Free builder discovery and quality research. Swap fees via Jupiter protocol.',
+        },
       });
     }
   }, [path, projectName, blogSlug]);
