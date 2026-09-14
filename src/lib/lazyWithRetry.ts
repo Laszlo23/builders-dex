@@ -29,12 +29,17 @@ export function lazyWithRetry<T extends ComponentType<any>>(
         importFn()
           .then(resolve)
           .catch((error) => {
-            // Detect chunk loading errors
+            // Detect chunk loading errors (including HTML served as JS)
+            const errorMessage = String(error?.message || '').toLowerCase();
             const isChunkError =
               error?.name === 'ChunkLoadError' ||
-              error?.message?.includes('Failed to fetch') ||
-              error?.message?.includes('dynamically imported module') ||
-              error?.message?.includes('Importing a module script failed');
+              errorMessage.includes('failed to fetch') ||
+              errorMessage.includes('dynamically imported module') ||
+              errorMessage.includes('importing a module script failed') ||
+              errorMessage.includes("unexpected token '<'") ||
+              errorMessage.includes('mime type') ||
+              errorMessage.includes('text/html') ||
+              errorMessage.includes('failed to load module script');
 
             if (isChunkError && attempts < MAX_RETRY_ATTEMPTS) {
               console.warn(

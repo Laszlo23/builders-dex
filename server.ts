@@ -2140,6 +2140,12 @@ async function startServer() {
       maxAge: '1y',
       immutable: true,
     }));
+    
+    // Explicit 404 for missing /assets/* (prevent SPA catch-all from serving index.html as JS)
+    app.use('/assets/*', (req, res) => {
+      res.status(404).json({ error: 'Asset not found' });
+    });
+    
     // Short cache for other static files
     app.use(express.static(distPath, {
       maxAge: '1h',
@@ -2150,6 +2156,8 @@ async function startServer() {
         }
       },
     }));
+    
+    // SPA catch-all (only for non-asset routes)
     app.get('*', (req, res) => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
