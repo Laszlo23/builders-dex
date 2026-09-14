@@ -292,9 +292,14 @@ async function generateWithFallback(opts: {
 }> {
   const ai = getGenAI();
   const primary = geminiModel();
-  const fallbacks = [primary, 'gemini-3.6-flash', 'gemini-3-flash-preview', 'gemini-flash-latest'].filter(
-    (m, i, arr) => arr.indexOf(m) === i
-  );
+  const fallbacks = [
+    primary,
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3-flash-preview',
+    'gemini-2.5-flash',
+    'gemini-flash-latest'
+  ].filter((m, i, arr) => arr.indexOf(m) === i);
   let lastError: unknown;
   for (const model of fallbacks) {
     try {
