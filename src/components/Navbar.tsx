@@ -38,7 +38,7 @@ interface NavbarProps {
 
 const DESKTOP_NAV = [
   { id: 'terminal', label: 'Radar', icon: Activity },
-  { id: 'explore', label: 'Builders', icon: Layers },
+  { id: 'builders', label: 'Builders', icon: Layers },
   { id: 'ai', label: 'Analyst', icon: Sparkles },
   { id: 'swap', label: 'Trade', icon: ArrowLeftRight },
 ] as const;
@@ -50,7 +50,7 @@ const MORE_LINKS = [
   { id: 'launchpad', label: 'Accelerator', icon: Rocket },
   { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'team', label: 'Team', icon: Users },
-  { id: 'builders', label: 'Rankings', icon: Trophy },
+  { id: 'explore', label: 'Stories', icon: Layers },
   { id: 'investor', label: 'Investor Mode', icon: Sparkles },
   { id: 'profile', label: 'Passport™', icon: User },
   { id: 'apply', label: 'Apply', icon: FilePlus2 },
@@ -66,7 +66,7 @@ const MORE_LINKS = [
 const MOBILE_NAV = [
   { id: 'landing', label: 'Home', icon: Home },
   { id: 'terminal', label: 'Radar', icon: Activity },
-  { id: 'explore', label: 'Builders', icon: Layers },
+  { id: 'builders', label: 'Builders', icon: Layers },
   { id: 'swap', label: 'Trade', icon: ArrowLeftRight },
   { id: 'profile', label: 'Passport', icon: User },
 ] as const;
@@ -94,15 +94,15 @@ export default function Navbar({
     (publicKey ? truncateAddress(publicKey.toBase58()) : 'Connect');
 
   const activeDesktop =
-    currentPath === 'project-detail'
-      ? 'explore'
+    currentPath === 'project-detail' || currentPath === 'explore'
+      ? 'builders'
       : DESKTOP_NAV.some((n) => n.id === currentPath)
         ? currentPath
         : null;
 
   const mobileActiveId =
-    currentPath === 'project-detail'
-      ? 'explore'
+    currentPath === 'project-detail' || currentPath === 'explore'
+      ? 'builders'
       : currentPath === 'ai' ||
           currentPath === 'apply' ||
           currentPath === 'launch' ||

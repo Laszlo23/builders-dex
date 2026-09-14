@@ -16,6 +16,8 @@ const FALLBACK = TOKEN_CATALOG.filter((t) =>
 const CACHE_KEY = 'bdx_tradeable_tokens_v1';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
+let inFlightRequest: Promise<{ tokens: CuratedToken[]; flags: Record<string, boolean> }> | null = null;
+
 function readCache(): { tokens: CuratedToken[]; flags: Record<string, boolean> } | null {
   try {
     const raw = sessionStorage.getItem(CACHE_KEY);
@@ -50,27 +52,57 @@ export function useTradeableTokens(): State {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/tradeable-tokens')
-      .then(async (res) => {
-        if (!res.ok) throw new Error('Failed to load tradeable tokens');
-        return res.json();
-      })
-      .then((data: { tokens?: CuratedToken[]; flags?: Record<string, boolean> }) => {
+
+    const fetchData = async () => {
+      if (inFlightRequest) {
+        try {
+          const result = await inFlightRequest;
+          if (cancelled) return;
+          setTokens(result.tokens);
+          setFlags(result.flags);
+          setError(null);
+          setLoading(false);
+        } catch (e: unknown) {
+          if (cancelled) return;
+          setTokens((prev) => (prev.length ? prev : FALLBACK));
+          setError(e instanceof Error ? e.message : 'Token config error');
+          setLoading(false);
+        }
+        return;
+      }
+
+      inFlightRequest = fetch('/api/tradeable-tokens')
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Failed to load tradeable tokens');
+          return res.json();
+        })
+        .then((data: { tokens?: CuratedToken[]; flags?: Record<string, boolean> }) => {
+          const list = Array.isArray(data.tokens) && data.tokens.length ? data.tokens : FALLBACK;
+          const nextFlags = data.flags || {};
+          writeCache(list, nextFlags);
+          return { tokens: list, flags: nextFlags };
+        })
+        .finally(() => {
+          inFlightRequest = null;
+        });
+
+      try {
+        const result = await inFlightRequest;
         if (cancelled) return;
-        const list = Array.isArray(data.tokens) && data.tokens.length ? data.tokens : FALLBACK;
-        const nextFlags = data.flags || {};
-        setTokens(list);
-        setFlags(nextFlags);
-        writeCache(list, nextFlags);
+        setTokens(result.tokens);
+        setFlags(result.flags);
         setError(null);
         setLoading(false);
-      })
-      .catch((e: unknown) => {
+      } catch (e: unknown) {
         if (cancelled) return;
         setTokens((prev) => (prev.length ? prev : FALLBACK));
         setError(e instanceof Error ? e.message : 'Token config error');
         setLoading(false);
-      });
+      }
+    };
+
+    void fetchData();
+
     return () => {
       cancelled = true;
     };
