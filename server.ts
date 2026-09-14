@@ -278,9 +278,9 @@ function getGenAI(): GoogleGenAI {
   return aiInstance;
 }
 
-/** Prefer working Flash preview; allow override via GEMINI_MODEL */
+/** Prefer stable Gemini 3.7 Flash; allow override via GEMINI_MODEL */
 function geminiModel(): string {
-  return process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
+  return process.env.GEMINI_MODEL || 'gemini-3.7-flash';
 }
 
 async function generateWithFallback(opts: {
@@ -292,27 +292,35 @@ async function generateWithFallback(opts: {
 }> {
   const ai = getGenAI();
   const primary = geminiModel();
-  const fallbacks = [primary, 'gemini-3-flash-preview', 'gemini-flash-latest'].filter(
+  const fallbacks = [primary, 'gemini-3.6-flash', 'gemini-3-flash-preview', 'gemini-flash-latest'].filter(
     (m, i, arr) => arr.indexOf(m) === i
   );
   let lastError: unknown;
   for (const model of fallbacks) {
     try {
-      const response = await ai.models.generateContent({
+      // Add timeout to Gemini API call (60s)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Gemini API timeout after 60s')), 60000)
+      );
+      
+      const generatePromise = ai.models.generateContent({
         model,
         contents: opts.contents as any,
         config: opts.config as any,
       });
+
+      const response = await Promise.race([generatePromise, timeoutPromise]);
+      
       return {
-        text: response.text,
-        functionCalls: response.functionCalls as
+        text: (response as any).text,
+        functionCalls: (response as any).functionCalls as
           | { name?: string; args?: Record<string, unknown>; id?: string }[]
           | undefined,
       };
     } catch (error: any) {
       lastError = error;
       const msg = String(error?.message || error || '');
-      const retryable = /503|UNAVAILABLE|high demand|429|RESOURCE_EXHAUSTED/i.test(msg);
+      const retryable = /503|UNAVAILABLE|high demand|429|RESOURCE_EXHAUSTED|timeout/i.test(msg);
       if (!retryable) throw error;
       console.warn(`[gemini] ${model} failed (${msg.slice(0, 80)}), trying next…`);
     }

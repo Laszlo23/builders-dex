@@ -80,6 +80,10 @@ Ask like a researcher. I will not invent projects.`,
     setConfigError(false);
     setErrorMessage(null);
 
+    const timeoutMs = 90000; // 90s timeout for tool-using analyst
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -90,7 +94,10 @@ Ask like a researcher. I will not invent projects.`,
             content: m.content,
           })),
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to reach Builder Intelligence™');
       setMessages((prev) => [
@@ -104,7 +111,13 @@ Ask like a researcher. I will not invent projects.`,
       onAddXp(100);
       onIntelUsed?.();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Request failed';
+      clearTimeout(timeoutId);
+      let msg = err instanceof Error ? err.message : 'Request failed';
+      
+      if (err instanceof Error && err.name === 'AbortError') {
+        msg = 'Request timed out after 90s. The AI service may be overloaded. Please try again.';
+      }
+      
       setConfigError(msg.includes('GEMINI_API_KEY') || msg.includes('Secrets'));
       setErrorMessage(msg);
     } finally {
