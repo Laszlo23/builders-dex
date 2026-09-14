@@ -46,6 +46,7 @@ const DESKTOP_NAV = [
 const MORE_LINKS = [
   { id: 'landing', label: 'Home', icon: Home },
   { id: 'earn', label: 'Earn (sim)', icon: Coins },
+  { id: 'dao', label: 'DAO (sim)', icon: Users },
   { id: 'launchpad', label: 'Accelerator', icon: Rocket },
   { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'team', label: 'Team', icon: Users },

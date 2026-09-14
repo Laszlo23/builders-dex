@@ -436,13 +436,14 @@ body {
   position: fixed;
   top: 0;
   right: 0;
-  z-index: 100;
+  z-index: 40;
   width: 10.5rem;
   height: 10.5rem;
   overflow: hidden;
 }
 
 .dev-ribbon span {
+  pointer-events: none;
   position: absolute;
   top: 1.65rem;
   right: -2.35rem;

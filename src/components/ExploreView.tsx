@@ -112,7 +112,10 @@ export default function ExploreView({
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => setLane('curated')}
+          onClick={() => {
+            setLane('curated');
+            setShowRejected(false);
+          }}
           className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
             lane === 'curated'
               ? 'bg-accent text-ink'
@@ -123,7 +126,10 @@ export default function ExploreView({
         </button>
         <button
           type="button"
-          onClick={() => setLane('community')}
+          onClick={() => {
+            setLane('community');
+            setShowRejected(false);
+          }}
           className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
             lane === 'community'
               ? 'bg-accent text-ink'
@@ -138,9 +144,12 @@ export default function ExploreView({
               <button
                 key={cat}
                 type="button"
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setShowRejected(false);
+                }}
                 className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
-                  selectedCategory === cat
+                  selectedCategory === cat && !showRejected
                     ? 'border border-accent/40 text-accent'
                     : 'border border-white/10 text-steel hover:text-white'
                 }`}
@@ -160,7 +169,7 @@ export default function ExploreView({
               className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
                 curatedOnly && !showRejected
                   ? 'border border-accent/40 text-accent'
-                  : 'border border-white/10 text-steel'
+                  : 'border border-white/10 text-steel hover:text-white'
               }`}
             >
               {curatedOnly ? 'Curated only' : 'Include pending'}
@@ -173,8 +182,8 @@ export default function ExploreView({
               }}
               className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
                 showRejected
-                  ? 'border border-white/25 text-steel'
-                  : 'border border-white/10 text-steel'
+                  ? 'border border-accent/40 bg-accent/5 text-accent'
+                  : 'border border-white/10 text-steel hover:text-white'
               }`}
             >
               Why we rejected
@@ -368,8 +377,15 @@ export default function ExploreView({
                   )}
                   <div className="ml-auto flex items-center gap-2">
                     {(() => {
+                      if (isRejected) return null;
                       const tradeMint = resolveTradeMint(p, tradeableMintSet);
-                      if (!tradeMint) return null;
+                      if (!tradeMint) {
+                        return (
+                          <span className="text-[10px] italic text-steel" title="No tradeable token linked or approved">
+                            No trade
+                          </span>
+                        );
+                      }
                       const tradeSymbol = getCuratedToken(tradeMint)?.symbol || p.ticker;
                       return (
                         <button

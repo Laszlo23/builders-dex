@@ -1166,7 +1166,7 @@ export default function App() {
           walletLabel={connected ? walletDisplay.label : undefined}
           walletDomain={walletDisplay.domain}
         />
-        <main className="pb-28 lg:pb-16">
+        <main className="pt-2 pb-28 lg:pb-16">
           <Suspense fallback={<RouteFallback />}>{renderView()}</Suspense>
         </main>
       </div>
