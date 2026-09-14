@@ -12,6 +12,11 @@ import {
   Users,
   Calendar,
 } from 'lucide-react';
+import { recordDiscovery } from '../lib/discoveryStreak';
+import { shareProject } from '../lib/shareHelper';
+import ConfettiEffect from './ConfettiEffect';
+import DiscoveryStreakToast from './DiscoveryStreakToast';
+import ShareSuccessToast from './ShareSuccessToast';
 import { Project, UserWallet, Builder } from '../types';
 import ScoreBars, { BuilderScoreBadge, CurationBadges } from './ScoreBars';
 import BuilderDnaCard from './BuilderDnaCard';
@@ -89,10 +94,19 @@ export default function ProjectDetailView({
   const [supportAmount, setSupportAmount] = useState('');
   const [aiSummary, setAiSummary] = useState(project.aiAnalysis);
   const [analyzing, setAnalyzing] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showStreakToast, setShowStreakToast] = useState(false);
+  const [showShareToast, setShowShareToast] = useState(false);
+  const [currentStreak, setCurrentStreak] = useState(0);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setAiSummary(project.aiAnalysis);
+    
+    const streakData = recordDiscovery();
+    setCurrentStreak(streakData.currentStreak);
+    setShowConfetti(true);
+    setShowStreakToast(true);
   }, [project.id]);
 
   const getIconComponent = (logoName: string) => {
@@ -164,6 +178,13 @@ export default function ProjectDetailView({
     alert('Support recorded. Thank you for backing this builder.');
   };
 
+  const handleShare = async () => {
+    const success = await shareProject(project);
+    if (success) {
+      setShowShareToast(true);
+    }
+  };
+
   const runIntelligenceRefresh = async () => {
     setAnalyzing(true);
     try {
@@ -196,8 +217,16 @@ export default function ProjectDetailView({
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-white">
-      <button
+    <>
+      <ConfettiEffect trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+      <DiscoveryStreakToast
+        streak={currentStreak}
+        show={showStreakToast}
+        onDismiss={() => setShowStreakToast(false)}
+      />
+      <ShareSuccessToast show={showShareToast} onDismiss={() => setShowShareToast(false)} />
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-white">
+        <button
         type="button"
         onClick={onBack}
         className="mb-6 flex items-center gap-2 font-mono text-xs text-steel hover:text-white"
@@ -272,6 +301,14 @@ export default function ProjectDetailView({
             {project.curation.status !== 'rejected' && (
               <BuilderScoreBadge overall={liveScore.overall} mode={scoreMode} />
             )}
+            <button
+              type="button"
+              onClick={handleShare}
+              className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-2.5 text-xs font-semibold text-accent hover:bg-accent/10 active:scale-95 min-h-[44px]"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              Share discovery
+            </button>
             {tradeMint && (
               <button
                 type="button"
@@ -712,6 +749,7 @@ export default function ProjectDetailView({
           </div>
         </aside>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

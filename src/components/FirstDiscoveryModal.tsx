@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { FIRST_DISCOVERY_COPY } from '../data/builderEconomy';
 import { GENESIS_PROJECT_IDS } from '../data/genesisBuilders';
 import { Project } from '../types';
+import { recordDiscovery } from '../lib/discoveryStreak';
+import ConfettiEffect from './ConfettiEffect';
+import DiscoveryStreakToast from './DiscoveryStreakToast';
 
 type Props = {
   open: boolean;
@@ -12,6 +15,10 @@ type Props = {
 };
 
 export default function FirstDiscoveryModal({ open, onClose, projects, onPick }: Props) {
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showStreakToast, setShowStreakToast] = useState(false);
+  const [currentStreak, setCurrentStreak] = useState(0);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -20,6 +27,17 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
+
+  const handlePick = (projectId: string) => {
+    const streakData = recordDiscovery();
+    setCurrentStreak(streakData.currentStreak);
+    setShowConfetti(true);
+    setShowStreakToast(true);
+    
+    setTimeout(() => {
+      onPick(projectId);
+    }, 500);
+  };
 
   if (!open) return null;
 
@@ -36,12 +54,19 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
           .slice(0, 3);
 
   return (
-    <div
-      className="fixed inset-0 z-[120] flex items-end justify-center bg-black/75 p-3 backdrop-blur-md sm:items-center"
-      onClick={onClose}
-      onTouchEnd={onClose}
-      role="presentation"
-    >
+    <>
+      <ConfettiEffect trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+      <DiscoveryStreakToast
+        streak={currentStreak}
+        show={showStreakToast}
+        onDismiss={() => setShowStreakToast(false)}
+      />
+      <div
+        className="fixed inset-0 z-[120] flex items-end justify-center bg-black/75 p-3 backdrop-blur-md sm:items-center"
+        onClick={onClose}
+        onTouchEnd={onClose}
+        role="presentation"
+      >
       <div
         className="relative w-full max-w-lg overflow-hidden rounded-[1.75rem] border border-accent/30 bg-gradient-to-b from-white/[0.07] to-ink shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]"
         onClick={(e) => e.stopPropagation()}
@@ -85,7 +110,7 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
               <li key={p.id}>
                 <button
                   type="button"
-                  onClick={() => onPick(p.id)}
+                  onClick={() => handlePick(p.id)}
                   className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-accent/40 hover:bg-accent/[0.06] active:scale-[0.99] min-h-[60px]"
                 >
                   <div>
@@ -102,7 +127,7 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
 
           <button
             type="button"
-            onClick={() => picks[0] && onPick(picks[0].id)}
+            onClick={() => picks[0] && handlePick(picks[0].id)}
             className="btn-sheen mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-accent py-4 text-sm font-bold text-ink hover:bg-accent-bright active:scale-[0.98] min-h-[56px]"
           >
             <Sparkles className="h-5 w-5" />
@@ -111,5 +136,6 @@ export default function FirstDiscoveryModal({ open, onClose, projects, onPick }:
         </div>
       </div>
     </div>
+    </>
   );
 }

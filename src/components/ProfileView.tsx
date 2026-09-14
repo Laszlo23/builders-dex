@@ -251,6 +251,12 @@ export default function ProfileView({
         </div>
       )}
       
+      {PASSPORT_DEPLOYED && network === 'mainnet' && (
+        <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
+          <strong className="font-semibold">On-chain Passport (devnet).</strong> Program <code className="text-[10px]">7MWC…QnD</code> is live on Solana devnet. Switch to Devnet to mint.
+        </div>
+      )}
+      
       {!PASSPORT_DEPLOYED && (
         <div className="mb-4 rounded-2xl border border-steel/25 bg-steel/5 px-4 py-3 text-sm text-white/85">
           <strong className="font-semibold">Local simulation.</strong> Passport program in repo, not yet deployed. Stats stay browser-local until on-chain mint.

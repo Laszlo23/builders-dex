@@ -89,7 +89,7 @@ The program ID is deterministically generated from the keypair at:
 target/deploy/builder_passport-keypair.json
 ```
 
-Current Program ID: `HM1CaGZRzdNC7pJxtj2jNwuxhYDbMQGt3xGAJk9iKakD`
+Current Program ID: `7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD`
 
 ## Deployment
 
@@ -153,7 +153,7 @@ Current Program ID: `HM1CaGZRzdNC7pJxtj2jNwuxhYDbMQGt3xGAJk9iKakD`
 Add the program ID to your `.env`:
 
 ```bash
-VITE_BUILDER_PASSPORT_PROGRAM_ID=HM1CaGZRzdNC7pJxtj2jNwuxhYDbMQGt3xGAJk9iKakD
+VITE_BUILDER_PASSPORT_PROGRAM_ID=7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD
 ```
 
 Use the provided hooks and utilities:

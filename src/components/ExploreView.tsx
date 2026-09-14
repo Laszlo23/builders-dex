@@ -12,6 +12,8 @@ import { educationalReviewFor } from '../data/builderPlatform';
 import OptimizedImage from './OptimizedImage';
 import CommunityTrendingSection from './CommunityTrendingSection';
 import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
+import { shareProject } from '../lib/shareHelper';
+import ShareSuccessToast from './ShareSuccessToast';
 
 interface ExploreViewProps {
   projects: Project[];
@@ -42,6 +44,7 @@ export default function ExploreView({
   const [showRejected, setShowRejected] = useState(false);
   const [lane, setLane] = useState<'curated' | 'community'>('curated');
   const liveScores = useLiveScoreMap(projects.map((p) => p.id));
+  const [showShareToast, setShowShareToast] = useState(false);
 
   const scoreFor = (p: Project) =>
     liveScores[p.id]?.overall ?? p.builderScore.overall;
@@ -81,8 +84,18 @@ export default function ExploreView({
     onOpenStory(id);
   };
 
+  const handleShare = async (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const success = await shareProject(project);
+    if (success) {
+      setShowShareToast(true);
+    }
+  };
+
   return (
-    <div className="relative mx-auto max-w-7xl px-4 py-10 text-white sm:px-6 lg:px-8">
+    <>
+      <ShareSuccessToast show={showShareToast} onDismiss={() => setShowShareToast(false)} />
+      <div className="relative mx-auto max-w-7xl px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
       <div className="relative flex flex-col gap-4 border-b border-white/[0.08] pb-8 md:flex-row md:items-end md:justify-between">
         <div>
@@ -373,6 +386,16 @@ className="min-h-[44px] rounded-lg border border-white/10 bg-white/[0.03] px-3 p
                       ▲ {p.upvotes}
                     </button>
                   )}
+                  {!isRejected && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleShare(p, e)}
+                      className="min-h-[44px] rounded-lg border border-accent/25 bg-accent/5 px-3 py-2 text-xs font-semibold text-accent transition hover:bg-accent/10 active:scale-95"
+                      title="Share discovery"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </button>
+                  )}
                   <div className="ml-auto flex items-center gap-2">
                     {(() => {
                       if (isRejected) return null;
@@ -418,6 +441,7 @@ className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-
           <p className="font-mono text-sm text-steel">No projects match your filters.</p>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,18 +1,16 @@
 /**
  * Builder Passport On-Chain Integration
- * 
- * ⚠️ NOT DEPLOYED — Program exists in repo but is not on any network.
- * Local keypair pubkey: 7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD
- * 
- * Set VITE_BUILDER_PASSPORT_PROGRAM_ID only after deploying to devnet/mainnet.
- * Until deployed, Passport stats remain local-only (localStorage simulation).
+ *
+ * Devnet program: 7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD
+ * Set VITE_BUILDER_PASSPORT_PROGRAM_ID to enable on-chain reads.
+ * Without it, Passport stats stay local-only (localStorage simulation).
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
 
-// Program ID - NOT YET DEPLOYED
-// Default is placeholder (not on any network). Set VITE_BUILDER_PASSPORT_PROGRAM_ID after deploy.
-const PROGRAM_ID_ENV = import.meta.env.VITE_BUILDER_PASSPORT_PROGRAM_ID;
+const PROGRAM_ID_ENV =
+  import.meta.env.VITE_BUILDER_PASSPORT_PROGRAM_ID ||
+  (import.meta.env.DEV ? '7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD' : undefined);
 
 export const BUILDER_PASSPORT_PROGRAM_ID = PROGRAM_ID_ENV 
   ? new PublicKey(PROGRAM_ID_ENV)
