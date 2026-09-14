@@ -332,7 +332,7 @@ export default function EarnView({
                             .getElementById('growth-spin-wheel')
                             ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }}
-                        className="rounded-lg bg-accent px-2.5 py-1 font-mono text-[10px] font-bold text-ink hover:bg-accent-bright"
+                        className="rounded-lg bg-accent px-3 py-2 font-mono text-xs font-bold text-ink hover:bg-accent-bright active:scale-95 min-h-[40px]"
                       >
                         {canSpin() ? 'Spin' : 'Wait'}
                       </button>
@@ -350,7 +350,7 @@ export default function EarnView({
                               }
                               setCurrentPath(GROWTH_TASK_ROUTES[t.id]);
                             }}
-                            className="rounded-lg bg-accent px-2.5 py-1 font-mono text-[10px] font-bold text-ink hover:bg-accent-bright"
+                            className="rounded-lg bg-accent px-3 py-2 font-mono text-xs font-bold text-ink hover:bg-accent-bright active:scale-95 min-h-[40px]"
                           >
                             Go
                           </button>
@@ -359,7 +359,7 @@ export default function EarnView({
                           type="button"
                           disabled={!canClaim}
                           onClick={() => onCompleteTask(t.id)}
-                          className="rounded-lg border border-accent/35 px-2.5 py-1 font-mono text-[10px] text-accent hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="rounded-lg border border-accent/35 px-3 py-2 font-mono text-xs text-accent hover:bg-accent/10 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 min-h-[40px]"
                         >
                           Claim
                         </button>
