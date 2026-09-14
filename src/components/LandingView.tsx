@@ -193,17 +193,17 @@ export default function LandingView({
               onClick={() =>
                 onStartFirstDiscovery ? onStartFirstDiscovery() : setCurrentPath('explore')
               }
-              className="btn-sheen inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-ink shadow-[0_16px_36px_-12px_rgba(200,232,104,0.45)] transition hover:bg-accent-bright"
+              className="btn-sheen inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-4 text-sm font-bold text-ink shadow-[0_16px_36px_-12px_rgba(200,232,104,0.45)] transition hover:bg-accent-bright active:scale-95 min-h-[56px]"
             >
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-5 w-5" />
               Your First Discovery
             </button>
             <button
               type="button"
               onClick={() => setCurrentPath('terminal')}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition hover:border-accent/50 hover:text-accent"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-7 py-4 text-sm font-semibold text-white backdrop-blur-md transition hover:border-accent/50 hover:text-accent active:scale-95 min-h-[56px]"
             >
-              <Activity className="h-4 w-4" />
+              <Activity className="h-5 w-5" />
               Open Terminal™
             </button>
           </motion.div>

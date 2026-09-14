@@ -116,10 +116,10 @@ export default function ExploreView({
             setLane('curated');
             setShowRejected(false);
           }}
-          className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+          className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
             lane === 'curated'
               ? 'bg-accent text-ink'
-              : 'border border-white/10 text-steel hover:text-white'
+              : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
           }`}
         >
           Curated
@@ -130,10 +130,10 @@ export default function ExploreView({
             setLane('community');
             setShowRejected(false);
           }}
-          className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+          className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
             lane === 'community'
               ? 'bg-accent text-ink'
-              : 'border border-white/10 text-steel hover:text-white'
+              : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
           }`}
         >
           Community Trending
@@ -148,10 +148,10 @@ export default function ExploreView({
                   setSelectedCategory(cat);
                   setShowRejected(false);
                 }}
-                className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+                className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
                   selectedCategory === cat && !showRejected
                     ? 'border border-accent/40 text-accent'
-                    : 'border border-white/10 text-steel hover:text-white'
+                    : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
                 }`}
               >
                 {cat}
@@ -166,10 +166,10 @@ export default function ExploreView({
                 setShowRejected(false);
                 setCuratedOnly((v) => !v);
               }}
-              className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+              className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
                 curatedOnly && !showRejected
                   ? 'border border-accent/40 text-accent'
-                  : 'border border-white/10 text-steel hover:text-white'
+                  : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
               }`}
             >
               {curatedOnly ? 'Curated only' : 'Include pending'}
@@ -180,10 +180,10 @@ export default function ExploreView({
                 setShowRejected((v) => !v);
                 setCuratedOnly(true);
               }}
-              className={`rounded-full px-3 py-1.5 font-mono text-[11px] transition ${
+              className={`min-h-[44px] rounded-full px-4 py-2.5 font-mono text-[11px] transition active:scale-95 ${
                 showRejected
                   ? 'border border-accent/40 bg-accent/5 text-accent'
-                  : 'border border-white/10 text-steel hover:text-white'
+                  : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
               }`}
             >
               Why we rejected
@@ -213,7 +213,7 @@ export default function ExploreView({
                     href="https://aibusiness.fun"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-accent/10 px-4 py-2 font-mono text-xs text-accent transition hover:bg-accent/20"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-accent/10 px-4 py-2.5 font-mono text-xs font-semibold text-accent transition hover:bg-accent/20 active:scale-95"
                   >
                     Visit aibusiness.fun
                     <ChevronRight className="h-3.5 w-3.5" />
@@ -224,7 +224,7 @@ export default function ExploreView({
                       setSelectedProjectId('p5');
                       openProject('p5');
                     }}
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 font-mono text-xs text-white transition hover:border-white/20 hover:bg-white/5"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-white/10 px-4 py-2.5 font-mono text-xs font-semibold text-white transition hover:border-white/20 hover:bg-white/5 active:scale-95"
                   >
                     View Full Story
                   </button>
@@ -250,7 +250,7 @@ export default function ExploreView({
             const Icon = getIconComponent(p.logoUrl);
             const isRejected = p.curation.status === 'rejected';
             return (
-              <DepthCard key={p.id} intensity="medium" className="flex h-full flex-col overflow-hidden p-0">
+              <DepthCard key={p.id} intensity="medium" className="flex h-full flex-col overflow-hidden p-0 [&>*]:pointer-events-auto">
                 {p.coverImage && (
                   <div className="relative h-36 overflow-hidden">
                     <OptimizedImage
@@ -366,12 +366,10 @@ export default function ExploreView({
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.preventDefault();
                         e.stopPropagation();
                         onUpvote(p.id);
                       }}
-                      className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 font-mono text-xs text-steel hover:border-accent/30 hover:text-accent"
-                    >
+className="min-h-[44px] rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-xs text-steel transition hover:border-accent/30 hover:text-accent active:scale-95"                    >
                       ▲ {p.upvotes}
                     </button>
                   )}
@@ -391,12 +389,10 @@ export default function ExploreView({
                         <button
                           type="button"
                           onClick={(e) => {
-                            e.preventDefault();
                             e.stopPropagation();
                             onTrade(tradeMint);
                           }}
-                          className="rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-ink hover:bg-accent-bright"
-                        >
+className="min-h-[44px] rounded-lg bg-accent px-4 py-2 text-xs font-bold text-ink transition hover:bg-accent-bright active:scale-95"                        >
                           Trade {tradeSymbol}
                         </button>
                       );
@@ -404,12 +400,10 @@ export default function ExploreView({
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.preventDefault();
                         e.stopPropagation();
                         openProject(p.id);
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-white/12 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent"
-                    >
+className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white transition hover:border-accent/40 hover:text-accent active:scale-95"                    >
                       {isRejected ? 'Review' : 'Read story'} <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
