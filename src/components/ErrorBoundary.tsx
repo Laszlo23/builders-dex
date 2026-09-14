@@ -40,12 +40,17 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('[ErrorBoundary] Caught error:', error, errorInfo);
 
-    // Detect chunk loading errors (lazy route failures)
+    // Detect chunk loading errors (lazy route failures, including HTML served as JS)
+    const errorMessage = String(error?.message || '').toLowerCase();
     const isChunkError =
       error.name === 'ChunkLoadError' ||
-      error.message.includes('Failed to fetch dynamically imported module') ||
-      error.message.includes('Importing a module script failed') ||
-      error.message.includes('error loading dynamically imported module');
+      errorMessage.includes('failed to fetch dynamically imported module') ||
+      errorMessage.includes('importing a module script failed') ||
+      errorMessage.includes('error loading dynamically imported module') ||
+      errorMessage.includes("unexpected token '<'") ||
+      errorMessage.includes('mime type') ||
+      errorMessage.includes('text/html') ||
+      errorMessage.includes('failed to load module script');
 
     if (isChunkError && this.state.retryCount < MAX_RETRIES) {
       console.warn(
@@ -61,6 +66,16 @@ export class ErrorBoundary extends Component<Props, State> {
         }));
         this.props.onReset?.();
       }, 300);
+    } else if (isChunkError && this.state.retryCount >= MAX_RETRIES) {
+      // Auto-reload once per session to recover from chunk/HTML mismatch
+      const storageKey = 'buildersdex.chunkReload';
+      const hasReloaded = sessionStorage.getItem(storageKey);
+      
+      if (!hasReloaded) {
+        console.warn('[ErrorBoundary] Auto-reloading to clear stale chunk state...');
+        sessionStorage.setItem(storageKey, '1');
+        window.location.reload();
+      }
     }
   }
 
@@ -77,6 +92,10 @@ export class ErrorBoundary extends Component<Props, State> {
       retryCount: 0,
     });
     this.props.onReset?.();
+  };
+
+  handleHardReload = (): void => {
+    window.location.reload();
   };
 
   render(): ReactNode {
@@ -108,13 +127,22 @@ export class ErrorBoundary extends Component<Props, State> {
                 <p className="text-xs leading-relaxed text-steel">
                   This page failed to load. Please check your connection and try again.
                 </p>
-                <button
-                  type="button"
-                  onClick={this.handleManualRetry}
-                  className="w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-ink hover:bg-accent-bright transition-colors"
-                >
-                  Retry
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={this.handleManualRetry}
+                    className="flex-1 rounded-xl border border-accent/30 py-2.5 text-xs font-bold text-accent hover:bg-accent/10 transition-colors"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={this.handleHardReload}
+                    className="flex-1 rounded-xl bg-accent py-2.5 text-xs font-bold text-ink hover:bg-accent-bright transition-colors"
+                  >
+                    Hard Reload
+                  </button>
+                </div>
               </div>
             </div>
           )
