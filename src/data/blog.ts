@@ -20,7 +20,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Laszlo Bihary',
     tags: ['Vision', 'Reputation'],
     readingMinutes: 5,
-    coverImage: '/campaign/hook-reputation.jpg',
+    coverImage: '/campaign/hook-reputation.webp',
     body: [
       'Crypto has endless promises. Builders DEX measures reality — commits, deploys, users, and open-source signal — before a token becomes tradeable.',
       'The killer answer to “why not just use Jupiter?” is simple: every project here has a verified reputation history. Trading is the final step in a trust pipeline.',
@@ -36,7 +36,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Builders DEX Research',
     tags: ['Proof', 'Standard'],
     readingMinutes: 4,
-    coverImage: '/campaign/hook-standard.jpg',
+    coverImage: '/campaign/hook-standard.webp',
     body: [
       'Ratings without evidence are vibes. Proof of Building™ checks whether a team shipped.',
       'We verify: GitHub activity, product deployment, user signal, community growth, open-source contribution, and revenue where applicable.',
@@ -52,7 +52,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Builders DEX',
     tags: ['Scouts', 'Discovery'],
     readingMinutes: 4,
-    coverImage: '/campaign/hook-stories.jpg',
+    coverImage: '/campaign/hook-stories.webp',
     body: [
       'People do not want another exchange. They want to say: I found it before everyone else.',
       'Builder Scouts™ earn XP and reputation by submitting structured analysis. Genesis Radar™ surfaces projects entering the Builder Network while they are still under review.',
@@ -68,7 +68,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Leonardo.based',
     tags: ['Culture', 'Team'],
     readingMinutes: 3,
-    coverImage: '/campaign/story.jpg',
+    coverImage: '/campaign/story.webp',
     body: [
       'Building Culture is the trust layer where people, communities, businesses, and AI agents build reputation and unlock access together.',
       'Builders DEX brings that same proof-first mindset to Solana trading: curation as achievement, passport as primitive, launchpad as help for every builder willing to be verified.',

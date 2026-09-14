@@ -50,7 +50,7 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
         : base.title;
     const description = post?.excerpt || base.description;
     const url = absoluteUrl(post ? `/blog/${post.slug}` : base.path);
-    const image = absoluteUrl('/og-image.jpg');
+    const image = absoluteUrl('/og-image.webp');
 
     document.title = title;
     upsertMeta('name', 'description', description);

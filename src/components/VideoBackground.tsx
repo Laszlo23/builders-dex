@@ -9,7 +9,7 @@ import OptimizedImage from './OptimizedImage';
  */
 const VIDEO_SRC = 'https://assets.mixkit.co/videos/1610/1610-720.mp4';
 const VIDEO_SRC_FALLBACK = 'https://assets.mixkit.co/videos/1702/1702-720.mp4';
-const POSTER = '/hero-poster.jpg';
+const POSTER = '/hero-poster.webp';
 
 type Props = {
   /** Stronger dim for readable UI panels (swap) */

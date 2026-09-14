@@ -133,7 +133,7 @@ export default function Navbar({
             aria-label="Builders DEX home"
           >
             <img
-              src="/brand-mark.png"
+              src="/brand-mark.webp"
               alt=""
               width={44}
               height={44}
