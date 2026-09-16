@@ -1,62 +1,44 @@
 #!/bin/bash
 set -e
+export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
 
 echo "========================================="
-echo " Builder Passport - Mainnet Deployment"
-echo " ⚠️  WARNING: This deploys to MAINNET! ⚠️"
+echo " Builder Passport - MAINNET Deployment"
+echo " ⚠️  Requires CONFIRM_MAINNET=yes"
 echo "========================================="
 
-# Ensure PATH includes Solana CLI
-export PATH="/home/ubuntu/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
-
-# Confirmation prompt
-read -p "Are you sure you want to deploy to MAINNET? (yes/no): " CONFIRM
-if [ "$CONFIRM" != "yes" ]; then
-    echo "Deployment cancelled."
-    exit 1
+if [ "$CONFIRM_MAINNET" != "yes" ]; then
+  echo "Refusing: set CONFIRM_MAINNET=yes after audit + funded wallet"
+  exit 1
 fi
 
-# Set Solana cluster to mainnet
-solana config set --url https://api.mainnet-beta.solana.com
+read -p "Type MAINNET to continue: " CONFIRM
+if [ "$CONFIRM" != "MAINNET" ]; then
+  echo "Cancelled."
+  exit 1
+fi
 
-# Check balance
+solana config set --url "${SOLANA_RPC_URL:-https://api.mainnet-beta.solana.com}"
 BALANCE=$(solana balance 2>/dev/null || echo "0")
-echo "Current balance: $BALANCE"
+echo "Balance: $BALANCE"
 
-if [ "$BALANCE" == "0" ] || [ "$BALANCE" == "0 SOL" ]; then
-    echo "ERROR: Insufficient balance. Please fund your wallet with SOL."
-    echo "Deployment requires approximately 2-5 SOL for program deployment."
-    exit 1
-fi
-
-# Build the program
-echo "Building program..."
 cd "$(dirname "$0")/.."
-anchor build
+(
+  cd programs/builder_passport
+  cargo-build-sbf --arch v1
+)
 
-# Get program ID
 PROGRAM_ID=$(solana address -k target/deploy/builder_passport-keypair.json)
 echo "Program ID: $PROGRAM_ID"
 
-# Final confirmation
-read -p "Deploy program $PROGRAM_ID to MAINNET? (yes/no): " FINAL_CONFIRM
-if [ "$FINAL_CONFIRM" != "yes" ]; then
-    echo "Deployment cancelled."
-    exit 1
-fi
+solana program deploy target/deploy/builder_passport.so \
+  --program-id target/deploy/builder_passport-keypair.json \
+  --url "${SOLANA_RPC_URL:-https://api.mainnet-beta.solana.com}"
 
-# Deploy to mainnet
-echo "Deploying to mainnet..."
-anchor deploy --provider.cluster mainnet
+cp -f target/idl/builder_passport.json idl/builder_passport.json 2>/dev/null || true
 
 echo ""
-echo "========================================="
-echo " Deployment Complete!"
-echo "========================================="
-echo "Program ID: $PROGRAM_ID"
-echo "Network: Mainnet-Beta"
-echo "Explorer: https://explorer.solana.com/address/$PROGRAM_ID"
-echo ""
-echo "Update your .env file:"
-echo "VITE_BUILDER_PASSPORT_PROGRAM_ID=$PROGRAM_ID"
+echo "Next:"
+echo "  CONFIRM_MAINNET=yes ORACLE_PUBKEY=... npx tsx programs/scripts/initialize-config.ts --cluster mainnet-beta"
+echo "  Then set VITE_PASSPORT_MAINNET_MINT=true + PASSPORT_ORACLE_SECRET_KEY on VPS"
 echo "========================================="

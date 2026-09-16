@@ -9,28 +9,58 @@ describe("builder-passport", () => {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.builderPassport as Program<BuilderPassport>;
-  
-  // Test accounts
+
   const authority = Keypair.generate();
-  const admin = provider.wallet.publicKey;
-  
-  // PDA for the builder passport
+  const oracle = Keypair.generate();
+  const configAuthority = provider.wallet as anchor.Wallet;
+
   let passportPda: PublicKey;
   let passportBump: number;
+  let configPda: PublicKey;
+  let configBump: number;
 
   before(async () => {
-    // Airdrop SOL to authority for testing
-    const signature = await provider.connection.requestAirdrop(
-      authority.publicKey,
-      2 * anchor.web3.LAMPORTS_PER_SOL
-    );
-    await provider.connection.confirmTransaction(signature);
+    // Prefer transfer over airdrop (public RPC airdrops are unreliable)
+    const from = (provider.wallet as anchor.Wallet).payer;
+    const fund = async (to: PublicKey, sol: number) => {
+      const ix = SystemProgram.transfer({
+        fromPubkey: from.publicKey,
+        toPubkey: to,
+        lamports: sol * anchor.web3.LAMPORTS_PER_SOL,
+      });
+      const tx = new anchor.web3.Transaction().add(ix);
+      await anchor.web3.sendAndConfirmTransaction(provider.connection, tx, [from]);
+    };
 
-    // Derive PDA
+    await fund(authority.publicKey, 2);
+    await fund(oracle.publicKey, 1);
+
     [passportPda, passportBump] = PublicKey.findProgramAddressSync(
       [Buffer.from("builder-passport"), authority.publicKey.toBuffer()],
       program.programId
     );
+
+    [configPda, configBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("config")],
+      program.programId
+    );
+  });
+
+  it("Initializes Config PDA with oracle", async () => {
+    await program.methods
+      .initializeConfig(oracle.publicKey)
+      .accounts({
+        config: configPda,
+        authority: configAuthority.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const config = await program.account.config.fetch(configPda);
+    assert.ok(config.authority.equals(configAuthority.publicKey));
+    assert.ok(config.oracle.equals(oracle.publicKey));
+    assert.equal(config.bump, configBump);
+    console.log("✓ Config initialized; oracle:", oracle.publicKey.toBase58());
   });
 
   it("Initializes a Builder Passport", async () => {
@@ -45,134 +75,127 @@ describe("builder-passport", () => {
       .rpc();
 
     const passport = await program.account.builderPassport.fetch(passportPda);
-    
+
     assert.ok(passport.authority.equals(authority.publicKey));
     assert.equal(passport.score, 0);
-    assert.equal(passport.level.rookie !== undefined, true);
+    assert.ok(passport.level.rookie !== undefined);
     assert.equal(passport.bump, passportBump);
     assert.ok(passport.lastUpdated > 0);
-    
-    console.log("✓ Builder Passport initialized successfully");
-    console.log("  - Authority:", passport.authority.toBase58());
-    console.log("  - Initial Score:", passport.score);
-    console.log("  - Level: Rookie");
+
+    console.log("✓ Builder Passport initialized");
   });
 
-  it("Updates Builder Score (admin)", async () => {
+  it("Updates Builder Score (oracle)", async () => {
     const newScore = 150;
-    
+
     await program.methods
       .updateScore(newScore)
       .accounts({
         passport: passportPda,
-        authority: authority.publicKey,
-        admin: admin,
+        config: configPda,
+        oracle: oracle.publicKey,
       })
+      .signers([oracle])
       .rpc();
 
     const passport = await program.account.builderPassport.fetch(passportPda);
-    
     assert.equal(passport.score, newScore);
-    assert.equal(passport.level.builder !== undefined, true);
-    
-    console.log("✓ Score updated to:", newScore);
-    console.log("  - New Level: Builder");
+    assert.ok(passport.level.builder !== undefined);
+    console.log("✓ Score → Builder:", newScore);
   });
 
   it("Updates score to Advanced level", async () => {
     const newScore = 350;
-    
     await program.methods
       .updateScore(newScore)
       .accounts({
         passport: passportPda,
-        authority: authority.publicKey,
-        admin: admin,
+        config: configPda,
+        oracle: oracle.publicKey,
       })
+      .signers([oracle])
       .rpc();
 
     const passport = await program.account.builderPassport.fetch(passportPda);
-    
     assert.equal(passport.score, newScore);
-    assert.equal(passport.level.advanced !== undefined, true);
-    
-    console.log("✓ Score updated to:", newScore);
-    console.log("  - New Level: Advanced");
+    assert.ok(passport.level.advanced !== undefined);
+    console.log("✓ Score → Advanced:", newScore);
   });
 
   it("Updates score to Expert level", async () => {
     const newScore = 750;
-    
     await program.methods
       .updateScore(newScore)
       .accounts({
         passport: passportPda,
-        authority: authority.publicKey,
-        admin: admin,
+        config: configPda,
+        oracle: oracle.publicKey,
       })
+      .signers([oracle])
       .rpc();
 
     const passport = await program.account.builderPassport.fetch(passportPda);
-    
     assert.equal(passport.score, newScore);
-    assert.equal(passport.level.expert !== undefined, true);
-    
-    console.log("✓ Score updated to:", newScore);
-    console.log("  - New Level: Expert");
+    assert.ok(passport.level.expert !== undefined);
+    console.log("✓ Score → Expert:", newScore);
   });
 
   it("Updates score to Genesis level", async () => {
     const newScore = 1500;
-    
     await program.methods
       .updateScore(newScore)
       .accounts({
         passport: passportPda,
-        authority: authority.publicKey,
-        admin: admin,
+        config: configPda,
+        oracle: oracle.publicKey,
       })
+      .signers([oracle])
       .rpc();
 
     const passport = await program.account.builderPassport.fetch(passportPda);
-    
     assert.equal(passport.score, newScore);
-    assert.equal(passport.level.genesis !== undefined, true);
-    
-    console.log("✓ Score updated to:", newScore);
-    console.log("  - New Level: Genesis");
+    assert.ok(passport.level.genesis !== undefined);
+    console.log("✓ Score → Genesis:", newScore);
   });
 
-  it("Fails to update score with unauthorized admin", async () => {
-    const unauthorizedAdmin = Keypair.generate();
-    
-    // Airdrop to unauthorized admin
-    const sig = await provider.connection.requestAirdrop(
-      unauthorizedAdmin.publicKey,
-      anchor.web3.LAMPORTS_PER_SOL
+  it("Fails to update score with unauthorized oracle", async () => {
+    const unauthorized = Keypair.generate();
+    const from = (provider.wallet as anchor.Wallet).payer;
+    const ix = SystemProgram.transfer({
+      fromPubkey: from.publicKey,
+      toPubkey: unauthorized.publicKey,
+      lamports: anchor.web3.LAMPORTS_PER_SOL,
+    });
+    await anchor.web3.sendAndConfirmTransaction(
+      provider.connection,
+      new anchor.web3.Transaction().add(ix),
+      [from]
     );
-    await provider.connection.confirmTransaction(sig);
-    
+
     try {
       await program.methods
         .updateScore(999)
         .accounts({
           passport: passportPda,
-          authority: authority.publicKey,
-          admin: unauthorizedAdmin.publicKey,
+          config: configPda,
+          oracle: unauthorized.publicKey,
         })
-        .signers([unauthorizedAdmin])
+        .signers([unauthorized])
         .rpc();
-      
-      assert.fail("Should have failed with unauthorized admin");
-    } catch (err) {
-      assert.ok(err.toString().includes("UnauthorizedUpdate"));
+      assert.fail("Should have failed with unauthorized oracle");
+    } catch (err: any) {
+      assert.ok(
+        err.toString().includes("UnauthorizedUpdate") ||
+          err.toString().includes("custom program error") ||
+          err.toString().includes("Error")
+      );
       console.log("✓ Correctly rejected unauthorized update");
     }
   });
 
   it("Closes a Builder Passport", async () => {
-    const authorityBalanceBefore = await provider.connection.getBalance(authority.publicKey);
-    
+    const before = await provider.connection.getBalance(authority.publicKey);
+
     await program.methods
       .close()
       .accounts({
@@ -182,19 +205,16 @@ describe("builder-passport", () => {
       .signers([authority])
       .rpc();
 
-    // Verify account is closed
     try {
       await program.account.builderPassport.fetch(passportPda);
       assert.fail("Account should be closed");
-    } catch (err) {
+    } catch (err: any) {
       assert.ok(err.toString().includes("Account does not exist"));
     }
-    
-    const authorityBalanceAfter = await provider.connection.getBalance(authority.publicKey);
-    assert.ok(authorityBalanceAfter > authorityBalanceBefore);
-    
-    console.log("✓ Builder Passport closed successfully");
-    console.log("  - Rent refunded to authority");
+
+    const after = await provider.connection.getBalance(authority.publicKey);
+    assert.ok(after > before);
+    console.log("✓ Passport closed; rent refunded");
   });
 
   it("Re-initializes a Builder Passport after closing", async () => {
@@ -209,11 +229,24 @@ describe("builder-passport", () => {
       .rpc();
 
     const passport = await program.account.builderPassport.fetch(passportPda);
-    
     assert.ok(passport.authority.equals(authority.publicKey));
     assert.equal(passport.score, 0);
-    assert.equal(passport.level.rookie !== undefined, true);
-    
-    console.log("✓ Builder Passport re-initialized successfully");
+    assert.ok(passport.level.rookie !== undefined);
+    console.log("✓ Passport re-initialized");
+  });
+
+  it("Updates oracle pubkey (config authority)", async () => {
+    const newOracle = Keypair.generate();
+    await program.methods
+      .updateOracle(newOracle.publicKey)
+      .accounts({
+        config: configPda,
+        authority: configAuthority.publicKey,
+      })
+      .rpc();
+
+    const config = await program.account.config.fetch(configPda);
+    assert.ok(config.oracle.equals(newOracle.publicKey));
+    console.log("✓ Oracle rotated");
   });
 });

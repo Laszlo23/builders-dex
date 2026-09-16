@@ -1,15 +1,17 @@
 /** Philosophy + category positioning */
 
+/** Primary brand line — use everywhere as hero/campaign voice */
 export const BRAND_TAGLINE =
-  'The professional network for Web3 builders — reputation, proof, and who deserves to win.';
+  'The place where Web3 discovers who deserves to win.';
 
 export const BRAND_PHILOSOPHY = 'Build > Hype';
 
+/** Secondary / supporting — reputation layer language only here */
 export const BRAND_SUPPORT =
-  'A builder intelligence network with integrated trading — Proof of Building™ first.';
+  'Reputation layer for Web3 builders — Proof of Building™ first, curated trading last.';
 
 export const BRAND_CATEGORY =
-  'Builders DEX is a builder intelligence network with integrated trading.';
+  'A builder intelligence network with integrated trading.';
 
 export const BRAND_NAME = 'Builders DEX';
 

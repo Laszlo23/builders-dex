@@ -24,6 +24,7 @@ import { BUILDERS_INDEX, getBuilder100 } from '../data/projects';
 import { GENESIS_INDEX_COPY, GENESIS_PROJECT_IDS } from '../data/genesisBuilders';
 import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
 import { CuratedToken, getCuratedToken, resolveTradeMint } from '../data/curatedTokens';
+import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
 import VideoBackground from './VideoBackground';
 import ScoreBars, { BuilderScoreBadge, CurationBadges } from './ScoreBars';
 import DepthCard from './DepthCard';
@@ -32,7 +33,7 @@ import ProjectSocialLinks from './ProjectSocialLinks';
 import BuildersManifesto from './BuildersManifesto';
 import { BuildFeedCard, BuilderSeasonCard } from './BuildFeedConvictions';
 import { BUILD_FEED } from '../data/builderEconomy';
-import { BRAND_CATEGORY, BRAND_PHILOSOPHY, BRAND_MISSION_RALLY } from '../data/brand';
+import { BRAND_CATEGORY, BRAND_PHILOSOPHY, BRAND_TAGLINE } from '../data/brand';
 import AspirationNetworkSection from './AspirationNetworkSection';
 import CrystalBallCard from './CrystalBallCard';
 import ReputationLeaderboard from './ReputationLeaderboard';
@@ -179,7 +180,7 @@ export default function LandingView({
             transition={{ delay: 0.18 }}
             className="mt-5 max-w-2xl font-sans text-base font-medium tracking-tight text-white/90 sm:text-xl"
           >
-            {BRAND_MISSION_RALLY}
+            {BRAND_TAGLINE}
           </motion.h1>
 
           <motion.p
@@ -188,7 +189,7 @@ export default function LandingView({
             transition={{ delay: 0.28 }}
             className="mt-3 font-mono text-[10px] uppercase tracking-[0.28em] text-accent"
           >
-            {BRAND_PHILOSOPHY}
+            {BRAND_PHILOSOPHY} · {BRAND_CATEGORY}
           </motion.p>
 
           <motion.div
@@ -538,15 +539,19 @@ export default function LandingView({
                       </button>
                       {(() => {
                         const tradeMint = resolveTradeMint(p, tradeableMintSet);
-                        if (!tradeMint) return null;
-                        const tradeSymbol = getCuratedToken(tradeMint)?.symbol || p.ticker;
+                        const baseAddr = resolveBaseTradeAddress(p);
+                        if (!tradeMint && !baseAddr) return null;
+                        const tradeSymbol = tradeMint
+                          ? getCuratedToken(tradeMint)?.symbol || p.ticker
+                          : p.ticker;
                         return (
                           <button
                             type="button"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              onTrade(tradeMint);
+                              if (tradeMint) onTrade(tradeMint);
+                              else if (baseAddr) openBaseTrade(baseAddr);
                             }}
                             className="btn-sheen flex-1 rounded-xl bg-accent py-2.5 text-xs font-bold text-ink hover:bg-accent-bright"
                           >

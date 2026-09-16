@@ -16,6 +16,7 @@ const ProjectDetailView = lazyWithRetry(() => import('./components/ProjectDetail
 const SwapView = lazyWithRetry(() => import('./components/SwapView'));
 const LaunchView = lazyWithRetry(() => import('./components/LaunchView'));
 const LaunchpadView = lazyWithRetry(() => import('./components/LaunchpadView'));
+const LaunchRaiseView = lazyWithRetry(() => import('./components/LaunchRaiseView'));
 const BuildersView = lazyWithRetry(() => import('./components/BuildersView'));
 const DaoView = lazyWithRetry(() => import('./components/DaoView'));
 const AiView = lazyWithRetry(() => import('./components/AiView'));
@@ -53,6 +54,8 @@ import {
 } from './lib/reputation/client';
 import { upvoteMessage } from './lib/reputation/messages';
 import { submitScoutCall } from './lib/scout/client';
+import { claimDailyShareReward } from './lib/dailyShareRewards';
+import type { ShareActionResult } from './components/ShareCampaignView';
 import bs58 from 'bs58';
 import {
   Project,
@@ -67,7 +70,14 @@ import {
 } from './types';
 import { getPassportLevel } from './lib/builderScore';
 import { useTradeableTokens, isMintTradeable } from './hooks/useTradeableTokens';
-import { safeNavigate, getPathFromUrl } from './lib/routes';
+import {
+  safeNavigate,
+  getPathFromUrl,
+  getProjectIdFromUrl,
+  getRaiseIdFromUrl,
+  getBlogSlugFromUrl,
+  type NavState,
+} from './lib/routes';
 
 function RouteFallback() {
   return (
@@ -105,9 +115,16 @@ export default function App() {
   const { tokens: tradeableTokens, mintSet: tradeableMintSet } = useTradeableTokens();
 
   const [currentPath, setCurrentPathRaw] = useState<string>(() => getPathFromUrl());
-  const setCurrentPath = (path: string) => {
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(
+    () => getProjectIdFromUrl() || 'p1',
+  );
+  const [blogSlug, setBlogSlug] = useState<string | null>(() => getBlogSlugFromUrl());
+  const [selectedRaiseId, setSelectedRaiseId] = useState<string | null>(
+    () => getRaiseIdFromUrl(),
+  );
+  const setCurrentPath = (path: string, state?: NavState) => {
     startTransition(() => {
-      safeNavigate(path, setCurrentPathRaw);
+      safeNavigate(path, setCurrentPathRaw, 'landing', state);
     });
   };
 
@@ -133,6 +150,10 @@ export default function App() {
     const onPopState = () => {
       const path = getPathFromUrl();
       setCurrentPathRaw(path);
+      const projectId = getProjectIdFromUrl();
+      if (projectId) setSelectedProjectId(projectId);
+      setSelectedRaiseId(path === 'raise' ? getRaiseIdFromUrl() : null);
+      setBlogSlug(path === 'blog' ? getBlogSlugFromUrl() : null);
     };
     window.addEventListener('hashchange', onHash);
     window.addEventListener('popstate', onPopState);
@@ -142,7 +163,6 @@ export default function App() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once only
   }, []);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('p1');
   const [swapOutputMint, setSwapOutputMint] = useState<string | null>(null);
   const [intelPrompt, setIntelPrompt] = useState<string | null>(null);
   const [customAlert, setCustomAlert] = useState<{ message: string } | null>(null);
@@ -228,7 +248,6 @@ export default function App() {
     return EMPTY_PROFILE;
   });
   const [myProjectIds, setMyProjectIds] = useState<string[]>([]);
-  const [blogSlug, setBlogSlug] = useState<string | null>(null);
   const [convictions] = useState(INITIAL_CONVICTIONS);
   const [firstDiscoveryOpen, setFirstDiscoveryOpen] = useState(false);
   const [hasCompletedFirstDiscovery, setHasCompletedFirstDiscovery] = useState(
@@ -410,7 +429,12 @@ export default function App() {
   const navigateToStory = (projectId: string) => {
     setFirstDiscoveryOpen(false);
     setSelectedProjectId(projectId);
-    setCurrentPath('project-detail');
+    setCurrentPath('project-detail', { projectId });
+  };
+
+  const setBlogSlugAndUrl = (slug: string | null) => {
+    setBlogSlug(slug);
+    setCurrentPath('blog', { blogSlug: slug });
   };
 
   const navigateToTrade = (mint?: string) => {
@@ -439,7 +463,7 @@ export default function App() {
     handleDiscover(projectId);
     handleCompleteGrowthTask('t_first_discovery');
     setSelectedProjectId(projectId);
-    setCurrentPath('project-detail');
+    setCurrentPath('project-detail', { projectId });
     setFirstDiscoveryOpen(false);
     setHasCompletedFirstDiscovery(true);
     try {
@@ -528,11 +552,20 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPath]);
 
-  const handleCampaignShare = (channel?: string) => {
+  const handleCampaignShare = (channel?: string): ShareActionResult => {
     handleCompleteGrowthTask('t_share');
     if (channel === 'X / Twitter') {
       handleCompleteGrowthTask('t_share_x');
     }
+    const reward = claimDailyShareReward();
+    if (reward.awarded && reward.xp > 0) {
+      handleAddXp(reward.xp);
+    }
+    return {
+      xp: reward.xp,
+      remaining: reward.remaining,
+      capped: reward.capped,
+    };
   };
 
   const handleUpvoteProject = (projectId: string) => {
@@ -849,6 +882,7 @@ export default function App() {
             onOpenStory={navigateToStory}
             onDiscover={handleDiscover}
             tradeableMintSet={tradeableMintSet}
+            onShareReward={handleCampaignShare}
           />
         );
       case 'project-detail': {
@@ -858,6 +892,11 @@ export default function App() {
             project={activeProj}
             wallet={wallet}
             onFund={handleFundProject}
+            onOpenRaise={(projectId) => {
+              setSelectedProjectId(projectId);
+              setSelectedRaiseId(projectId);
+              setCurrentPath('raise', { projectId, raiseId: projectId });
+            }}
             onAddComment={handleAddComment}
             onBack={() => setCurrentPath('explore')}
             onTrade={navigateToTrade}
@@ -865,6 +904,7 @@ export default function App() {
             tradeableMintSet={tradeableMintSet}
             builders={builders}
             setCurrentPath={setCurrentPath}
+            onShareReward={handleCampaignShare}
           />
         );
       }
@@ -876,8 +916,6 @@ export default function App() {
             onSwapComplete={handleSwapComplete}
             onTradeShared={() => {
               handleCampaignShare('X / Twitter');
-              handleCompleteGrowthTask('t_share');
-              handleCompleteGrowthTask('t_share_x');
             }}
             initialOutputMint={swapOutputMint}
           />
@@ -897,9 +935,26 @@ export default function App() {
           <LaunchpadView
             projects={projects}
             setSelectedProjectId={setSelectedProjectId}
+            setSelectedRaiseId={setSelectedRaiseId}
             setCurrentPath={setCurrentPath}
             onTrade={navigateToTrade}
+            onSupport={(projectId) => {
+              setSelectedProjectId(projectId);
+              setSelectedRaiseId(projectId);
+              setCurrentPath('raise', { projectId, raiseId: projectId });
+            }}
             tradeableMintSet={tradeableMintSet}
+          />
+        );
+      case 'raise':
+        return (
+          <LaunchRaiseView
+            raiseId={selectedRaiseId}
+            project={projects.find((p) => p.id === selectedProjectId)}
+            wallet={wallet}
+            connectWallet={connectWallet}
+            onBack={() => setCurrentPath('launchpad')}
+            setCurrentPath={setCurrentPath}
           />
         );
       case 'team':
@@ -909,7 +964,7 @@ export default function App() {
           <BlogView
             setCurrentPath={setCurrentPath}
             blogSlug={blogSlug}
-            setBlogSlug={setBlogSlug}
+            setBlogSlug={setBlogSlugAndUrl}
           />
         );
       case 'feedback':
@@ -1165,7 +1220,12 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col justify-between bg-ink font-sans text-white selection:bg-accent selection:text-ink">
-      <Seo path={currentPath} projectName={activeProject?.name} blogSlug={blogSlug} />
+      <Seo
+        path={currentPath}
+        project={currentPath === 'project-detail' ? activeProject : undefined}
+        projectName={activeProject?.name}
+        blogSlug={blogSlug}
+      />
       {import.meta.env.VITE_SHOW_DEV_RIBBON === 'true' && (
         <div className="dev-ribbon" aria-hidden="true">
           <span>Still in development</span>

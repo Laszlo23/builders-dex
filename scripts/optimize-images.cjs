@@ -11,7 +11,8 @@ const root = path.join(process.cwd(), 'public');
 function maxWidth(rel) {
   const name = path.basename(rel);
   if (name === 'brand-mark.png') return 128;
-  if (name.startsWith('hero-poster') || name.startsWith('og-image')) return 1280;
+  if (name.startsWith('og-image') || name.startsWith('project-')) return 1200;
+  if (name.startsWith('hero-poster')) return 1280;
   if (rel.includes('parallax')) return 1600;
   if (rel.includes('projects')) return 1200;
   return 1400;

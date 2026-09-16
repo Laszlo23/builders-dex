@@ -3,6 +3,8 @@ import { Radar, Crosshair, Swords, Activity, Trophy, Rss, BadgeCheck } from 'luc
 import { Project, ScoutMission, ScoutProfile } from '../types';
 import {
   ARENA_MATCH,
+  GENESIS_RADAR,
+  SCOUT_LEADERBOARD,
   TRUST_FLOW,
   progressBar,
 } from '../data/reputation';
@@ -179,7 +181,7 @@ export default function TerminalView({
         progress: Math.min(92, Math.max(40, p.builderScore.overall - 8)),
         projectId: p.id,
       }));
-    return fromProjects.slice(0, 8);
+    return [...fromProjects, ...GENESIS_RADAR].slice(0, 8);
   }, [projects]);
 
   const totalArena = arenaVotes.a + arenaVotes.b || 1;
@@ -559,7 +561,33 @@ export default function TerminalView({
                 Live Scout leaderboard
               </p>
               <ul className="space-y-2">
-                {scoutBoard.length === 0 && (
+                {scoutBoard.length === 0 &&
+                  SCOUT_LEADERBOARD.map((s, i) => (
+                    <li
+                      key={s.id}
+                      className="flex items-center gap-3 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5"
+                    >
+                      <span className="w-6 font-mono text-xs text-steel">#{i + 1}</span>
+                      {s.avatarUrl ? (
+                        <img
+                          src={s.avatarUrl}
+                          alt=""
+                          className="h-8 w-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 font-mono text-[10px]">
+                          {s.name.slice(0, 2)}
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold">{s.name}</p>
+                        <p className="font-mono text-[10px] text-steel">
+                          {s.title} · {s.projectsDiscovered} discovered · rep {s.scoutReputation}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                {scoutBoard.length === 0 && SCOUT_LEADERBOARD.length === 0 && (
                   <li className="rounded-xl border border-white/8 bg-ink/40 px-3 py-3 text-xs text-steel">
                     No on-ledger Scout calls yet. Be first.
                   </li>

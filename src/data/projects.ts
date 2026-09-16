@@ -8,6 +8,7 @@ import {
   PassportLevel,
 } from '../types';
 import { makeBuilderScore } from '../lib/builderScore';
+import { AURA_BASE_ADDRESS } from './crossChainRegistry';
 
 /** Builders Index™ — live Genesis Index first */
 export const BUILDERS_INDEX: BuildersIndex = {
@@ -246,7 +247,7 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: false,
-    reputationDelta: 0,
+    reputationDelta: 4,
     communityMilestones: ['100k+ GitHub stars', 'Default local LLM runtime', 'Genesis Index #1'],
   },
   {
@@ -315,7 +316,7 @@ export const INITIAL_PROJECTS: Project[] = [
     socials: { twitter: 'https://x.com/aave', website: 'https://aave.com' },
     launchpadActive: false,
     liquidityLocked: true,
-    reputationDelta: 0,
+    reputationDelta: -1,
     communityMilestones: ['Multi-chain liquidity', 'Public audits'],
   },
   {
@@ -389,7 +390,7 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: true,
-    reputationDelta: 0,
+    reputationDelta: 3,
     communityMilestones: ['Multi-chain mainnet', 'Public monorepo', 'Genesis Index #2'],
   },
   {
@@ -463,7 +464,7 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: false,
-    reputationDelta: 0,
+    reputationDelta: 2,
     communityMilestones: ['Solana NFT standard', 'Public programs', 'Genesis Index #3'],
   },
   {
@@ -486,6 +487,7 @@ export const INITIAL_PROJECTS: Project[] = [
     coverImage: '/projects/hypersphere.webp',
     category: 'AI + Web3',
     chain: 'Base',
+    baseTokenAddress: AURA_BASE_ADDRESS,
     rating: 4.8,
     upvotes: 0,
     githubRepo: 'Laszlo23/auraos',

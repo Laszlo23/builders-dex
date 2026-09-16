@@ -22,6 +22,8 @@ import {
 } from './src/data/builderPlatform';
 import { BUILDER_GENOMES } from './src/data/prideMovement';
 import { INITIAL_BUILDERS, INITIAL_PROJECTS } from './src/data/projects';
+import { buildSitemapXml, resolveSeoForRequest } from './src/lib/seo';
+import { injectSeoIntoHtml, isPreviewBot } from './src/lib/seoHtml';
 import { proofOfBuildingFor } from './src/lib/proofOfBuilding';
 import { dnaFromScore } from './src/lib/builderDna';
 import {
@@ -95,6 +97,28 @@ import {
 } from './src/lib/serverSecurity';
 import { getSqlite } from './src/lib/db/sqlite';
 import { bumpScoreForScout, bumpScoreForApplication } from './src/lib/passportOracle';
+import {
+  buildBaseLinkMessage,
+  buildSolLinkMessage,
+  buildSolUnlinkMessage,
+  deleteWalletLink,
+  getWalletLink,
+  isValidBaseAddress,
+  isValidSolanaAddress,
+  upsertWalletLink,
+} from './src/lib/walletLink';
+import { getAuraBinding, PASSPORT_COLLECTION } from './src/data/crossChainRegistry';
+import {
+  canOpenRaise,
+  createRaiseDraft,
+  getRaise,
+  getRaiseByProject,
+  listRaises,
+  markRaiseAttested,
+  markRaiseInspection,
+  syncRaiseOnchain,
+} from './src/lib/shareRaise';
+import type { ShareRaiseStatus } from './src/types';
 import { PublicKey } from '@solana/web3.js';
 import {
   castVoteByTokenId,
@@ -504,6 +528,197 @@ app.get('/api/builder-passport', (req, res) => {
   });
 });
 
+/** Cross-chain registry + wallet links (Solana identity ↔ Base AURA) */
+app.get('/api/cross-chain/registry', rateLimit(60, 60_000, 'xchain-reg'), (_req, res) => {
+  res.json({
+    passportCollection: PASSPORT_COLLECTION,
+    aura: getAuraBinding(),
+    bridgeDocs: getAuraBinding().bridgeDocsUrl,
+  });
+});
+
+app.get('/api/wallet-link/:solanaWallet', rateLimit(60, 60_000, 'wlink-get'), (req, res) => {
+  try {
+    getSqlite();
+    const sol = String(req.params.solanaWallet || '').trim();
+    if (!isValidSolanaAddress(sol)) {
+      return res.status(400).json({ error: 'Invalid Solana address' });
+    }
+    const link = getWalletLink(sol);
+    if (!link) return res.status(404).json({ error: 'Not linked' });
+    return res.json({ link });
+  } catch (err: any) {
+    return res.status(500).json({ error: err?.message || 'wallet-link failed' });
+  }
+});
+
+app.post('/api/wallet-link', rateLimit(20, 60_000, 'wlink-post'), (req, res) => {
+  try {
+    getSqlite();
+    const solanaWallet = String(req.body?.solanaWallet || '').trim();
+    const baseWallet = String(req.body?.baseWallet || '').trim();
+    const solSig = req.body?.solSig ? String(req.body.solSig) : undefined;
+    const baseSig = req.body?.baseSig ? String(req.body.baseSig) : undefined;
+
+    if (!isValidSolanaAddress(solanaWallet)) {
+      return res.status(400).json({ error: 'Invalid Solana address' });
+    }
+    if (!isValidBaseAddress(baseWallet)) {
+      return res.status(400).json({ error: 'Invalid Base address' });
+    }
+    if (!solSig) {
+      return res.status(400).json({
+        error: 'solSig required',
+        expectedMessages: {
+          solana: buildSolLinkMessage(solanaWallet, baseWallet),
+          base: buildBaseLinkMessage(solanaWallet, baseWallet),
+        },
+      });
+    }
+    if (
+      !verifyWalletSignature(
+        buildSolLinkMessage(solanaWallet, baseWallet),
+        solanaWallet,
+        solSig,
+      )
+    ) {
+      return res.status(401).json({ error: 'Invalid Solana signature' });
+    }
+
+    const link = upsertWalletLink({ solanaWallet, baseWallet, solSig, baseSig });
+    return res.json({ ok: true, link });
+  } catch (err: any) {
+    return res.status(500).json({ error: err?.message || 'wallet-link failed' });
+  }
+});
+
+app.get('/api/raises', rateLimit(60, 60_000, 'raises-list'), (req, res) => {
+  try {
+    getSqlite();
+    const status = req.query.status ? String(req.query.status) as ShareRaiseStatus : undefined;
+    const projectId = req.query.projectId ? String(req.query.projectId) : undefined;
+    const allowed: ShareRaiseStatus[] = ['draft', 'live', 'filled', 'closed', 'cancelled'];
+    if (status && !allowed.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    res.json({ raises: listRaises({ status, projectId }) });
+  } catch (err) {
+    res.status(500).json({ error: safeErrorMessage(err, 'raises failed') });
+  }
+});
+
+app.get('/api/raises/:id', rateLimit(60, 60_000, 'raises-get'), (req, res) => {
+  try {
+    getSqlite();
+    const id = String(req.params.id || '').trim();
+    const raise = getRaise(id) || getRaiseByProject(id);
+    if (!raise) return res.status(404).json({ error: 'Raise not found' });
+    const gate = canOpenRaise(raise);
+    res.json({ raise, canOpen: gate });
+  } catch (err) {
+    res.status(500).json({ error: safeErrorMessage(err, 'raise failed') });
+  }
+});
+
+app.post('/api/raises', rateLimit(10, 60_000, 'raises-post'), (req, res) => {
+  try {
+    getSqlite();
+    const projectId = String(req.body?.projectId || '').trim();
+    const founderWallet = String(req.body?.founderWallet || '').trim();
+    if (!projectId) return res.status(400).json({ error: 'projectId required' });
+    if (!isValidSolanaAddress(founderWallet)) {
+      return res.status(400).json({ error: 'Invalid founder wallet' });
+    }
+    const raise = createRaiseDraft({
+      projectId,
+      founderWallet,
+      priceLamports: Math.max(1, Number(req.body?.priceLamports) || 50_000_000),
+      shareSupply: Math.max(1, Number(req.body?.shareSupply) || 100),
+      holderPoolBps: Math.max(1, Number(req.body?.holderPoolBps) || 2000),
+      goalLamports: Math.max(1, Number(req.body?.goalLamports) || 5_000_000_000),
+      applicationId: req.body?.applicationId ? String(req.body.applicationId) : undefined,
+      builderScore: Number(req.body?.builderScore) || 0,
+    });
+    res.json({ ok: true, raise });
+  } catch (err) {
+    res.status(400).json({ error: safeErrorMessage(err, 'create raise failed') });
+  }
+});
+
+app.post('/api/raises/:id/attest', rateLimit(20, 60_000, 'raises-attest'), (req, res) => {
+  try {
+    const admin = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
+    if (!admin) return res.status(503).json({ error: 'Admin token not configured' });
+    const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
+    if (provided !== admin) return res.status(401).json({ error: 'Unauthorized' });
+    getSqlite();
+    const id = String(req.params.id || '').trim();
+    const raise = getRaise(id);
+    if (!raise) return res.status(404).json({ error: 'Raise not found' });
+    const gate = canOpenRaise(raise);
+    if (!gate.ok && raise.status === 'draft') {
+      return res.status(400).json({ error: 'Inspection gate failed', reasons: gate.reasons });
+    }
+    markRaiseAttested(
+      id,
+      req.body?.tx ? String(req.body.tx) : null,
+      req.body?.raisePda ? String(req.body.raisePda) : undefined,
+    );
+    res.json({ ok: true, raise: getRaise(id) });
+  } catch (err) {
+    res.status(500).json({ error: safeErrorMessage(err, 'attest failed') });
+  }
+});
+
+app.post('/api/raises/:id/sync', rateLimit(30, 60_000, 'raises-sync'), (req, res) => {
+  try {
+    const admin = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
+    if (!admin) return res.status(503).json({ error: 'Admin token not configured' });
+    const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
+    if (provided !== admin) return res.status(401).json({ error: 'Unauthorized' });
+    getSqlite();
+    const id = String(req.params.id || '').trim();
+    const raise = getRaise(id);
+    if (!raise) return res.status(404).json({ error: 'Raise not found' });
+    if (raise.demo) return res.status(403).json({ error: 'Demo raise cannot be synced' });
+    const status = req.body?.status as ShareRaiseStatus | undefined;
+    const allowed: ShareRaiseStatus[] = ['draft', 'live', 'filled', 'closed', 'cancelled'];
+    if (status && !allowed.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    syncRaiseOnchain(id, {
+      raisePda: req.body?.raisePda ? String(req.body.raisePda) : undefined,
+      collection: req.body?.collection ? String(req.body.collection) : undefined,
+      status,
+      sharesMinted:
+        req.body?.sharesMinted !== undefined ? Number(req.body.sharesMinted) : undefined,
+      raisedLamports:
+        req.body?.raisedLamports !== undefined ? Number(req.body.raisedLamports) : undefined,
+    });
+    res.json({ ok: true, raise: getRaise(id) });
+  } catch (err) {
+    res.status(500).json({ error: safeErrorMessage(err, 'sync failed') });
+  }
+});
+
+app.delete('/api/wallet-link/:solanaWallet', rateLimit(10, 60_000, 'wlink-del'), (req, res) => {
+  try {
+    getSqlite();
+    const sol = String(req.params.solanaWallet || '').trim();
+    if (!isValidSolanaAddress(sol)) {
+      return res.status(400).json({ error: 'Invalid Solana address' });
+    }
+    const solSig = String(req.body?.solSig || req.query.solSig || '').trim();
+    if (!solSig || !verifyWalletSignature(buildSolUnlinkMessage(sol), sol, solSig)) {
+      return res.status(401).json({ error: 'Invalid Solana signature' });
+    }
+    const removed = deleteWalletLink(sol);
+    return res.json({ ok: removed });
+  } catch (err: any) {
+    return res.status(500).json({ error: err?.message || 'wallet-link failed' });
+  }
+});
+
 /** Shared reputation ledger — public Passport™ by wallet */
 app.get(
   '/api/reputation/leaderboard',
@@ -838,6 +1053,16 @@ app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), as
     let oracleResult = null;
     const wallet = app.payload?.wallet;
     if (status === 'approved' && wallet && isValidSolanaWallet(wallet)) {
+      try {
+        markRaiseInspection({
+          applicationId: app.id,
+          projectId: app.payload?.projectId || app.payload?.id,
+          builderScore: Number(app.payload?.builderScore?.overall) || 90,
+          pobVerified: true,
+        });
+      } catch (err) {
+        console.warn('[share-raise] inspection mark failed:', err);
+      }
       try {
         const walletPubkey = new PublicKey(wallet);
         oracleResult = await bumpScoreForApplication(walletPubkey, app.id);
@@ -2126,6 +2351,50 @@ async function startServer() {
   app.get('/intelligence', (_req, res) => res.redirect(301, '/ai'));
   app.get('/passport', (_req, res) => res.redirect(301, '/profile'));
   app.get('/rankings', (_req, res) => res.redirect(301, '/builders'));
+
+  const staticRoot =
+    process.env.NODE_ENV === 'production'
+      ? path.join(process.cwd(), 'dist')
+      : path.join(process.cwd(), 'public');
+  const indexHtmlFile =
+    process.env.NODE_ENV === 'production'
+      ? path.join(process.cwd(), 'dist', 'index.html')
+      : path.join(process.cwd(), 'index.html');
+
+  app.get('/og/project/:id', (req, res) => {
+    const id = String(req.params.id || '').replace(/\.webp$/i, '');
+    if (!/^[a-z0-9_-]{1,32}$/i.test(id)) {
+      return res.status(404).end();
+    }
+    const file = path.join(staticRoot, 'og', `project-${id}.webp`);
+    const fallback = path.join(staticRoot, 'og-image.webp');
+    const send = fs.existsSync(file) ? file : fs.existsSync(fallback) ? fallback : null;
+    if (!send) return res.status(404).end();
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    return res.type('image/webp').sendFile(send);
+  });
+
+  app.get('/sitemap.xml', (_req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.type('application/xml').send(buildSitemapXml());
+  });
+
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    if (req.path.startsWith('/api') || req.path.startsWith('/assets') || req.path.startsWith('/og/')) {
+      return next();
+    }
+    if (/\.[a-z0-9]+$/i.test(req.path) && !req.path.endsWith('.html')) return next();
+    if (!isPreviewBot(req.get('user-agent'))) return next();
+    if (!fs.existsSync(indexHtmlFile)) return next();
+    const search = req.originalUrl.includes('?')
+      ? req.originalUrl.slice(req.originalUrl.indexOf('?'))
+      : '';
+    const html = fs.readFileSync(indexHtmlFile, 'utf8');
+    const seo = resolveSeoForRequest(req.path, search);
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.type('html').send(injectSeoIntoHtml(html, seo));
+  });
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

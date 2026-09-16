@@ -15,8 +15,15 @@
  * - SOLANA_DEVNET_RPC_URL or SOLANA_RPC_URL: RPC endpoint
  */
 
-import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction, SystemProgram } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import bs58 from 'bs58';
+import {
+  getScoutBumpCount,
+  getTodayUtc,
+  hasApplicationBump,
+  incrementScoutBump,
+  recordApplicationBump,
+} from './oracleCaps';
 
 const PROGRAM_ID_DEFAULT = '7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD';
 
@@ -59,9 +66,9 @@ function loadOracleConfig(): OracleConfig {
     }
   }
 
-  const rpcUrl = 
-    process.env.SOLANA_DEVNET_RPC_URL || 
-    process.env.SOLANA_RPC_URL || 
+  const rpcUrl =
+    process.env.SOLANA_RPC_URL ||
+    process.env.SOLANA_DEVNET_RPC_URL ||
     'https://api.devnet.solana.com';
   
   const connection = new Connection(rpcUrl, 'confirmed');
@@ -71,6 +78,7 @@ function loadOracleConfig(): OracleConfig {
     console.warn('[passport-oracle] Not configured — set PASSPORT_ORACLE_SECRET_KEY to enable on-chain updates');
   } else {
     console.log('[passport-oracle] Configured with oracle:', oracleKeypair!.publicKey.toBase58());
+    console.log('[passport-oracle] RPC:', rpcUrl);
   }
 
   cachedConfig = {
@@ -196,6 +204,14 @@ export async function updatePassportScore(
       };
     }
 
+    const configInfo = await config.connection.getAccountInfo(configPDA);
+    if (!configInfo) {
+      return {
+        success: false,
+        error: 'Config PDA missing — run programs/scripts/initialize-config.ts',
+      };
+    }
+
     // Build update_score instruction
     // Instruction discriminator for "update_score" (first 8 bytes of sha256("global:update_score"))
     const discriminator = Buffer.from([113, 90, 215, 166, 104, 179, 157, 115]);
@@ -246,23 +262,13 @@ export async function updatePassportScore(
   }
 }
 
-/**
- * Score bump tracking to enforce daily caps
- * (In-memory; for production use Redis or database)
- */
-const dailyScoutBumps = new Map<string, { date: string; count: number }>();
-
 const MAX_SCOUT_BUMPS_PER_DAY = 4; // 4 x 25 = 100 max per day
 const SCOUT_BUMP_AMOUNT = 25;
 const APPLICATION_BUMP_AMOUNT = 100;
 
-function getTodayKey(): string {
-  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-}
-
 /**
  * Attempt to bump score for a successful Scout submission
- * Enforces max +100 per day via daily cap
+ * Enforces max +100 per day via SQLite daily cap
  */
 export async function bumpScoreForScout(
   walletAddress: PublicKey
@@ -273,12 +279,11 @@ export async function bumpScoreForScout(
       return { success: false, notReady: true, error: 'Oracle not configured' };
     }
 
-    // Check daily cap
     const walletKey = walletAddress.toBase58();
-    const today = getTodayKey();
-    const tracked = dailyScoutBumps.get(walletKey);
+    const today = getTodayUtc();
+    const count = getScoutBumpCount(walletKey, today);
 
-    if (tracked && tracked.date === today && tracked.count >= MAX_SCOUT_BUMPS_PER_DAY) {
+    if (count >= MAX_SCOUT_BUMPS_PER_DAY) {
       console.log(`[passport-oracle] Scout bump skipped for ${walletKey} — daily cap reached`);
       return {
         success: false,
@@ -286,24 +291,17 @@ export async function bumpScoreForScout(
       };
     }
 
-    // Fetch current score
     const currentScore = await fetchCurrentScore(walletAddress);
     if (currentScore === null) {
       return { success: false, error: 'Passport not initialized' };
     }
 
     const newScore = currentScore + SCOUT_BUMP_AMOUNT;
-
     const result = await updatePassportScore(walletAddress, newScore);
 
     if (result.success) {
-      // Update daily tracking
-      if (tracked && tracked.date === today) {
-        tracked.count += 1;
-      } else {
-        dailyScoutBumps.set(walletKey, { date: today, count: 1 });
-      }
-      console.log(`[passport-oracle] Scout bump +${SCOUT_BUMP_AMOUNT} for ${walletKey} (${tracked?.count || 1}/${MAX_SCOUT_BUMPS_PER_DAY} today)`);
+      const next = incrementScoutBump(walletKey, today);
+      console.log(`[passport-oracle] Scout bump +${SCOUT_BUMP_AMOUNT} for ${walletKey} (${next}/${MAX_SCOUT_BUMPS_PER_DAY} today)`);
     }
 
     return result;
@@ -315,10 +313,8 @@ export async function bumpScoreForScout(
 
 /**
  * Bump score for an approved application
- * One-time +100 (tracked separately to prevent duplicates)
+ * One-time +100 (tracked in SQLite to prevent duplicates)
  */
-const approvedApplicationBumps = new Set<string>();
-
 export async function bumpScoreForApplication(
   walletAddress: PublicKey,
   applicationId: string
@@ -329,26 +325,23 @@ export async function bumpScoreForApplication(
       return { success: false, notReady: true, error: 'Oracle not configured' };
     }
 
-    // Prevent duplicate bumps for same application
-    const bumpKey = `${walletAddress.toBase58()}-${applicationId}`;
-    if (approvedApplicationBumps.has(bumpKey)) {
-      console.log(`[passport-oracle] Application bump skipped for ${bumpKey} — already processed`);
+    const walletKey = walletAddress.toBase58();
+    if (hasApplicationBump(walletKey, applicationId)) {
+      console.log(`[passport-oracle] Application bump skipped for ${walletKey}-${applicationId} — already processed`);
       return { success: false, error: 'Application already awarded points' };
     }
 
-    // Fetch current score
     const currentScore = await fetchCurrentScore(walletAddress);
     if (currentScore === null) {
       return { success: false, error: 'Passport not initialized' };
     }
 
     const newScore = currentScore + APPLICATION_BUMP_AMOUNT;
-
     const result = await updatePassportScore(walletAddress, newScore);
 
     if (result.success) {
-      approvedApplicationBumps.add(bumpKey);
-      console.log(`[passport-oracle] Application bump +${APPLICATION_BUMP_AMOUNT} for ${bumpKey}`);
+      recordApplicationBump(walletKey, applicationId);
+      console.log(`[passport-oracle] Application bump +${APPLICATION_BUMP_AMOUNT} for ${walletKey}-${applicationId}`);
     }
 
     return result;

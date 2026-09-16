@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Trophy, CheckCircle2, BadgeCheck } from 'lucide-react';
 import { Builder, Project, Quest } from '../types';
 import { getBuilder100 } from '../data/projects';
+import type { NavState } from '../lib/routes';
 import DepthCard from './DepthCard';
 import BuilderCouncilCard from './BuilderCouncilCard';
 
@@ -12,7 +13,7 @@ interface BuildersViewProps {
   onCompleteQuest: (questId: string) => void;
   onFollowBuilder: (builderId: string) => void;
   setSelectedProjectId: (id: string) => void;
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: NavState) => void;
 }
 
 export default function BuildersView({
@@ -86,7 +87,7 @@ export default function BuildersView({
                       type="button"
                       onClick={() => {
                         setSelectedProjectId(entry.projectId!);
-                        setCurrentPath('project-detail');
+                        setCurrentPath('project-detail', { projectId: entry.projectId });
                       }}
                       className="hidden rounded-lg border border-white/10 px-3 py-2 font-mono text-xs text-steel hover:border-accent/40 hover:text-accent active:scale-95 sm:inline min-h-[40px]"
                     >

@@ -1,9 +1,20 @@
 import { useEffect } from 'react';
-import { absoluteUrl, getSeoForPath, SITE_NAME, SITE_URL } from '../lib/seo';
 import { getPostBySlug } from '../data/blog';
+import type { Project } from '../types';
+import {
+  OG_HEIGHT,
+  OG_WIDTH,
+  SITE_NAME,
+  SITE_URL,
+  TWITTER_SITE,
+  absoluteUrl,
+  getSeoForPath,
+  projectOgPath,
+} from '../lib/seo';
 
 type Props = {
   path: string;
+  project?: Project;
   projectName?: string;
   blogSlug?: string | null;
 };
@@ -39,29 +50,34 @@ function upsertJsonLd(id: string, data: Record<string, unknown>) {
   el.textContent = JSON.stringify(data);
 }
 
-export default function Seo({ path, projectName, blogSlug }: Props) {
+export default function Seo({ path, project, projectName, blogSlug }: Props) {
   useEffect(() => {
     const base = getSeoForPath(path);
     const post = path === 'blog' && blogSlug ? getPostBySlug(blogSlug) : null;
     const title = post
       ? `${post.title} — Builders DEX Blog`
-      : path === 'project-detail' && projectName
-        ? `${projectName} — Builders DEX`
+      : path === 'project-detail' && (project?.name || projectName)
+        ? `${project?.name || projectName} — Builders DEX`
         : base.title;
-    const description = post?.excerpt || base.description;
-    const url = absoluteUrl(post ? `/blog/${post.slug}` : base.path);
-    const image = absoluteUrl('/og-image.webp');
+    const description = post?.excerpt || project?.tagline || base.description;
+    const url = absoluteUrl(
+      post ? `/blog/${post.slug}` : project ? `/explore?id=${project.id}` : base.path,
+    );
+    const image = absoluteUrl(
+      project ? projectOgPath(project.id) : post?.coverImage || '/og-image.webp',
+    );
 
     document.title = title;
     upsertMeta('name', 'description', description);
     upsertMeta('name', 'application-name', SITE_NAME);
     upsertMeta('name', 'theme-color', '#07080A');
     upsertMeta('name', 'twitter:card', 'summary_large_image');
+    upsertMeta('name', 'twitter:site', TWITTER_SITE);
     upsertMeta('name', 'twitter:title', title);
     upsertMeta('name', 'twitter:description', description);
     upsertMeta('name', 'twitter:image', image);
-    upsertMeta('name', 'twitter:image:width', '1280');
-    upsertMeta('name', 'twitter:image:height', '853');
+    upsertMeta('name', 'twitter:image:width', String(OG_WIDTH));
+    upsertMeta('name', 'twitter:image:height', String(OG_HEIGHT));
     upsertMeta('property', 'og:type', post ? 'article' : 'website');
     upsertMeta('property', 'og:site_name', SITE_NAME);
     upsertMeta('property', 'og:title', title);
@@ -69,12 +85,11 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
     upsertMeta('property', 'og:url', url);
     upsertMeta('property', 'og:image', image);
     upsertMeta('property', 'og:image:type', 'image/webp');
-    upsertMeta('property', 'og:image:width', '1280');
-    upsertMeta('property', 'og:image:height', '853');
+    upsertMeta('property', 'og:image:width', String(OG_WIDTH));
+    upsertMeta('property', 'og:image:height', String(OG_HEIGHT));
     upsertMeta('property', 'og:image:alt', `${SITE_NAME} — Reputation layer of Web3`);
     upsertLink('canonical', url);
 
-    // Always add Organization schema
     upsertJsonLd('builders-dex-org', {
       '@context': 'https://schema.org',
       '@type': 'Organization',
@@ -82,19 +97,16 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
       url: SITE_URL,
       logo: `${SITE_URL}/brand-mark.webp`,
       description: 'A builder intelligence network with integrated trading on Solana',
-      sameAs: [
-        'https://x.com/BuildCultureID',
-        'https://github.com/Laszlo23/builders-dex',
-      ],
+      sameAs: ['https://x.com/buildingcultu3', 'https://github.com/Laszlo23/builders-dex'],
     });
 
-    // Always add WebSite schema
     upsertJsonLd('builders-dex-website', {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: SITE_NAME,
       url: SITE_URL,
-      description: 'Discover curated Solana builders and projects with quality ratings and integrated trading',
+      description:
+        'Discover curated Solana builders and projects with quality ratings and integrated trading',
       potentialAction: {
         '@type': 'SearchAction',
         target: {
@@ -105,7 +117,23 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
       },
     });
 
-    if (post) {
+    if (project) {
+      upsertJsonLd('builders-dex-jsonld', {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: project.name,
+        url,
+        image,
+        description: project.tagline || project.description,
+        applicationCategory: 'FinanceApplication',
+        operatingSystem: 'Web',
+        additionalProperty: {
+          '@type': 'PropertyValue',
+          name: 'Builder Score',
+          value: project.builderScore.overall,
+        },
+      });
+    } else if (post) {
       upsertJsonLd('builders-dex-jsonld', {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
@@ -113,6 +141,8 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
         datePublished: post.date,
         author: { '@type': 'Person', name: post.author },
         description: post.excerpt,
+        image: absoluteUrl(post.coverImage),
+        url,
         publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
         mainEntityOfPage: url,
       });
@@ -137,7 +167,7 @@ export default function Seo({ path, projectName, blogSlug }: Props) {
         },
       });
     }
-  }, [path, projectName, blogSlug]);
+  }, [path, project, projectName, blogSlug]);
 
   return null;
 }

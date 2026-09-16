@@ -1,47 +1,40 @@
 #!/bin/bash
 set -e
+export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
 
 echo "========================================="
 echo " Builder Passport - Devnet Deployment"
 echo "========================================="
 
-# Ensure PATH includes Solana CLI
-export PATH="/home/ubuntu/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
-
-# Set Solana cluster to devnet
 solana config set --url https://api.devnet.solana.com
 
-# Check balance
 BALANCE=$(solana balance 2>/dev/null || echo "0")
 echo "Current balance: $BALANCE"
 
-if [ "$BALANCE" == "0" ] || [ "$BALANCE" == "0 SOL" ]; then
-    echo "Requesting airdrop..."
-    solana airdrop 2 || echo "Airdrop may have failed or rate-limited - please fund your wallet manually"
-    sleep 2
-fi
-
-# Build the program
-echo "Building program..."
 cd "$(dirname "$0")/.."
-anchor build
 
-# Get program ID
+echo "Building SBF (explicit arch for cluster compatibility)..."
+# platform-tools may default to an SBPF version some validators reject;
+# v1 has been verified against current Devnet + local --clone-feature-set.
+(
+  cd programs/builder_passport
+  cargo-build-sbf --arch v1
+)
+
 PROGRAM_ID=$(solana address -k target/deploy/builder_passport-keypair.json)
 echo "Program ID: $PROGRAM_ID"
 
-# Deploy to devnet
 echo "Deploying to devnet..."
-anchor deploy --provider.cluster devnet
+solana program deploy target/deploy/builder_passport.so \
+  --program-id target/deploy/builder_passport-keypair.json \
+  --url https://api.devnet.solana.com
 
 echo ""
-echo "========================================="
-echo " Deployment Complete!"
-echo "========================================="
-echo "Program ID: $PROGRAM_ID"
-echo "Network: Devnet"
-echo "Explorer: https://explorer.solana.com/address/$PROGRAM_ID?cluster=devnet"
+echo "Sync committed IDL..."
+cp -f target/idl/builder_passport.json idl/builder_passport.json 2>/dev/null || true
+
 echo ""
-echo "Save this Program ID in your .env file:"
-echo "VITE_BUILDER_PASSPORT_PROGRAM_ID=$PROGRAM_ID"
+echo "Next: initialize Config PDA"
+echo "  ORACLE_PUBKEY=<pubkey> npx tsx programs/scripts/initialize-config.ts --cluster devnet"
+echo "Explorer: https://explorer.solana.com/address/$PROGRAM_ID?cluster=devnet"
 echo "========================================="

@@ -7,6 +7,7 @@ export const APP_ROUTES = [
   'apply',
   'launch',
   'launchpad',
+  'raise',
   'team',
   'blog',
   'terms',
@@ -40,11 +41,20 @@ export type AppRoute = (typeof APP_ROUTES)[number];
 
 export const APP_ROUTE_SET = new Set<string>(APP_ROUTES);
 
+/** Extra query/path state kept in the address bar */
+export type NavState = {
+  projectId?: string | null;
+  blogSlug?: string | null;
+  raiseId?: string | null;
+};
+
 /** Legacy route aliases that map to current routes */
 const ROUTE_ALIASES: Record<string, AppRoute> = {
   intelligence: 'ai',
   passport: 'profile',
   rankings: 'builders',
+  graph: 'builder-graph',
+  stories: 'builder-stories',
 };
 
 export function isAppRoute(path: string): path is AppRoute {
@@ -61,52 +71,133 @@ function resolveRoute(path: string): AppRoute | null {
 export function safeNavigate(
   path: string,
   setCurrentPath: (path: string) => void,
-  fallback: AppRoute = 'landing'
+  fallback: AppRoute = 'landing',
+  state?: NavState,
 ): void {
   if (isAppRoute(path)) {
     setCurrentPath(path);
-    syncUrlToPath(path);
+    syncUrlToPath(path, state);
     return;
   }
   console.warn(`[nav] unknown route "${path}" → ${fallback}`);
   setCurrentPath(fallback);
-  syncUrlToPath(fallback);
+  syncUrlToPath(fallback, state);
 }
 
-function syncUrlToPath(path: AppRoute): void {
+function readSearchParams(): URLSearchParams {
+  if (typeof window === 'undefined') return new URLSearchParams();
+  return new URLSearchParams(window.location.search);
+}
+
+/** Project id from `?id=` or `?project=` (share + legacy). */
+export function getProjectIdFromSearch(search?: string): string | null {
+  const q =
+    search != null
+      ? new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+      : readSearchParams();
+  const raw = (q.get('id') || q.get('project') || '').trim();
+  return raw || null;
+}
+
+export function getProjectIdFromUrl(): string | null {
+  return getProjectIdFromSearch();
+}
+
+export function getRaiseIdFromUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  const path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  if (path !== 'raise') return null;
+  return getProjectIdFromSearch();
+}
+
+export function getBlogSlugFromPathname(pathname?: string): string | null {
+  const raw =
+    pathname ?? (typeof window === 'undefined' ? '' : window.location.pathname);
+  const match = raw.replace(/\/$/, '').match(/^\/blog\/([^/?#]+)$/);
+  return match?.[1] ? decodeURIComponent(match[1]) : null;
+}
+
+export function getBlogSlugFromUrl(): string | null {
+  return getBlogSlugFromPathname();
+}
+
+/** Canonical story URL path used in the address bar and share links. */
+export function projectExplorePath(projectId: string): string {
+  return `/explore?id=${encodeURIComponent(projectId)}`;
+}
+
+export function syncUrlToPath(path: AppRoute, state?: NavState): void {
   if (typeof window === 'undefined') return;
   if (path === 'tg-vote') return;
-  
-  const url = path === 'landing' ? '/' : `/${path}`;
-  if (window.location.pathname !== url) {
-    window.history.pushState(null, '', url);
+
+  const next = hrefForRoute(path, {
+    projectId: state?.projectId ?? (path === 'project-detail' ? getProjectIdFromUrl() : null),
+    blogSlug: state?.blogSlug ?? (path === 'blog' ? getBlogSlugFromUrl() : null),
+    raiseId: state?.raiseId ?? (path === 'raise' ? getRaiseIdFromUrl() : null),
+  });
+
+  const current = `${window.location.pathname}${window.location.search}`;
+  if (current !== next) {
+    window.history.pushState(null, '', next);
   }
+}
+
+export function hrefForRoute(path: AppRoute, state?: NavState): string {
+  if (path === 'landing') return '/';
+  if (path === 'project-detail') {
+    const id = state?.projectId;
+    return id ? projectExplorePath(id) : '/explore';
+  }
+  if (path === 'raise') {
+    const id = state?.raiseId || state?.projectId;
+    return id ? `/raise?id=${encodeURIComponent(id)}` : '/raise';
+  }
+  if (path === 'blog' && state?.blogSlug) {
+    return `/blog/${encodeURIComponent(state.blogSlug)}`;
+  }
+  if (path === 'builder-graph') return '/graph';
+  if (path === 'builder-stories') return '/stories';
+  return `/${path}`;
 }
 
 export function getPathFromUrl(): string {
   if (typeof window === 'undefined') return 'landing';
-  
-  const path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+
+  const pathname = window.location.pathname;
+  const path = pathname.replace(/^\//, '').replace(/\/$/, '');
   const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
   const q = new URLSearchParams(window.location.search);
-  
-  if (window.location.pathname === '/tg' || hash === 'tg-vote' || q.get('app') === 'vote') {
+
+  if (pathname === '/tg' || hash === 'tg-vote' || q.get('app') === 'vote') {
     return 'tg-vote';
   }
-  
+
   if (window.Telegram?.WebApp?.initData) return 'tg-vote';
-  
+
   if (!path || path === 'index.html') return 'landing';
-  
+
+  const blogSlug = getBlogSlugFromPathname(pathname);
+  if (blogSlug) return 'blog';
+
+  const projectId = getProjectIdFromSearch();
+  if (path === 'explore' && projectId) {
+    return 'project-detail';
+  }
+
   const resolved = resolveRoute(path);
   if (resolved) {
-    // If this is an alias, redirect to the canonical URL
     if (path !== resolved && path in ROUTE_ALIASES) {
-      const canonicalUrl = resolved === 'landing' ? '/' : `/${resolved}`;
-      window.history.replaceState(null, '', canonicalUrl);
+      window.history.replaceState(null, '', hrefForRoute(resolved));
+    }
+    if (resolved === 'project-detail' && projectId) {
+      const canonical = projectExplorePath(projectId);
+      const current = `${window.location.pathname}${window.location.search}`;
+      if (current !== canonical) {
+        window.history.replaceState(null, '', canonical);
+      }
     }
     return resolved;
   }
-  
+
   return 'landing';
 }

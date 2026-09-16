@@ -1,3 +1,5 @@
+import { resolveTradeMint } from './curatedTokens';
+import { resolveBaseTradeAddress } from './crossChainRegistry';
 import { Project } from '../types';
 
 export type JourneyStepStatus = 'done' | 'current' | 'upcoming';
@@ -51,7 +53,8 @@ export type BuilderSeason = {
 export function journeyFor(project: Project): JourneyStep[] {
   const journey = project.journey.toLowerCase();
   const curated = project.curation.status === 'curated';
-  const tradeable = Boolean(project.mint) && curated;
+  const tradeable =
+    curated && Boolean(resolveTradeMint(project) || resolveBaseTradeAddress(project));
   const mainnet = /mainnet|revenue|launch/i.test(project.journey);
   const testnet = /testnet/i.test(project.journey) || (!mainnet && curated);
   const users = project.upvotes >= 100 || curated;
@@ -152,11 +155,11 @@ export const CURRENT_SEASON: BuilderSeason = {
 };
 
 export const FIRST_DISCOVERY_COPY = {
-  title: 'Welcome.',
+  title: 'You made it.',
   lines: [
-    'You are not here to chase pumps.',
-    'You are here to discover builders before the world does.',
-    "Let's find your first builder.",
+    'This is not another pump feed.',
+    'You are entering the reputation layer — Proof of Building™ first.',
+    'Pick one builder. Earn XP. Start your streak.',
   ],
   cta: 'Start First Discovery',
 } as const;

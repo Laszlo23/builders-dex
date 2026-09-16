@@ -4,6 +4,7 @@ import { Project } from '../types';
 import ScoreBars, { CurationBadges } from './ScoreBars';
 import DepthCard from './DepthCard';
 import { resolveTradeMint, getCuratedToken } from '../data/curatedTokens';
+import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
 import { proofOfBuildingFor } from '../lib/proofOfBuilding';
 import { reputationChipFor } from '../lib/reputationRules';
 import { ReputationChipBadge } from './ReputationUnlocksCard';
@@ -14,6 +15,7 @@ import CommunityTrendingSection from './CommunityTrendingSection';
 import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
 import { shareProject } from '../lib/shareHelper';
 import ShareSuccessToast from './ShareSuccessToast';
+import type { ShareActionResult } from './ShareCampaignView';
 
 interface ExploreViewProps {
   projects: Project[];
@@ -24,6 +26,7 @@ interface ExploreViewProps {
   onOpenStory: (projectId: string) => void;
   onDiscover?: (id: string) => void;
   tradeableMintSet: Set<string>;
+  onShareReward?: (channel?: string) => ShareActionResult | void;
 }
 
 export default function ExploreView({
@@ -35,6 +38,7 @@ export default function ExploreView({
   onOpenStory,
   onDiscover,
   tradeableMintSet,
+  onShareReward,
 }: ExploreViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<
@@ -45,6 +49,11 @@ export default function ExploreView({
   const [lane, setLane] = useState<'curated' | 'community'>('curated');
   const liveScores = useLiveScoreMap(projects.map((p) => p.id));
   const [showShareToast, setShowShareToast] = useState(false);
+  const [shareToastMeta, setShareToastMeta] = useState({
+    xp: 0,
+    remaining: 0,
+    capped: false,
+  });
 
   const scoreFor = (p: Project) =>
     liveScores[p.id]?.overall ?? p.builderScore.overall;
@@ -88,13 +97,25 @@ export default function ExploreView({
     e.stopPropagation();
     const success = await shareProject(project);
     if (success) {
+      const result = onShareReward?.();
+      setShareToastMeta({
+        xp: result?.xp ?? 0,
+        remaining: result?.remaining ?? 0,
+        capped: result?.capped ?? false,
+      });
       setShowShareToast(true);
     }
   };
 
   return (
     <>
-      <ShareSuccessToast show={showShareToast} onDismiss={() => setShowShareToast(false)} />
+      <ShareSuccessToast
+        show={showShareToast}
+        onDismiss={() => setShowShareToast(false)}
+        xp={shareToastMeta.xp}
+        remaining={shareToastMeta.remaining}
+        capped={shareToastMeta.capped}
+      />
       <div className="relative mx-auto max-w-7xl px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
       <div className="relative flex flex-col gap-4 border-b border-white/[0.08] pb-8 md:flex-row md:items-end md:justify-between">
@@ -400,20 +421,24 @@ className="min-h-[44px] rounded-lg border border-white/10 bg-white/[0.03] px-3 p
                     {(() => {
                       if (isRejected) return null;
                       const tradeMint = resolveTradeMint(p, tradeableMintSet);
-                      if (!tradeMint) {
+                      const baseAddr = resolveBaseTradeAddress(p);
+                      if (!tradeMint && !baseAddr) {
                         return (
                           <span className="text-[10px] italic text-steel" title="No tradeable token linked or approved">
                             No trade
                           </span>
                         );
                       }
-                      const tradeSymbol = getCuratedToken(tradeMint)?.symbol || p.ticker;
+                      const tradeSymbol = tradeMint
+                        ? getCuratedToken(tradeMint)?.symbol || p.ticker
+                        : p.ticker;
                       return (
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onTrade(tradeMint);
+                            if (tradeMint) onTrade(tradeMint);
+                            else if (baseAddr) openBaseTrade(baseAddr);
                           }}
 className="min-h-[44px] rounded-lg bg-accent px-4 py-2 text-xs font-bold text-ink transition hover:bg-accent-bright active:scale-95"                        >
                           Trade {tradeSymbol}

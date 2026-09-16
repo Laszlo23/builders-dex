@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Copy, Check, Download, Share2, Sparkles } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Copy, Check, Download, Share2, Sparkles, Zap, ExternalLink } from 'lucide-react';
 import OptimizedImage from './OptimizedImage';
 import {
   CAMPAIGN_ASSETS,
@@ -12,9 +12,18 @@ import {
   CampaignChannel,
   CampaignHook,
 } from '../data/campaign';
-import { SITE_URL } from '../lib/seo';
+import {
+  campaignShareUrl,
+  openXIntent,
+  shareNativePayload,
+} from '../lib/shareHelper';
+import {
+  getDailyShareStatus,
+  SHARE_MAX_PER_DAY,
+  SHARE_XP_PER_PUSH,
+} from '../lib/dailyShareRewards';
 
-const SHARE_URL = `${SITE_URL}/`;
+export type ShareActionResult = { xp: number; remaining: number; capped: boolean };
 
 const HOOKS: Array<CampaignHook | 'All'> = [
   'All',
@@ -38,12 +47,18 @@ const CHANNELS: Array<CampaignChannel | 'All'> = [
 export default function ShareCampaignView({
   onShareAction,
 }: {
-  onShareAction?: (channel?: string) => void;
+  onShareAction?: (channel?: string) => ShareActionResult | void;
 }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [hookFilter, setHookFilter] = useState<(typeof HOOKS)[number]>('All');
   const [channelFilter, setChannelFilter] = useState<(typeof CHANNELS)[number]>('All');
   const [weekFilter, setWeekFilter] = useState<number | 'All'>('All');
+  const [energy, setEnergy] = useState(() => getDailyShareStatus());
+  const [lastHit, setLastHit] = useState<{ xp: number } | null>(null);
+
+  useEffect(() => {
+    setEnergy(getDailyShareStatus());
+  }, []);
 
   const weeks = useMemo(
     () =>
@@ -63,11 +78,20 @@ export default function ShareCampaignView({
     });
   }, [hookFilter, channelFilter, weekFilter]);
 
+  const afterShare = (channel?: string) => {
+    const result = onShareAction?.(channel);
+    setEnergy(getDailyShareStatus());
+    if (result && result.xp > 0) {
+      setLastHit({ xp: result.xp });
+      window.setTimeout(() => setLastHit(null), 2200);
+    }
+  };
+
   const copyText = async (id: string, text: string, channel?: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(`${text}\n\n${campaignShareUrl('copy')}`);
       setCopiedId(id);
-      onShareAction?.(channel);
+      afterShare(channel);
       window.setTimeout(() => setCopiedId(null), 1800);
     } catch {
       alert('Could not copy — select the text manually.');
@@ -75,17 +99,20 @@ export default function ShareCampaignView({
   };
 
   const shareNative = async (title: string, text: string, channel?: string) => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, text, url: SHARE_URL });
-        onShareAction?.(channel);
-      } catch {
-        /* cancelled */
-      }
-    } else {
-      void copyText('native', `${text}\n\n${SHARE_URL}`, channel);
-    }
+    const ok = await shareNativePayload({
+      title,
+      text,
+      url: campaignShareUrl('native'),
+    });
+    if (ok) afterShare(channel);
   };
+
+  const shareX = (text: string) => {
+    openXIntent(text, campaignShareUrl('x'));
+    afterShare('X / Twitter');
+  };
+
+  const energyPct = Math.round((energy.remaining / SHARE_MAX_PER_DAY) * 100);
 
   return (
     <div className="relative overflow-hidden text-white">
@@ -98,21 +125,50 @@ export default function ShareCampaignView({
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-2xl">
             <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-accent">
-              Social campaign kit
+              Signal kit · future feed
             </p>
             <h1 className="font-display mt-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Unruggable energy
+              Push a button. <span className="text-accent">Earn the pulse.</span>
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-steel sm:text-base">
-              Meme drop + full share kit. Funny doors into the same standard: we DYOR so you
-              don&apos;t wake up to zero. {CAMPAIGN_TAGLINE}
+              Each copy / share grants +{SHARE_XP_PER_PUSH} XP — max {SHARE_MAX_PER_DAY}/day. Meme
+              drop + full kit. {CAMPAIGN_TAGLINE}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-md">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent">Cadence</p>
-            <p className="mt-1 max-w-[220px] text-xs leading-relaxed text-white/70">
-              {CAMPAIGN_SCHEDULE_NOTE}
-            </p>
+          <div className="w-full max-w-xs space-y-3">
+            <div className="rounded-2xl border border-accent/30 bg-ink/70 px-4 py-3 backdrop-blur-md">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+                  <Zap className="mb-0.5 inline h-3 w-3" /> Daily signal energy
+                </p>
+                <p className="font-mono text-xs text-white">
+                  {energy.remaining}/{SHARE_MAX_PER_DAY}
+                </p>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-accent transition-all duration-500"
+                  style={{ width: `${energyPct}%` }}
+                />
+              </div>
+              {lastHit ? (
+                <p className="mt-2 animate-pulse font-display text-sm font-bold text-accent">
+                  +{lastHit.xp} XP locked in
+                </p>
+              ) : (
+                <p className="mt-2 font-mono text-[10px] text-steel">
+                  {energy.remaining === 0
+                    ? 'Energy depleted · resets UTC midnight'
+                    : 'Tap copy / share on any post'}
+                </p>
+              )}
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-md">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent">Cadence</p>
+              <p className="mt-1 max-w-[220px] text-xs leading-relaxed text-white/70">
+                {CAMPAIGN_SCHEDULE_NOTE}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -360,7 +416,7 @@ export default function ShareCampaignView({
 
           <div className="mt-8 space-y-5">
             {posts.map((post) => {
-              const full = `${post.copy}\n\n${post.hashtags}\n${SHARE_URL}`;
+              const full = `${post.copy}\n\n${post.hashtags}`;
               return (
                 <article
                   key={post.id}
@@ -417,6 +473,14 @@ export default function ShareCampaignView({
                       >
                         <Share2 className="h-3.5 w-3.5" />
                         Share
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => shareX(full)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Post on X
                       </button>
                       <a
                         href={post.asset}

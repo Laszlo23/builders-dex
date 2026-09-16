@@ -30,10 +30,13 @@ export default function ProofOfBuildingCard({ proof }: { proof: ProofOfBuilding 
           </p>
         </div>
         <p className="font-mono text-[11px] text-steel">
-          {verifiedCount}/{proof.items.length} signals · Last verified{' '}
-          <span className={fresh ? 'text-accent' : 'text-accent/90'}>{proof.lastVerified}</span>
+          {verifiedCount}/{proof.items.length} signals
         </p>
       </div>
+      <p className="mt-2 font-mono text-[11px] text-steel">
+        Last verified:{' '}
+        <span className={fresh ? 'text-accent' : 'text-amber-200/90'}>{proof.lastVerified}</span>
+      </p>
 
       <ul className="mt-6 space-y-3">
         {proof.items.map((item) => (

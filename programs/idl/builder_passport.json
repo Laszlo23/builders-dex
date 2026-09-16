@@ -1,0 +1,457 @@
+{
+  "address": "7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD",
+  "metadata": {
+    "name": "builder_passport",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Builder Passport and Score on-chain program"
+  },
+  "instructions": [
+    {
+      "name": "close",
+      "docs": [
+        "Close a Builder Passport PDA (optional)"
+      ],
+      "discriminator": [
+        98,
+        165,
+        201,
+        177,
+        108,
+        65,
+        206,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "passport",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  105,
+                  108,
+                  100,
+                  101,
+                  114,
+                  45,
+                  112,
+                  97,
+                  115,
+                  115,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Initialize a new Builder Passport PDA for a wallet"
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "passport",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  105,
+                  108,
+                  100,
+                  101,
+                  114,
+                  45,
+                  112,
+                  97,
+                  115,
+                  115,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_config",
+      "docs": [
+        "Initialize the global Config PDA (one-time, deployer only)"
+      ],
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "oracle",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_oracle",
+      "docs": [
+        "Update the oracle pubkey (config authority only)"
+      ],
+      "discriminator": [
+        112,
+        41,
+        209,
+        18,
+        248,
+        226,
+        252,
+        188
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_oracle",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_score",
+      "docs": [
+        "Update the Builder Score (oracle only)"
+      ],
+      "discriminator": [
+        188,
+        226,
+        238,
+        41,
+        14,
+        241,
+        105,
+        215
+      ],
+      "accounts": [
+        {
+          "name": "passport",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  105,
+                  108,
+                  100,
+                  101,
+                  114,
+                  45,
+                  112,
+                  97,
+                  115,
+                  115,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "passport.authority",
+                "account": "BuilderPassport"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracle",
+          "docs": [
+            "Oracle signer (must match config.oracle)"
+          ],
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_score",
+          "type": "u16"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BuilderPassport",
+      "discriminator": [
+        25,
+        91,
+        195,
+        221,
+        164,
+        8,
+        96,
+        73
+      ]
+    },
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UnauthorizedUpdate",
+      "msg": "Unauthorized: Only oracle can update scores"
+    },
+    {
+      "code": 6001,
+      "name": "UnauthorizedClose",
+      "msg": "Unauthorized: Only passport owner can close"
+    },
+    {
+      "code": 6002,
+      "name": "UnauthorizedConfigUpdate",
+      "msg": "Unauthorized: Only config authority can update oracle"
+    }
+  ],
+  "types": [
+    {
+      "name": "BuilderLevel",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Rookie"
+          },
+          {
+            "name": "Builder"
+          },
+          {
+            "name": "Advanced"
+          },
+          {
+            "name": "Expert"
+          },
+          {
+            "name": "Genesis"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BuilderPassport",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "The wallet that owns this passport"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "score",
+            "docs": [
+              "Builder Score (0-10000)"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "level",
+            "docs": [
+              "Builder level/tier"
+            ],
+            "type": {
+              "defined": {
+                "name": "BuilderLevel"
+              }
+            }
+          },
+          {
+            "name": "last_updated",
+            "docs": [
+              "Last update timestamp"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "PDA bump seed"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Program authority (can update oracle)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "oracle",
+            "docs": [
+              "Oracle pubkey (can update all passport scores)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "PDA bump seed"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

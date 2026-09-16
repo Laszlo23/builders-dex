@@ -269,6 +269,23 @@ Ask like a researcher. I will not invent projects.`,
           </div>
           <div className="rounded-3xl border border-accent/20 bg-accent/5 p-5">
             <p className="font-mono text-[10px] uppercase tracking-wider text-accent">
+              Builder Intelligence Daily™
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-steel">
+              Morning habit lives in Terminal War Room — live Radar movers, sector pulse, watchlist.
+            </p>
+            {onOpenTerminal && (
+              <button
+                type="button"
+                onClick={onOpenTerminal}
+                className="mt-3 text-xs font-semibold text-accent hover:underline"
+              >
+                Open today&apos;s brief →
+              </button>
+            )}
+          </div>
+          <div className="rounded-3xl border border-accent/20 bg-accent/5 p-5">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-accent">
               Loop
             </p>
             <p className="mt-2 text-xs leading-relaxed text-steel">

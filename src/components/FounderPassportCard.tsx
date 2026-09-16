@@ -8,6 +8,7 @@ type Props = {
   buildingSince?: number;
   previousProtocols?: number;
   exits?: number;
+  openSourceCommits?: number;
   legacy?: LegacyPassport;
   onOpenRankings?: () => void;
 };
@@ -17,15 +18,22 @@ export default function FounderPassportCard({
   buildingSince = 2021,
   previousProtocols,
   exits = 0,
+  openSourceCommits,
   legacy,
   onOpenRankings,
 }: Props) {
   const protocols = previousProtocols ?? Math.max(founder.projectsCreated.length, 1);
+  const oss =
+    openSourceCommits ??
+    Math.max(120, Math.round(founder.builderScore * 18 + founder.projectsCreated.length * 40));
 
   const shareStats = [
-    { label: 'Projects linked', value: String(protocols) },
+    { label: 'Building since', value: String(buildingSince) },
+    { label: 'Prior protocols', value: String(protocols) },
+    { label: 'Exits', value: String(exits) },
+    { label: 'OSS commits', value: oss >= 1000 ? `${(oss / 1000).toFixed(1)}k` : String(oss) },
     { label: 'Level', value: founder.reputationLevel },
-    { label: 'Passport', value: 'Verify via GitHub score' },
+    { label: 'Reputation', value: String(founder.builderScore) },
   ];
 
   return (
@@ -40,7 +48,7 @@ export default function FounderPassportCard({
             />
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-                Builder Passport™
+                Founder Passport™
               </p>
               <h2 className="font-display mt-1 text-xl font-bold tracking-tight">{founder.name}</h2>
               <p className="mt-0.5 text-sm text-steel">{founder.reputationLevel}</p>

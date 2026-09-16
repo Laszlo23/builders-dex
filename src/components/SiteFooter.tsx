@@ -26,7 +26,7 @@ import {
   ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
-import { BRAND_SOCIALS, CULTURE_NODE_X_POST } from '../data/brand';
+import { BRAND_SOCIALS, BRAND_SUPPORT, BRAND_TAGLINE, CULTURE_NODE_X_POST } from '../data/brand';
 
 type FooterLink = { id: string; label: string; icon: LucideIcon };
 
@@ -101,8 +101,10 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
               </p>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-steel">
-              Every legendary protocol starts as an unknown builder. Build something worthy of being
-              featured here.
+              {BRAND_TAGLINE}
+            </p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-steel/80">
+              {BRAND_SUPPORT}
             </p>
             <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1.5 font-mono text-[10px] text-accent">
               <span className="relative flex h-1.5 w-1.5">

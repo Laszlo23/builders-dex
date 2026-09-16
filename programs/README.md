@@ -2,6 +2,8 @@
 
 On-chain Builder Score and Passport system for Builders DEX.
 
+Companion program **`builder_raise`** (`ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB`) issues inspection-gated share certificates and a win-claim vault. Devnet only until `VITE_RAISE_MAINNET_MINT` and a funded deploy wallet. See `programs/programs/builder_raise` and `scripts/e2e-devnet-raise.ts`.
+
 ## Overview
 
 The Builder Passport program anchors Builder Score™ and Passport™ data on-chain using Solana smart contracts built with Anchor.

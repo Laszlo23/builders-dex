@@ -147,6 +147,8 @@ export interface Project {
   category: 'AI + Web3' | 'DeFi' | 'Infrastructure' | 'Creator Economy';
   chain: 'Polygon' | 'Base' | 'Solana' | 'Ethereum';
   mint?: string;
+  /** Canonical Base ERC-20 when chain is Base (Aura OS AURA, etc.) */
+  baseTokenAddress?: string;
   rating: number;
   upvotes: number;
   githubRepo: string;
@@ -357,4 +359,49 @@ export interface TheStandard {
   earnedRecognition: number;
   enteredNetwork: number;
   approvedForTrading: number;
+}
+
+export type ShareRaiseStatus = 'draft' | 'live' | 'filled' | 'closed' | 'cancelled';
+
+export interface ShareRaiseInspection {
+  applicationId: string;
+  builderScore: number;
+  pobVerified: boolean;
+  attestedAt: string | null;
+  tx: string | null;
+}
+
+/** Inspection-gated share-certificate raise (source of truth vs Project.raised) */
+export interface ShareRaise {
+  id: string;
+  projectId: string;
+  projectSeedHex: string;
+  raisePda: string | null;
+  collection: string | null;
+  founderWallet: string;
+  status: ShareRaiseStatus;
+  priceLamports: number;
+  shareSupply: number;
+  sharesMinted: number;
+  holderPoolBps: number;
+  founderRetainedBps: number;
+  goalLamports: number;
+  raisedLamports: number;
+  vaultMint: 'SOL';
+  inspection: ShareRaiseInspection;
+  demo?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShareCertificateView {
+  raiseId: string;
+  projectId: string;
+  projectName: string;
+  serial: number;
+  shareSupply: number;
+  holderPoolBps: number;
+  certificatePda: string;
+  claimableLamports: number;
+  raisePda: string;
 }

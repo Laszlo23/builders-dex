@@ -1,3 +1,14 @@
+export type JupiterRouteHop = {
+  percent?: number;
+  swapInfo?: {
+    label?: string;
+    ammKey?: string;
+    inputMint?: string;
+    outputMint?: string;
+  };
+  label?: string;
+};
+
 export type OrderResponse = {
   transaction: string | null;
   requestId: string;
@@ -7,7 +18,7 @@ export type OrderResponse = {
   swapType?: string;
   slippageBps?: number;
   priceImpactPct?: string;
-  routePlan?: unknown[];
+  routePlan?: JupiterRouteHop[];
   router?: string;
   mode?: string;
   feeBps?: number;
@@ -15,6 +26,18 @@ export type OrderResponse = {
   errorCode?: number;
   errorMessage?: string;
 };
+
+export function venueLabelsFromRoute(routePlan: JupiterRouteHop[] | undefined): string[] {
+  if (!Array.isArray(routePlan)) return [];
+  const labels: string[] = [];
+  for (const hop of routePlan) {
+    const label = hop?.swapInfo?.label || hop?.label;
+    if (typeof label === 'string' && label && !labels.includes(label)) {
+      labels.push(label);
+    }
+  }
+  return labels;
+}
 
 export type ExecuteResponse = {
   status: 'Success' | 'Failed';

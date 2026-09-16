@@ -29,7 +29,9 @@ import {
   formatUiAmount,
   fromRawAmount,
   solscanTxUrl,
+  venueLabelsFromRoute,
 } from '../lib/jupiter';
+import { useOnchainBalances } from '../hooks/useOnchainBalances';
 import { SwapTransaction } from '../types';
 import TradeShareModal from './TradeShareModal';
 
@@ -125,6 +127,7 @@ export default function SwapView({
     signature?: string;
   } | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [balanceTick, setBalanceTick] = useState(0);
   const [pairReady, setPairReady] = useState(false);
   const [solanaHealth, setSolanaHealth] = useState<{
     jupiterConfigured: boolean;
@@ -208,6 +211,12 @@ export default function SwapView({
     };
   }, [pairReady, tradeableTokens]);
 
+  const watchedMints = useMemo(
+    () => tradeableTokens.map((t) => t.mint),
+    [tradeableTokens],
+  );
+  const { balances, loading: balancesLoading } = useOnchainBalances(watchedMints, balanceTick);
+
   const inputToken = getCuratedToken(inputMint);
   const outputToken = getCuratedToken(outputMint);
   const pairValid =
@@ -261,6 +270,30 @@ export default function SwapView({
   }, [fromAmount, outAmountUi, inputToken, outputToken]);
 
   const filteredTokens = filterCuratedTokens(tokenQuery, tradeableTokens);
+
+  const inputBalance = balances[inputMint] ?? 0;
+  const outputBalance = balances[outputMint] ?? 0;
+  const fromAmountNum = parseFloat(fromAmount);
+  const insufficient =
+    connected &&
+    Number.isFinite(fromAmountNum) &&
+    fromAmountNum > 0 &&
+    fromAmountNum > inputBalance + 1e-12;
+  const routeVenues = venueLabelsFromRoute(order?.routePlan);
+
+  const applyMax = () => {
+    if (!inputToken) return;
+    let max = inputBalance;
+    if (inputMint === SOL_MINT) {
+      max = Math.max(0, inputBalance - 0.005);
+    }
+    if (max <= 0) {
+      setFromAmount('');
+      return;
+    }
+    const decimals = Math.min(inputToken.decimals, 9);
+    setFromAmount(max.toFixed(decimals).replace(/\.?0+$/, '') || String(max));
+  };
 
   const invertTokens = () => {
     setInputMint(outputMint);
@@ -354,6 +387,7 @@ export default function SwapView({
         signature: result.signature,
       });
       setShareOpen(true);
+      setBalanceTick((n) => n + 1);
     } catch (err: unknown) {
       setStatus('error');
       setStatusMessage(err instanceof Error ? err.message : 'Swap failed');
@@ -368,6 +402,7 @@ export default function SwapView({
     if (quoting) return 'Quoting…';
     if (status === 'confirming') return 'Confirming…';
     if (!fromAmount) return 'Enter amount';
+    if (insufficient) return 'Insufficient balance';
     if (quoteError) return 'Quote unavailable';
     if (!order?.transaction) return 'Get quote';
     return 'Swap';
@@ -382,6 +417,7 @@ export default function SwapView({
       (quoting ||
         status === 'confirming' ||
         !fromAmount ||
+        insufficient ||
         Boolean(quoteError) ||
         !order?.transaction));
 
@@ -497,11 +533,22 @@ export default function SwapView({
           <div className="rounded-xl border border-white/10 bg-ink/60 p-3.5">
             <div className="mb-2 flex justify-between text-xs text-steel">
               <span>You pay</span>
-              {usdPrices[inputMint] != null && fromAmount && (
-                <span className="font-mono">
-                  ≈ ${(parseFloat(fromAmount) * usdPrices[inputMint]).toFixed(2)}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {usdPrices[inputMint] != null && fromAmount && (
+                  <span className="font-mono">
+                    ≈ ${(parseFloat(fromAmount) * usdPrices[inputMint]).toFixed(2)}
+                  </span>
+                )}
+                {connected && (
+                  <button
+                    type="button"
+                    onClick={applyMax}
+                    className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-accent hover:bg-accent/20"
+                  >
+                    Max
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -521,6 +568,13 @@ export default function SwapView({
                 <span className="text-sm font-semibold">{inputToken.symbol}</span>
               </button>
             </div>
+            {connected && (
+              <p className="mt-2 font-mono text-[10px] text-steel">
+                Balance{' '}
+                {balancesLoading ? '…' : formatUiAmount(inputBalance, 6)} {inputToken.symbol}
+                {insufficient && <span className="ml-2 text-accent">Insufficient</span>}
+              </p>
+            )}
           </div>
 
           <div className="relative z-10 -my-2.5 flex justify-center">
@@ -552,6 +606,12 @@ export default function SwapView({
                 <span className="text-sm font-semibold">{outputToken.symbol}</span>
               </button>
             </div>
+            {connected && (
+              <p className="mt-2 font-mono text-[10px] text-steel">
+                Balance {balancesLoading ? '…' : formatUiAmount(outputBalance, 6)}{' '}
+                {outputToken.symbol}
+              </p>
+            )}
           </div>
 
           <div className="mt-3 space-y-1 font-mono text-[11px] text-steel">
@@ -563,8 +623,21 @@ export default function SwapView({
             )}
             {order?.router && (
               <div className="flex justify-between">
-                <span>Route</span>
+                <span>Router</span>
                 <span className="text-white/70">{order.router}</span>
+              </div>
+            )}
+            {routeVenues.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="mr-1">Venues</span>
+                {routeVenues.map((venue) => (
+                  <span
+                    key={venue}
+                    className="rounded-full border border-accent/25 bg-accent/10 px-2 py-0.5 text-[10px] text-accent"
+                  >
+                    {venue}
+                  </span>
+                ))}
               </div>
             )}
           </div>
@@ -722,11 +795,18 @@ export default function SwapView({
                       <div className="text-sm font-semibold">{token.symbol}</div>
                       <div className="truncate font-mono text-[10px] text-steel">{token.name}</div>
                     </div>
-                    {usdPrices[token.mint] != null && (
-                      <span className="font-mono text-xs text-steel">
-                        ${usdPrices[token.mint].toFixed(usdPrices[token.mint] < 1 ? 4 : 2)}
-                      </span>
-                    )}
+                    <div className="text-right">
+                      {connected && (
+                        <div className="font-mono text-[10px] text-white/80">
+                          {formatUiAmount(balances[token.mint] ?? 0, 4)}
+                        </div>
+                      )}
+                      {usdPrices[token.mint] != null && (
+                        <span className="font-mono text-xs text-steel">
+                          ${usdPrices[token.mint].toFixed(usdPrices[token.mint] < 1 ? 4 : 2)}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 ))}
                 {filteredTokens.length === 0 && (

@@ -28,6 +28,8 @@ import ReputationUnlocksCard from './ReputationUnlocksCard';
 import OnChainResumeCard from './OnChainResumeCard';
 import ReputationLeaderboard from './ReputationLeaderboard';
 import { USER_LEGACY_DEFAULT } from '../data/builderNetwork';
+import WalletLinkCard from './WalletLinkCard';
+import ShareCertificatesCard from './ShareCertificatesCard';
 import {
   PASSPORT_DEPLOYED,
   initializeBuilderPassport,
@@ -210,8 +212,15 @@ export default function ProfileView({
       return;
     }
     
-    if (network !== 'devnet') {
-      alert('Switch to Devnet to mint your Builder Passport');
+    const mainnetMintEnabled =
+      import.meta.env.VITE_PASSPORT_MAINNET_MINT === 'true' ||
+      import.meta.env.VITE_PASSPORT_MAINNET_MINT === '1';
+    if (network === 'mainnet' && !mainnetMintEnabled) {
+      alert('Mainnet Passport mint is gated. Set VITE_PASSPORT_MAINNET_MINT=true after Config PDA init.');
+      return;
+    }
+    if (network !== 'devnet' && network !== 'mainnet') {
+      alert('Switch to Devnet or Mainnet to mint your Builder Passport');
       return;
     }
     
@@ -240,7 +249,13 @@ export default function ProfileView({
   const fieldClass =
     'w-full rounded-xl border border-white/12 bg-ink/80 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-steel/70 focus:border-accent/50 focus:ring-1 focus:ring-accent/20';
 
-  const showPassportMint = PASSPORT_DEPLOYED && network === 'devnet' && wallet.connected;
+  const mainnetMintEnabled =
+    import.meta.env.VITE_PASSPORT_MAINNET_MINT === 'true' ||
+    import.meta.env.VITE_PASSPORT_MAINNET_MINT === '1';
+  const showPassportMint =
+    PASSPORT_DEPLOYED &&
+    wallet.connected &&
+    (network === 'devnet' || (network === 'mainnet' && mainnetMintEnabled));
   const explorerUrl = publicKey ? getPassportExplorerUrl(publicKey, network) : null;
 
   return (
@@ -251,9 +266,17 @@ export default function ProfileView({
         </div>
       )}
       
-      {PASSPORT_DEPLOYED && network === 'mainnet' && (
+      {PASSPORT_DEPLOYED && network === 'mainnet' && !mainnetMintEnabled && (
         <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
-          <strong className="font-semibold">On-chain Passport (devnet).</strong> Program <code className="text-[10px]">7MWC…QnD</code> is live on Solana devnet. Switch to Devnet to mint.
+          <strong className="font-semibold">Mainnet Passport canary.</strong> After program deploy +{' '}
+          <code className="text-[10px]">initialize_config</code>, set{' '}
+          <code className="text-[10px]">VITE_PASSPORT_MAINNET_MINT=true</code>. Until then use Devnet.
+        </div>
+      )}
+      {PASSPORT_DEPLOYED && network === 'mainnet' && mainnetMintEnabled && (
+        <div className="mb-4 rounded-2xl border border-emerald-400/25 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-100/90">
+          <strong className="font-semibold">Mainnet mint enabled.</strong> Gas required · oracle needs paid RPC +{' '}
+          <code className="text-[10px]">PASSPORT_ORACLE_SECRET_KEY</code>.
         </div>
       )}
       
@@ -336,7 +359,7 @@ export default function ProfileView({
               <p className="mt-1 max-w-md text-xs text-steel">
                 {onChainPassport
                   ? `Level ${onChainPassport.level} · Score ${onChainPassport.score}`
-                  : 'Initialize your on-chain Builder Passport PDA on Solana Devnet'}
+                  : 'Initialize your on-chain Builder Passport PDA on Solana'}
               </p>
             </div>
             {!onChainPassport && !passportLoading && (
@@ -425,13 +448,16 @@ export default function ProfileView({
             </div>
           )}
           
-          {wallet.connected && network !== 'devnet' && (
+          {wallet.connected && network === 'mainnet' && !mainnetMintEnabled && (
             <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs text-amber-300">
-              Switch to Devnet in the navbar to mint your passport
+              Switch to Devnet to mint, or enable mainnet canary with VITE_PASSPORT_MAINNET_MINT=true
             </div>
           )}
         </section>
       )}
+
+      <WalletLinkCard />
+      <ShareCertificatesCard />
 
       <div className="pulse-card mt-8 overflow-hidden rounded-3xl border border-accent/35 bg-gradient-to-br from-accent/15 via-surface to-ink">
         <div className="border-b border-white/10 px-6 py-4 sm:px-8">

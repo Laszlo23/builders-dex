@@ -20,8 +20,22 @@ export const WIF_MINT = 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm';
 export const RAY_MINT = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R';
 
 /**
+ * Bridged/wrapped Aura OS AURA on Solana. Canonical token is Base
+ * `0xDb1E6D4FaB43c8cb5871D32D41df00ea34350723`. Only registered here when
+ * AURA_SOLANA_MINT is set after a confirmed Base↔Solana Bridge wrap.
+ */
+export function resolveAuraSolanaMint(
+  env: Record<string, string | undefined> = typeof process !== 'undefined' ? process.env : {},
+): string | null {
+  const raw = env.AURA_SOLANA_MINT?.trim() || env.VITE_AURA_SOLANA_MINT?.trim();
+  return raw && raw.length >= 32 ? raw : null;
+}
+
+/**
  * Full catalog of coins that *can* be enabled for trading.
  * Only tokens with TRADEABLE_<envKey>=true in .env are actually tradeable.
+ * Official default pool gate: SOL / USDC / USDT / JUP.
+ * Do not set project.mint unless it matches a catalog mint; AURA stays env-gated.
  */
 export const TOKEN_CATALOG: CuratedToken[] = [
   {
@@ -86,6 +100,19 @@ export const TOKEN_CATALOG: CuratedToken[] = [
       'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R/logo.png',
   },
 ];
+
+const auraMint = resolveAuraSolanaMint();
+if (auraMint) {
+  TOKEN_CATALOG.push({
+    mint: auraMint,
+    symbol: 'AURA',
+    name: 'Aura OS (bridged)',
+    decimals: 18,
+    envKey: 'AURA',
+    projectId: 'p5',
+    logoURI: '/projects/hypersphere.webp',
+  });
+}
 
 /** @deprecated use TOKEN_CATALOG + getTradeableTokens */
 export const CURATED_TOKENS = TOKEN_CATALOG;

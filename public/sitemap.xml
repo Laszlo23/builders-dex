@@ -36,7 +36,17 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dex.buildingcultureid.space/passport</loc>
+    <loc>https://dex.buildingcultureid.space/raise</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/profile</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/ai</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -47,21 +57,6 @@
   </url>
   <url>
     <loc>https://dex.buildingcultureid.space/dao</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://dex.buildingcultureid.space/intelligence</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://dex.buildingcultureid.space/graph</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://dex.buildingcultureid.space/stories</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -81,6 +76,16 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://dex.buildingcultureid.space/mission</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://dex.buildingcultureid.space/vision</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
@@ -96,8 +101,28 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://dex.buildingcultureid.space/story</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://dex.buildingcultureid.space/investor</loc>
     <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/graph</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/stories</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
@@ -107,6 +132,11 @@
   </url>
   <url>
     <loc>https://dex.buildingcultureid.space/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/imprint</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -124,5 +154,50 @@
     <loc>https://dex.buildingcultureid.space/feedback</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/explore?id=p1</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/explore?id=p2</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/explore?id=p3</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/explore?id=p4</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/explore?id=p5</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/blog/reputation-layer-of-web3</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/blog/proof-of-building</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/blog/builder-scouts-and-genesis-radar</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/blog/building-culture-meets-builders-dex</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

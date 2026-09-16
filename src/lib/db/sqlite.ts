@@ -232,6 +232,68 @@ function migrate(database: Database.Database): void {
       name: '008_vote_cooldown_repeatable',
       sql: `SELECT 1;`,
     },
+    {
+      name: '009_oracle_caps_wallet_links',
+      sql: `
+        CREATE TABLE IF NOT EXISTS oracle_scout_bumps (
+          wallet TEXT NOT NULL,
+          day_key TEXT NOT NULL,
+          count INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          PRIMARY KEY (wallet, day_key)
+        );
+
+        CREATE TABLE IF NOT EXISTS oracle_application_bumps (
+          wallet TEXT NOT NULL,
+          application_id TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          PRIMARY KEY (wallet, application_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS wallet_links (
+          solana_wallet TEXT NOT NULL PRIMARY KEY,
+          base_wallet TEXT NOT NULL,
+          sol_sig TEXT,
+          base_sig TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_wallet_links_base ON wallet_links(base_wallet);
+      `,
+    },
+    {
+      name: '010_share_raises',
+      sql: `
+        CREATE TABLE IF NOT EXISTS share_raises (
+          id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          raise_pda TEXT,
+          collection TEXT,
+          founder_wallet TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'draft',
+          price_lamports INTEGER NOT NULL,
+          share_supply INTEGER NOT NULL,
+          shares_minted INTEGER NOT NULL DEFAULT 0,
+          holder_pool_bps INTEGER NOT NULL,
+          founder_retained_bps INTEGER NOT NULL,
+          goal_lamports INTEGER NOT NULL,
+          raised_lamports INTEGER NOT NULL DEFAULT 0,
+          vault_mint TEXT NOT NULL DEFAULT 'SOL',
+          application_id TEXT NOT NULL DEFAULT '',
+          builder_score INTEGER NOT NULL DEFAULT 0,
+          pob_verified INTEGER NOT NULL DEFAULT 0,
+          attested_at TEXT,
+          attest_tx TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_share_raises_project ON share_raises(project_id);
+        CREATE INDEX IF NOT EXISTS idx_share_raises_status ON share_raises(status);
+        CREATE INDEX IF NOT EXISTS idx_share_raises_founder ON share_raises(founder_wallet);
+      `,
+    },
   ];
 
   const mark = database.prepare(

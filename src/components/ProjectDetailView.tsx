@@ -4,6 +4,7 @@ import {
   Coins,
   Layers,
   Share2,
+  ExternalLink,
   HelpCircle,
   ArrowLeft,
   Send,
@@ -13,19 +14,22 @@ import {
   Calendar,
 } from 'lucide-react';
 import { recordDiscovery } from '../lib/discoveryStreak';
-import { shareProject } from '../lib/shareHelper';
+import { shareProject, shareProjectOnX } from '../lib/shareHelper';
 import ConfettiEffect from './ConfettiEffect';
 import DiscoveryStreakToast from './DiscoveryStreakToast';
 import ShareSuccessToast from './ShareSuccessToast';
+import type { ShareActionResult } from './ShareCampaignView';
 import { Project, UserWallet, Builder } from '../types';
 import ScoreBars, { BuilderScoreBadge, CurationBadges } from './ScoreBars';
 import BuilderDnaCard from './BuilderDnaCard';
 import ProofOfBuildingCard from './ProofOfBuildingCard';
 import FounderPassportCard from './FounderPassportCard';
+import CrossChainBindingCard from './CrossChainBindingCard';
 import ReputationUnlocksCard, { ReputationChipBadge } from './ReputationUnlocksCard';
 import { dnaFromScore } from '../lib/builderDna';
 import { proofOfBuildingFor } from '../lib/proofOfBuilding';
 import { resolveTradeMint } from '../data/curatedTokens';
+import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
 import { reputationChipFor } from '../lib/reputationRules';
 import { storyChaptersFor, storyReadingMinutes } from '../lib/projectStory';
 import ProjectSocialLinks from './ProjectSocialLinks';
@@ -69,6 +73,7 @@ interface ProjectDetailViewProps {
   project: Project;
   wallet: UserWallet;
   onFund: (amount: number, receivedTokens: number) => void;
+  onOpenRaise?: (projectId: string) => void;
   onAddComment: (commentText: string) => void;
   onBack: () => void;
   onTrade: (mint?: string) => void;
@@ -76,12 +81,12 @@ interface ProjectDetailViewProps {
   tradeableMintSet: Set<string>;
   builders: Builder[];
   setCurrentPath: (path: string) => void;
+  onShareReward?: (channel?: string) => ShareActionResult | void;
 }
 
 export default function ProjectDetailView({
   project,
-  wallet,
-  onFund,
+  onOpenRaise,
   onAddComment,
   onBack,
   onTrade,
@@ -89,14 +94,19 @@ export default function ProjectDetailView({
   tradeableMintSet,
   builders,
   setCurrentPath,
+  onShareReward,
 }: ProjectDetailViewProps) {
   const [commentText, setCommentText] = useState('');
-  const [supportAmount, setSupportAmount] = useState('');
   const [aiSummary, setAiSummary] = useState(project.aiAnalysis);
   const [analyzing, setAnalyzing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showStreakToast, setShowStreakToast] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [shareToastMeta, setShareToastMeta] = useState({
+    xp: 0,
+    remaining: 0,
+    capped: false,
+  });
   const [currentStreak, setCurrentStreak] = useState(0);
 
   useEffect(() => {
@@ -141,6 +151,7 @@ export default function ProjectDetailView({
     githubRepo: live?.githubRepo || project.githubRepo,
   });
   const tradeMint = resolveTradeMint(project, tradeableMintSet);
+  const baseTradeAddress = resolveBaseTradeAddress(project);
   const repChip = reputationChipFor({ ...project, builderScore: liveScore }, proof);
   const founder =
     builders.find((b) => b.projectsCreated.includes(project.id)) ||
@@ -165,24 +176,24 @@ export default function ProjectDetailView({
     setCommentText('');
   };
 
-  const handleSupport = (e: React.FormEvent) => {
-    e.preventDefault();
-    const amount = parseFloat(supportAmount);
-    if (!amount || amount <= 0) return;
-    if (!wallet.connected) {
-      alert('Connect your wallet to register support.');
-      return;
-    }
-    onFund(amount, amount * 1000);
-    setSupportAmount('');
-    alert('Support recorded. Thank you for backing this builder.');
+  const awardShare = (channel?: string) => {
+    const result = onShareReward?.(channel);
+    setShareToastMeta({
+      xp: result && result.xp ? result.xp : 0,
+      remaining: result && typeof result.remaining === 'number' ? result.remaining : 0,
+      capped: Boolean(result && result.capped),
+    });
+    setShowShareToast(true);
   };
 
   const handleShare = async () => {
     const success = await shareProject(project);
-    if (success) {
-      setShowShareToast(true);
-    }
+    if (success) awardShare();
+  };
+
+  const handleShareX = () => {
+    shareProjectOnX(project);
+    awardShare('X / Twitter');
   };
 
   const runIntelligenceRefresh = async () => {
@@ -224,7 +235,13 @@ export default function ProjectDetailView({
         show={showStreakToast}
         onDismiss={() => setShowStreakToast(false)}
       />
-      <ShareSuccessToast show={showShareToast} onDismiss={() => setShowShareToast(false)} />
+      <ShareSuccessToast
+        show={showShareToast}
+        onDismiss={() => setShowShareToast(false)}
+        xp={shareToastMeta.xp}
+        remaining={shareToastMeta.remaining}
+        capped={shareToastMeta.capped}
+      />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-white">
         <button
         type="button"
@@ -309,10 +326,21 @@ export default function ProjectDetailView({
               <Share2 className="h-3.5 w-3.5" />
               Share discovery
             </button>
-            {tradeMint && (
+            <button
+              type="button"
+              onClick={handleShareX}
+              className="inline-flex items-center gap-2 rounded-full border border-white/12 px-4 py-2.5 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent active:scale-95 min-h-[44px]"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Post on X
+            </button>
+            {(tradeMint || baseTradeAddress) && (
               <button
                 type="button"
-                onClick={() => onTrade(tradeMint)}
+                onClick={() => {
+                  if (tradeMint) onTrade(tradeMint);
+                  else if (baseTradeAddress) openBaseTrade(baseTradeAddress);
+                }}
                 className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink hover:bg-accent-bright"
               >
                 Trade {project.ticker}
@@ -456,12 +484,18 @@ export default function ProjectDetailView({
               )}
               <BuilderDnaCard dna={dna} />
               <ProofOfBuildingCard proof={proof} />
+              <CrossChainBindingCard projectId={project.id} projectName={project.name} />
               {founder && (
                 <FounderPassportCard
                   founder={founder}
                   buildingSince={Math.min(project.foundedYear, 2021)}
                   previousProtocols={Math.max(founder.projectsCreated.length, 1)}
                   exits={founder.level >= 4 ? 1 : 0}
+                  openSourceCommits={
+                    project.githubActivity > 0
+                      ? Math.round(project.githubActivity * 12)
+                      : undefined
+                  }
                   legacy={LEGACY_PASSPORTS[founder.id]}
                   onOpenRankings={() => setCurrentPath('builders')}
                 />
@@ -712,27 +746,20 @@ export default function ProjectDetailView({
         {/* Sidebar */}
         <aside className="space-y-6">
           <div className="rounded-3xl border border-white/10 bg-surface p-5">
-            <p className="font-mono text-[11px] uppercase tracking-wider text-steel">Support</p>
-            <p className="mt-2 text-xs leading-relaxed text-steel">
-              Optional builder support — <span className="text-amber-200/90">simulated only</span>. Parked until curated trading is live. Real path: Trade for allowlisted mints.
+            <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
+              Share certificate
             </p>
-            <form onSubmit={handleSupport} className="mt-4 space-y-3">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={supportAmount}
-                onChange={(e) => setSupportAmount(e.target.value)}
-                placeholder="Amount"
-                className="w-full rounded-xl border border-white/10 bg-ink px-3 py-2.5 font-mono text-sm outline-none focus:border-accent/40"
-              />
-              <button
-                type="submit"
-                className="w-full rounded-xl border border-white/12 py-2.5 text-xs font-semibold text-white hover:border-accent/40"
-              >
-                Register support
-              </button>
-            </form>
+            <p className="mt-2 text-xs leading-relaxed text-steel">
+              Buy a numbered NFT share after Builders DEX inspection. Holders claim a fixed
+              percentage of wins the founder deposits on-chain — not simulated support.
+            </p>
+            <button
+              type="button"
+              onClick={() => onOpenRaise?.(project.id)}
+              className="mt-4 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-ink"
+            >
+              Inspect & mint share NFT
+            </button>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-surface p-5">

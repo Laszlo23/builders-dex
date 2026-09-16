@@ -107,18 +107,20 @@ The passport score isn't just a number; it's **Proof of Building** that unlocks 
 
 ---
 
-## Phase 3: Mainnet Deploy (Q2 2027)
+## Phase 3: Mainnet Deploy (active checklist)
 
-**Goal**: Launch Builder Passport on Solana mainnet with production security, audits, and incentives.
+**Goal**: Launch Builder Passport on Solana mainnet after Devnet Config + oracle caps are proven.
 
 ### Pre-Mainnet Requirements
 
-- [ ] **Security Audit**: Third-party audit of passport program (anchor, PDA logic, oracle auth)
-- [ ] **Load Testing**: 10k+ concurrent mints, 1k+ score updates/hour
-- [ ] **Mainnet Oracle Keypair**: HSM or multi-sig wallet (not single server secret)
-- [ ] **Distributed Caps**: Move daily bump limits to Redis or on-chain throttle PDA
-- [ ] **Retroactive Backfill**: One-time backfill of historical Scout/application data
-- [ ] **Mainnet RPC**: Paid RPC tier for reliability (Helius, Triton, QuickNode)
+- [x] **Program source + IDL committed** (`programs/idl/builder_passport.json`)
+- [x] **SQLite oracle caps** (scout daily + application dedupe)
+- [x] **Tests rewritten** for Config + oracle model (`programs/tests/builder-passport.ts`)
+- [x] **Healthy SBF deploy** on Devnet (Config PDA init + mint + oracle score verified 2026-09-15)
+- [ ] **Security Review**: Third-party or internal review of passport program
+- [ ] **Mainnet Oracle Keypair**: HSM / 1Password / multisig — not only laptop key
+- [ ] **Mainnet RPC**: Paid tier (Helius, Triton, QuickNode)
+- [ ] **Canary flag**: `VITE_PASSPORT_MAINNET_MINT=true` only after Config exists
 
 ### Mainnet Features
 
@@ -129,6 +131,7 @@ The passport score isn't just a number; it's **Proof of Building** that unlocks 
 - **Public Leaderboard**: On-chain passport rankings (sortable by score, level, recent activity)
 - **Passport Explorer**: Dedicated page to browse/search all passports
 - **Badges & Achievements**: Milestone badges (e.g., "First 100 Scouts", "Genesis Founder")
+- **AURA bind**: Base-canonical AURA + Solana wrap via Base↔Solana Bridge (`docs/onchain-inventory.md`)
 
 ### Migration Path
 

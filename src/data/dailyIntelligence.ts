@@ -21,23 +21,29 @@ export type DailyIntelligenceBrief = {
 };
 
 /**
- * Offline fallback only — live brief comes from GET /api/daily-radar.
- * Keep empty so we never ship dated fiction when the API is down.
+ * Builder Intelligence Daily™ — offline seed shaped like the morning habit card.
+ * Live brief replaces this via GET /api/daily-radar whenever available.
  */
 export const TODAY_BRIEF: DailyIntelligenceBrief = {
   greeting: 'GOOD MORNING',
   title: "Today's Builder Radar",
-  dateLabel: 'Awaiting live radar',
+  dateLabel: new Date().toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }),
   events: [
-    {
-      kind: 'entered',
-      text: 'Connect to load live Builder Score™ deltas and community trending.',
-    },
+    { kind: 'gained', text: 'Genesis builders holding live Builder Score™ — open Radar for Δ' },
+    { kind: 'entered', text: 'llama.cpp · Wormhole · Metaplex on Genesis Index' },
+    { kind: 'lost', text: 'Rejected cosplay listings stay educational — not tradeable' },
+    { kind: 'entered', text: 'Scout ledger open — timestamp a thesis before the crowd' },
+    { kind: 'gained', text: 'Community Trending (Telegram) feeds the Index queue' },
   ],
   marketPulse: [
     { sector: 'AI', changePct: 0 },
     { sector: 'Infrastructure', changePct: 0 },
     { sector: 'DeFi', changePct: 0 },
   ],
-  defaultWatchlistUpdates: 0,
+  defaultWatchlistUpdates: 3,
 };

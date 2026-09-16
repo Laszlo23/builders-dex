@@ -1,16 +1,19 @@
 import React from 'react';
-import { Rocket, HeartHandshake, FilePlus2, ArrowRight, Users } from 'lucide-react';
-import { Project } from '../types';
+import { Rocket, HeartHandshake, FilePlus2, ArrowRight, Users, Stamp } from 'lucide-react';
+import { Project, ShareRaise } from '../types';
 import { resolveTradeMint } from '../data/curatedTokens';
+import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
 import DepthCard from './DepthCard';
 import { proofOfBuildingFor } from '../lib/proofOfBuilding';
-import { reputationChipFor } from '../lib/reputationRules';
+import { BUILDER_SCORE_UNLOCK, reputationChipFor } from '../lib/reputationRules';
 import { ReputationChipBadge } from './ReputationUnlocksCard';
+import { useShareRaises } from '../hooks/useShareRaises';
 
 interface LaunchpadViewProps {
   projects: Project[];
   setSelectedProjectId: (id: string) => void;
-  setCurrentPath: (path: string) => void;
+  setSelectedRaiseId: (id: string) => void;
+  setCurrentPath: (path: string, state?: { projectId?: string; raiseId?: string }) => void;
   onTrade: (mint?: string) => void;
   onSupport?: (projectId: string) => void;
   tradeableMintSet: Set<string>;
@@ -20,41 +23,62 @@ const STAGES = [
   'Apply',
   'PoB review',
   'Network',
-  'Raise',
-  'Curated trade',
+  'Share NFT',
+  'Claim wins',
 ] as const;
+
+function solLabel(lamports: number): string {
+  return `${(lamports / 1e9).toLocaleString(undefined, { maximumFractionDigits: 3 })} SOL`;
+}
+
+function holderPct(bps: number): string {
+  return `${(bps / 100).toFixed(bps % 100 === 0 ? 0 : 1)}%`;
+}
 
 export default function LaunchpadView({
   projects,
   setSelectedProjectId,
+  setSelectedRaiseId,
   setCurrentPath,
   onTrade,
+  onSupport,
   tradeableMintSet,
 }: LaunchpadViewProps) {
-  const raising = projects.filter(
-    (p) => p.launchpadActive && p.curation.status !== 'rejected'
-  );
+  const { raises } = useShareRaises();
   const pending = projects.filter((p) => p.curation.status === 'pending');
   const curated = projects.filter((p) => p.curation.status === 'curated');
+  const projectById = new Map(projects.map((p) => [p.id, p]));
+
+  const openRaise = (raise: ShareRaise) => {
+    setSelectedRaiseId(raise.id);
+    setSelectedProjectId(raise.projectId);
+    setCurrentPath('raise', { projectId: raise.projectId, raiseId: raise.id });
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6 sm:py-10">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-        Builder Accelerator
+        Builder Accelerator · Share certificates
       </p>
       <h1 className="font-display mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-        From idea → recognized protocol
+        Inspected first. Then you mint a share.
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-steel">
-        Human review · AI analysis · Community discovery · Launch support · Liquidity support. You
-        become where builders start — not where tokens dump.
+        Each certificate is an on-chain claim on deposited wins — not a simulated raise. Builders
+        DEX reviews Proof of Building™ and Builder Score™ before a raise can go live.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
         {STAGES.map((step, i) => (
           <React.Fragment key={step}>
             {i > 0 && <span className="text-steel/40">→</span>}
-            <span className="whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 font-mono text-[10px] text-steel">
+            <span
+              className={`whitespace-nowrap rounded-full border px-2.5 py-1 font-mono text-[10px] ${
+                step === 'Share NFT'
+                  ? 'border-accent/40 bg-accent/10 text-accent'
+                  : 'border-white/10 bg-white/[0.03] text-steel'
+              }`}
+            >
               {step}
             </span>
           </React.Fragment>
@@ -79,29 +103,30 @@ export default function LaunchpadView({
           },
           {
             icon: HeartHandshake,
-            title: 'Support a raise',
-            body: 'Back active accelerator cohorts from verified builders.',
-            cta: 'Browse raises',
+            title: 'Buy a share NFT',
+            body: 'Mint a numbered certificate. Claim your % when wins hit the vault.',
+            cta: 'Browse certificates',
             action: () => {
-              const el = document.getElementById('active-raises');
-              el?.scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('active-raises')?.scrollIntoView({ behavior: 'smooth' });
             },
           },
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <DepthCard key={card.title} intensity="soft" className="p-5">
-              <Icon className="h-5 w-5 text-accent" />
-              <h2 className="font-display mt-3 text-lg font-bold">{card.title}</h2>
-              <p className="mt-1 text-xs leading-relaxed text-steel">{card.body}</p>
-              <button
-                type="button"
-                onClick={card.action}
-                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-bright"
-              >
-                {card.cta} <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </DepthCard>
+            <div key={card.title}>
+              <DepthCard intensity="soft" className="p-5">
+                <Icon className="h-5 w-5 text-accent" />
+                <h2 className="font-display mt-3 text-lg font-bold">{card.title}</h2>
+                <p className="mt-1 text-xs leading-relaxed text-steel">{card.body}</p>
+                <button
+                  type="button"
+                  onClick={card.action}
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-bright"
+                >
+                  {card.cta} <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </DepthCard>
+            </div>
           );
         })}
       </div>
@@ -110,9 +135,9 @@ export default function LaunchpadView({
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">
-              Active raises
+              Live certificates
             </p>
-            <h2 className="font-display mt-1 text-2xl font-bold">Builders seeking support</h2>
+            <h2 className="font-display mt-1 text-2xl font-bold">Share NFTs on inspected teams</h2>
           </div>
           <button
             type="button"
@@ -124,60 +149,93 @@ export default function LaunchpadView({
           </button>
         </div>
 
-        {raising.length === 0 ? (
+        {raises.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-white/12 px-4 py-10 text-center text-sm text-steel">
-            No active raises right now — submit yours for review.
+            No share raises yet — submit yours for inspection.
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {raising.map((p) => {
-              const pct = Math.min(100, Math.round((p.raised / Math.max(1, p.goal)) * 100));
-              const tradeMint = resolveTradeMint(p, tradeableMintSet);
-              const chip = reputationChipFor(p, proofOfBuildingFor(p));
+            {raises.map((raise) => {
+              const p = projectById.get(raise.projectId);
+              const mintedPct = Math.min(
+                100,
+                Math.round((raise.sharesMinted / Math.max(1, raise.shareSupply)) * 100),
+              );
+              const inspected =
+                raise.inspection.pobVerified &&
+                raise.inspection.builderScore >= BUILDER_SCORE_UNLOCK &&
+                (raise.status === 'live' || raise.status === 'filled');
+              const chip = p
+                ? reputationChipFor(p, proofOfBuildingFor(p))
+                : { id: 'pending', label: 'Review', tone: 'cooling' as const };
               return (
-                <article
-                  key={p.id}
-                  className="rounded-2xl border border-white/10 bg-surface/80 p-5"
-                >
-                  <div className="flex items-start justify-between gap-2">
+                <article key={raise.id} className="share-cert-card p-5">
+                  <div className="share-cert-foil" />
+                  <div className="relative flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-sans text-lg font-semibold">{p.name}</h3>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent/80">
+                        Certificate series · {raise.shareSupply} shares
+                      </p>
+                      <h3 className="font-display mt-1 text-xl font-bold">
+                        {p?.name || raise.projectId}
+                      </h3>
                       <p className="font-mono text-[11px] text-steel">
-                        ${p.ticker} · {p.category}
+                        {p ? `$${p.ticker}` : raise.projectId} · holder pool{' '}
+                        {holderPct(raise.holderPoolBps)}
                       </p>
                     </div>
-                    <ReputationChipBadge chip={chip} />
+                    <div className="flex flex-col items-end gap-1">
+                      {p && <ReputationChipBadge chip={chip} />}
+                      {raise.demo && (
+                        <span className="rounded-full border border-white/10 px-2 py-0.5 font-mono text-[10px] text-steel">
+                          Demo
+                        </span>
+                      )}
+                      {inspected ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent">
+                          <Stamp className="h-3 w-3" /> Inspected
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-white/10 px-2 py-0.5 font-mono text-[10px] text-steel">
+                          {raise.status}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="mt-3 text-sm text-steel">{p.tagline}</p>
-                  <div className="mt-4">
+                  <p className="relative mt-3 text-sm text-steel">
+                    {p?.tagline || 'On-chain claim receipt on deposited proceeds.'}
+                  </p>
+                  <div className="relative mt-4">
                     <div className="flex justify-between font-mono text-[10px] text-steel">
                       <span>
-                        ${p.raised.toLocaleString()} / ${p.goal.toLocaleString()}
+                        {raise.sharesMinted} / {raise.shareSupply} minted ·{' '}
+                        {solLabel(raise.priceLamports)} each
                       </span>
-                      <span>{pct}%</span>
+                      <span>{mintedPct}%</span>
                     </div>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                      <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-accent" style={{ width: `${mintedPct}%` }} />
                     </div>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="relative mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setSelectedProjectId(p.id);
-                        setCurrentPath('project-detail');
-                      }}
-                      className="rounded-full border border-white/12 px-3 py-1.5 text-xs font-semibold hover:border-accent/40"
+                      onClick={() => openRaise(raise)}
+                      className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-ink"
                     >
-                      Story
+                      Inspect & mint
                     </button>
-                    {tradeMint && (
+                    {p && (
                       <button
                         type="button"
-                        onClick={() => onTrade(tradeMint)}
-                        className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-ink"
+                        onClick={() => {
+                          setSelectedProjectId(p.id);
+                          if (onSupport) onSupport(p.id);
+                          setCurrentPath('project-detail');
+                        }}
+                        className="rounded-full border border-white/12 px-3 py-1.5 text-xs font-semibold hover:border-accent/40"
                       >
-                        Trade
+                        Story
                       </button>
                     )}
                   </div>
@@ -191,7 +249,7 @@ export default function LaunchpadView({
       <section className="mt-12 grid gap-6 lg:grid-cols-2">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Pending</p>
-          <h2 className="font-display mt-1 text-xl font-bold">In review</h2>
+          <h2 className="font-display mt-1 text-xl font-bold">In review — no mint yet</h2>
           <ul className="mt-4 space-y-2">
             {pending.slice(0, 4).map((p) => (
               <li key={p.id}>
@@ -217,12 +275,14 @@ export default function LaunchpadView({
           <ul className="mt-4 space-y-2">
             {curated.slice(0, 4).map((p) => {
               const tradeMint = resolveTradeMint(p, tradeableMintSet);
+              const baseAddr = resolveBaseTradeAddress(p);
               return (
                 <li key={p.id}>
                   <button
                     type="button"
                     onClick={() => {
                       if (tradeMint) onTrade(tradeMint);
+                      else if (baseAddr) openBaseTrade(baseAddr);
                       else {
                         setSelectedProjectId(p.id);
                         setCurrentPath('project-detail');

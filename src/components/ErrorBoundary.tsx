@@ -10,9 +10,25 @@ interface State {
   hasError: boolean;
   error: Error | null;
   retryCount: number;
+  chunkError: boolean;
 }
 
 const MAX_RETRIES = 2;
+
+function isChunkLoadError(error: Error): boolean {
+  const message = (error.message || '').toLowerCase();
+  return (
+    error.name === 'ChunkLoadError' ||
+    message.includes('failed to fetch dynamically imported module') ||
+    message.includes('importing a module script failed') ||
+    message.includes('error loading dynamically imported module') ||
+    message.includes('failed to fetch') ||
+    message.includes("unexpected token '<'") ||
+    message.includes('mime type') ||
+    message.includes('text/html') ||
+    message.includes('failed to load module script')
+  );
+}
 
 /**
  * Error boundary that catches lazy-load chunk failures and automatically retries.
@@ -27,6 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       retryCount: 0,
+      chunkError: false,
     };
   }
 
@@ -34,43 +51,31 @@ export class ErrorBoundary extends Component<Props, State> {
     return {
       hasError: true,
       error,
+      chunkError: isChunkLoadError(error),
     };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('[ErrorBoundary] Caught error:', error, errorInfo);
 
-    // Detect chunk loading errors (lazy route failures, including HTML served as JS)
-    const errorMessage = String(error?.message || '').toLowerCase();
-    const isChunkError =
-      error.name === 'ChunkLoadError' ||
-      errorMessage.includes('failed to fetch dynamically imported module') ||
-      errorMessage.includes('importing a module script failed') ||
-      errorMessage.includes('error loading dynamically imported module') ||
-      errorMessage.includes("unexpected token '<'") ||
-      errorMessage.includes('mime type') ||
-      errorMessage.includes('text/html') ||
-      errorMessage.includes('failed to load module script');
-
-    if (isChunkError && this.state.retryCount < MAX_RETRIES) {
+    if (isChunkLoadError(error) && this.state.retryCount < MAX_RETRIES) {
       console.warn(
-        `[ErrorBoundary] Chunk load failed, retrying... (${this.state.retryCount + 1}/${MAX_RETRIES})`
+        `[ErrorBoundary] Chunk load failed, retrying... (${this.state.retryCount + 1}/${MAX_RETRIES})`,
       );
-      
-      // Wait a bit, then retry by resetting the error boundary
+
       this.retryTimeout = setTimeout(() => {
         this.setState((prevState) => ({
           hasError: false,
           error: null,
+          chunkError: false,
           retryCount: prevState.retryCount + 1,
         }));
         this.props.onReset?.();
       }, 300);
-    } else if (isChunkError && this.state.retryCount >= MAX_RETRIES) {
-      // Auto-reload once per session to recover from chunk/HTML mismatch
+    } else if (isChunkLoadError(error) && this.state.retryCount >= MAX_RETRIES) {
       const storageKey = 'buildersdex.chunkReload';
       const hasReloaded = sessionStorage.getItem(storageKey);
-      
+
       if (!hasReloaded) {
         console.warn('[ErrorBoundary] Auto-reloading to clear stale chunk state...');
         sessionStorage.setItem(storageKey, '1');
@@ -90,6 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       retryCount: 0,
+      chunkError: false,
     });
     this.props.onReset?.();
   };
@@ -100,8 +106,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (this.state.hasError) {
-      // If we've exhausted retries, show a manual retry UI
-      if (this.state.retryCount >= MAX_RETRIES) {
+      const showRetrySpinner =
+        this.state.chunkError && this.state.retryCount < MAX_RETRIES;
+      if (!showRetrySpinner) {
         return (
           this.props.fallback || (
             <div className="flex min-h-[50vh] items-center justify-center px-4">
@@ -149,7 +156,6 @@ export class ErrorBoundary extends Component<Props, State> {
         );
       }
 
-      // Auto-retry in progress, show loading state
       return (
         <div className="flex min-h-[40vh] items-center justify-center px-4" role="status" aria-label="Loading">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent/30 border-t-accent" />
