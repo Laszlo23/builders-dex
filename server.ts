@@ -3,6 +3,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
+import { timingSafeEqual } from 'node:crypto';
 import { spawn, type ChildProcess } from 'child_process';
 import {
   getTradeableMintSet,
@@ -116,10 +117,13 @@ import {
   listRaises,
   markRaiseAttested,
   markRaiseInspection,
+  projectSeedBytes,
   syncRaiseOnchain,
 } from './src/lib/shareRaise';
-import type { ShareRaiseStatus } from './src/types';
+import type { ShareRaise, ShareRaiseStatus } from './src/types';
 import { PublicKey } from '@solana/web3.js';
+import { deriveRaisePda } from './src/lib/shareRaiseOnchain';
+import { BUILDER_SCORE_UNLOCK } from './src/lib/reputationRules';
 import {
   castVoteByTokenId,
   defaultBigBuyUsd,
@@ -592,6 +596,42 @@ app.post('/api/wallet-link', rateLimit(20, 60_000, 'wlink-post'), (req, res) => 
   }
 });
 
+function raiseAdminToken(): string | null {
+  return process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN || null;
+}
+
+function adminTokenMatches(provided: string, expected: string): boolean {
+  const a = Buffer.from(String(provided));
+  const b = Buffer.from(expected);
+  if (a.length === 0 || a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
+function rejectUnlessRaiseAdmin(req: express.Request, res: express.Response): boolean {
+  const admin = raiseAdminToken();
+  if (!admin) {
+    res.status(503).json({ error: 'Admin token not configured' });
+    return false;
+  }
+  const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
+  if (!adminTokenMatches(provided, admin)) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return false;
+  }
+  return true;
+}
+
+function derivedRaisePda(raise: ShareRaise): string | null {
+  try {
+    return deriveRaisePda(
+      new PublicKey(raise.founderWallet),
+      projectSeedBytes(raise.projectId),
+    )[0].toBase58();
+  } catch {
+    return null;
+  }
+}
+
 app.get('/api/raises', rateLimit(60, 60_000, 'raises-list'), (req, res) => {
   try {
     getSqlite();
@@ -659,6 +699,7 @@ app.get(
 
 app.post('/api/raises', rateLimit(10, 60_000, 'raises-post'), (req, res) => {
   try {
+    if (!rejectUnlessRaiseAdmin(req, res)) return;
     getSqlite();
     const projectId = String(req.body?.projectId || '').trim();
     const founderWallet = String(req.body?.founderWallet || '').trim();
@@ -674,7 +715,7 @@ app.post('/api/raises', rateLimit(10, 60_000, 'raises-post'), (req, res) => {
       holderPoolBps: Math.max(1, Number(req.body?.holderPoolBps) || 2000),
       goalLamports: Math.max(1, Number(req.body?.goalLamports) || 5_000_000_000),
       applicationId: req.body?.applicationId ? String(req.body.applicationId) : undefined,
-      builderScore: Number(req.body?.builderScore) || 0,
+      builderScore: 0,
     });
     res.json({ ok: true, raise });
   } catch (err) {
@@ -684,23 +725,28 @@ app.post('/api/raises', rateLimit(10, 60_000, 'raises-post'), (req, res) => {
 
 app.post('/api/raises/:id/attest', rateLimit(20, 60_000, 'raises-attest'), (req, res) => {
   try {
-    const admin = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
-    if (!admin) return res.status(503).json({ error: 'Admin token not configured' });
-    const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
-    if (provided !== admin) return res.status(401).json({ error: 'Unauthorized' });
+    if (!rejectUnlessRaiseAdmin(req, res)) return;
     getSqlite();
     const id = String(req.params.id || '').trim();
     const raise = getRaise(id);
     if (!raise) return res.status(404).json({ error: 'Raise not found' });
+    if (raise.demo) return res.status(403).json({ error: 'Demo raise cannot be attested' });
     const gate = canOpenRaise(raise);
     if (!gate.ok && raise.status === 'draft') {
       return res.status(400).json({ error: 'Inspection gate failed', reasons: gate.reasons });
     }
-    markRaiseAttested(
-      id,
-      req.body?.tx ? String(req.body.tx) : null,
-      req.body?.raisePda ? String(req.body.raisePda) : undefined,
-    );
+    const bodyPda = req.body?.raisePda ? String(req.body.raisePda) : undefined;
+    if (bodyPda && !isValidSolanaAddress(bodyPda)) {
+      return res.status(400).json({ error: 'Invalid raisePda' });
+    }
+    const expectedPda = derivedRaisePda(raise);
+    if (bodyPda && expectedPda && bodyPda !== expectedPda) {
+      return res.status(400).json({ error: 'raisePda does not match founder and project seed' });
+    }
+    if (!raise.raisePda && !bodyPda) {
+      return res.status(400).json({ error: 'raisePda required' });
+    }
+    markRaiseAttested(id, req.body?.tx ? String(req.body.tx) : null, bodyPda);
     res.json({ ok: true, raise: getRaise(id) });
   } catch (err) {
     res.status(500).json({ error: safeErrorMessage(err, 'attest failed') });
@@ -709,10 +755,7 @@ app.post('/api/raises/:id/attest', rateLimit(20, 60_000, 'raises-attest'), (req,
 
 app.post('/api/raises/:id/sync', rateLimit(30, 60_000, 'raises-sync'), (req, res) => {
   try {
-    const admin = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
-    if (!admin) return res.status(503).json({ error: 'Admin token not configured' });
-    const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
-    if (provided !== admin) return res.status(401).json({ error: 'Unauthorized' });
+    if (!rejectUnlessRaiseAdmin(req, res)) return;
     getSqlite();
     const id = String(req.params.id || '').trim();
     const raise = getRaise(id);
@@ -723,8 +766,16 @@ app.post('/api/raises/:id/sync', rateLimit(30, 60_000, 'raises-sync'), (req, res
     if (status && !allowed.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
+    const bodyPda = req.body?.raisePda ? String(req.body.raisePda) : undefined;
+    if (bodyPda && !isValidSolanaAddress(bodyPda)) {
+      return res.status(400).json({ error: 'Invalid raisePda' });
+    }
+    const expectedPda = derivedRaisePda(raise);
+    if (bodyPda && expectedPda && bodyPda !== expectedPda) {
+      return res.status(400).json({ error: 'raisePda does not match founder and project seed' });
+    }
     syncRaiseOnchain(id, {
-      raisePda: req.body?.raisePda ? String(req.body.raisePda) : undefined,
+      raisePda: bodyPda,
       collection: req.body?.collection ? String(req.body.collection) : undefined,
       status,
       sharesMinted:
@@ -1094,8 +1145,11 @@ app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), as
         markRaiseInspection({
           applicationId: app.id,
           projectId: app.payload?.projectId || app.payload?.id,
-          builderScore: Number(app.payload?.builderScore?.overall) || 90,
-          pobVerified: true,
+          builderScore: Number.isFinite(Number(app.payload?.builderScore?.overall))
+            ? Math.max(0, Math.min(100, Number(app.payload.builderScore.overall)))
+            : 0,
+          pobVerified:
+            Number(app.payload?.builderScore?.overall) >= BUILDER_SCORE_UNLOCK,
         });
       } catch (err) {
         console.warn('[share-raise] inspection mark failed:', err);

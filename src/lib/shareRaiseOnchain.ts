@@ -135,13 +135,28 @@ export function raiseStatusName(status: number): (typeof STATUS_NAMES)[number] {
   return STATUS_NAMES[status] ?? 'draft';
 }
 
+const RAISE_ACCOUNT_DISC = Buffer.from([253, 96, 15, 240, 65, 242, 192, 103]);
+const CERT_ACCOUNT_DISC = Buffer.from([68, 13, 89, 98, 168, 171, 170, 11]);
+const CONFIG_ACCOUNT_DISC = Buffer.from([171, 194, 103, 55, 249, 30, 135, 56]);
+
+function accountOwnedByRaiseProgram(
+  info: { owner: PublicKey; data: Uint8Array },
+  disc: Buffer,
+  minLen: number,
+): boolean {
+  if (!info.owner.equals(BUILDER_RAISE_PROGRAM_ID) || info.data.length < minLen) return false;
+  for (let i = 0; i < 8; i += 1) {
+    if (info.data[i] !== disc[i]) return false;
+  }
+  return true;
+}
+
 export async function fetchOnchainRaise(
   connection: Connection,
   raisePda: PublicKey,
 ): Promise<OnchainRaise | null> {
   const info = await connection.getAccountInfo(raisePda);
-  // Anchor Raise = 8-byte disc + 185-byte body (193). Older 200-byte floor rejected live accounts.
-  if (!info || info.data.length < 193) return null;
+  if (!info || !accountOwnedByRaiseProgram(info, RAISE_ACCOUNT_DISC, 193)) return null;
   const data = Buffer.from(info.data);
   let o = 8;
   const founder = new PublicKey(data.subarray(o, o + 32));
@@ -190,7 +205,9 @@ export async function fetchOnchainCertificate(
   certPda: PublicKey,
 ): Promise<OnchainCertificate | null> {
   const info = await connection.getAccountInfo(certPda);
-  if (!info || info.data.length < 8 + 32 + 32 + 4 + 16 + 1) return null;
+  if (!info || !accountOwnedByRaiseProgram(info, CERT_ACCOUNT_DISC, 8 + 32 + 32 + 4 + 16 + 1)) {
+    return null;
+  }
   const data = Buffer.from(info.data);
   return {
     raise: new PublicKey(data.subarray(8, 40)),
@@ -357,10 +374,10 @@ export async function sendRaiseTx(
   tx.recentBlockhash = latest.blockhash;
   let signature: string;
   try {
+    if (extraSigners.length > 0) tx.partialSign(...extraSigners);
     if (sendTransaction) {
       signature = await sendTransaction(tx, connection, { signers: extraSigners });
     } else {
-      if (extraSigners.length > 0) tx.partialSign(...extraSigners);
       const signed = await signTransaction(tx);
       extraSigners.forEach((signer) => {
         const hasSig = signed.signatures.some(
@@ -391,6 +408,8 @@ export async function fetchConfigTreasury(
 ): Promise<PublicKey | null> {
   const [config] = deriveRaiseConfigPda();
   const info = await connection.getAccountInfo(config);
-  if (!info || info.data.length < 8 + 32 + 32 + 2 + 32 + 1) return null;
+  if (!info || !accountOwnedByRaiseProgram(info, CONFIG_ACCOUNT_DISC, 8 + 32 + 32 + 2 + 32 + 1)) {
+    return null;
+  }
   return new PublicKey(info.data.subarray(8 + 32 + 32 + 2, 8 + 32 + 32 + 2 + 32));
 }

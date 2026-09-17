@@ -116,8 +116,15 @@ export default function LaunchRaiseView({
     if ((onchainMinted ?? raise.sharesMinted) >= raise.shareSupply) {
       return { ok: false, reason: 'Sold out' };
     }
+    if (publicKey && publicKey.toBase58() === raise.founderWallet && raise.cluster === 'devnet') {
+      return {
+        ok: true,
+        reason:
+          'Connected wallet is the raise founder. Current Devnet program rejects self-payment — use another Devnet wallet until the afternoon mainnet deploy.',
+      };
+    }
     return { ok: true, reason: '' };
-  }, [raise, chip, network, onchainMinted]);
+  }, [raise, chip, network, onchainMinted, publicKey]);
 
   const mint = async () => {
     if (!raise || !signTransaction || !publicKey) {
@@ -278,7 +285,7 @@ export default function LaunchRaiseView({
                 Mint certificate #{String(nextSerial).padStart(3, '0')}
               </button>
             )}
-            {!mintable.ok && (
+            {mintable.reason && (
               <p className="mt-2 text-xs text-steel">{mintable.reason}</p>
             )}
             {raise.cluster === 'devnet' && (

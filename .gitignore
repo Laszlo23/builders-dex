@@ -26,3 +26,9 @@ programs/.keys/
 **/oracle.secret*.txt
 **/oracle-keypair.json
 
+# Local Bankr / x402 experiments — never ship
+bankr.webhooks.json
+bankr.x402.json
+webhooks/
+x402/
+

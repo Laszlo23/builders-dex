@@ -98,7 +98,7 @@ pub mod builder_raise {
             .ok_or(ErrorCode::MathOverflow)?;
         let to_founder = price.checked_sub(fee).ok_or(ErrorCode::MathOverflow)?;
 
-        if fee > 0 {
+        if fee > 0 && ctx.accounts.buyer.key() != ctx.accounts.platform_treasury.key() {
             system_program::transfer(
                 CpiContext::new(
                     ctx.accounts.system_program.to_account_info(),
@@ -111,16 +111,18 @@ pub mod builder_raise {
             )?;
         }
 
-        system_program::transfer(
-            CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
-                Transfer {
-                    from: ctx.accounts.buyer.to_account_info(),
-                    to: ctx.accounts.founder.to_account_info(),
-                },
-            ),
-            to_founder,
-        )?;
+        if to_founder > 0 && ctx.accounts.buyer.key() != ctx.accounts.founder.key() {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    Transfer {
+                        from: ctx.accounts.buyer.to_account_info(),
+                        to: ctx.accounts.founder.to_account_info(),
+                    },
+                ),
+                to_founder,
+            )?;
+        }
 
         let cert = &mut ctx.accounts.certificate;
         cert.raise = raise.key();
