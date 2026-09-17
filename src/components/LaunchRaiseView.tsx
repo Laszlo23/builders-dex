@@ -66,6 +66,7 @@ export default function LaunchRaiseView({
   const { publicKey, signTransaction, sendTransaction, connected } = useWallet();
   const { network } = useNetwork();
   const [busy, setBusy] = useState(false);
+  const [mintStep, setMintStep] = useState<'share' | 'nft' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sig, setSig] = useState<string | null>(null);
   const [nftSig, setNftSig] = useState<string | null>(null);
@@ -118,9 +119,9 @@ export default function LaunchRaiseView({
     }
     if (publicKey && publicKey.toBase58() === raise.founderWallet && raise.cluster === 'devnet') {
       return {
-        ok: true,
+        ok: false,
         reason:
-          'Connected wallet is the raise founder. Current Devnet program rejects self-payment — use another Devnet wallet until the afternoon mainnet deploy.',
+          'This wallet is the raise founder. Switch to another Devnet wallet to mint — the current program cannot pay itself.',
       };
     }
     return { ok: true, reason: '' };
@@ -137,6 +138,7 @@ export default function LaunchRaiseView({
     }
     setBusy(true);
     setError(null);
+    setMintStep('share');
     try {
       const founder = new PublicKey(raise.founderWallet);
       const seed = seedFromHex(raise.projectSeedHex);
@@ -163,6 +165,7 @@ export default function LaunchRaiseView({
       );
       setSig(signature);
       setOnchainMinted(onchain.sharesMinted + 1);
+      setMintStep('nft');
       try {
         const nft = await buildShareNftIxs({
           connection: mintConnection,
@@ -190,6 +193,7 @@ export default function LaunchRaiseView({
       setError(formatRaiseTxError(err));
     } finally {
       setBusy(false);
+      setMintStep(null);
     }
   };
 
@@ -272,7 +276,7 @@ export default function LaunchRaiseView({
                 onClick={connectWallet}
                 className="w-full rounded-2xl bg-accent py-3 text-sm font-bold text-ink"
               >
-                Connect wallet
+                Connect wallet to mint
               </button>
             ) : (
               <button
@@ -282,38 +286,44 @@ export default function LaunchRaiseView({
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent py-3 text-sm font-bold text-ink disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                Mint certificate #{String(nextSerial).padStart(3, '0')}
+                {busy
+                  ? mintStep === 'nft'
+                    ? 'Adding to wallet…'
+                    : 'Claiming share…'
+                  : `Mint #${String(nextSerial).padStart(3, '0')} · ${solLabel(raise.priceLamports)}`}
               </button>
             )}
             {mintable.reason && (
-              <p className="mt-2 text-xs text-steel">{mintable.reason}</p>
+              <p className="mt-2 text-xs text-amber-200/90">{mintable.reason}</p>
             )}
-            {raise.cluster === 'devnet' && (
-              <p className="mt-2 text-xs text-accent/80">
-                Mints on Solana Devnet (0.05 SOL + rent). Phantom will be asked to sign a Devnet
-                transaction — you need Devnet SOL in the connected wallet.
+            {raise.cluster === 'devnet' && !sig && (
+              <p className="mt-2 text-xs text-steel">
+                Two Phantom prompts. Need Devnet SOL in this wallet — not mainnet.
               </p>
             )}
             {error && <p className="mt-2 text-xs text-amber-200/90">{error}</p>}
             {sig && (
-              <a
-                href={raiseExplorerTx(sig, raise.cluster)}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 block break-all font-mono text-[10px] text-accent"
-              >
-                Share {sig}
-              </a>
-            )}
-            {nftSig && (
-              <a
-                href={raiseExplorerTx(nftSig, raise.cluster)}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 block break-all font-mono text-[10px] text-accent"
-              >
-                NFT {nftSig}
-              </a>
+              <div className="mt-4 rounded-2xl border border-accent/30 bg-accent/10 p-4">
+                <p className="text-sm font-semibold text-white">Minted. Open Phantom → Collectibles.</p>
+                <a
+                  href={raiseExplorerTx(sig, raise.cluster)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 block break-all font-mono text-[10px] text-accent"
+                >
+                  Share {sig}
+                </a>
+                {nftSig && (
+                  <a
+                    href={raiseExplorerTx(nftSig, raise.cluster)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 block break-all font-mono text-[10px] text-accent"
+                  >
+                    NFT {nftSig}
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </section>

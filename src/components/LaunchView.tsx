@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { CheckCircle2, FilePlus2, Loader2 } from 'lucide-react';
-import { UserWallet, Project } from '../types';
+import { CheckCircle2, FilePlus2 } from 'lucide-react';
+import { UserWallet } from '../types';
 import ProjectSubmitForm from './ProjectSubmitForm';
+import { submitApplication } from '../lib/submitApplication';
 
 interface LaunchViewProps {
   wallet: UserWallet;
-  onLaunch: (
-    newProject: Omit<Project, 'id' | 'rating' | 'upvotes' | 'comments' | 'tokenPriceHistory'>
-  ) => void;
+  onLaunch: (projectId: string) => void;
   connectWallet: () => void;
   setCurrentPath?: (path: string) => void;
+  walletAddress?: string;
 }
 
 export default function LaunchView({
@@ -17,9 +17,11 @@ export default function LaunchView({
   onLaunch,
   connectWallet,
   setCurrentPath,
+  walletAddress,
 }: LaunchViewProps) {
   const [submitted, setSubmitted] = useState(false);
   const [confirmationId, setConfirmationId] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -30,12 +32,14 @@ export default function LaunchView({
           <CheckCircle2 className="mx-auto h-12 w-12 text-accent" />
           <h1 className="mt-4 font-display text-2xl font-bold">Application received</h1>
           <p className="mt-3 text-sm text-steel">
-            Your hackathon-grade packet is <span className="text-accent">under review</span>. It
-            will not become tradeable until Proof of Building™ passes.
+            You’re in the review queue. Your team is visible as{' '}
+            <span className="text-accent">in review</span> — not tradeable, and not a share mint
+            yet. We’ll curate you onto Explore after Proof of Building™.
           </p>
           {confirmationId && (
             <p className="mt-2 font-mono text-xs text-steel/70">
               Reference: <span className="text-accent">{confirmationId}</span>
+              {projectId ? ` · listing ${projectId}` : ''}
             </p>
           )}
           <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -43,10 +47,10 @@ export default function LaunchView({
               <>
                 <button
                   type="button"
-                  onClick={() => setCurrentPath('launchpad')}
+                  onClick={() => setCurrentPath('explore')}
                   className="rounded-full bg-accent px-5 py-3 text-sm font-bold text-ink hover:bg-accent-bright active:scale-95 min-h-[48px]"
                 >
-                  View Launchpad
+                  See Explore (include pending)
                 </button>
                 <button
                   type="button"
@@ -67,11 +71,11 @@ export default function LaunchView({
     <div className="mx-auto max-w-3xl px-4 py-10 text-white sm:px-6">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Apply</p>
       <h1 className="font-display mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-        Full builder application
+        List your project
       </h1>
       <p className="mt-2 max-w-xl text-sm text-steel">
-        Same depth as a serious hackathon submission — demo, deck, tracks, stack, socials, and why
-        you belong on the reputation layer.
+        One packet. We review Proof of Building™. Approved teams show on Explore; share NFTs open
+        after inspection — not at submit.
       </p>
 
       {submitError && (
@@ -104,54 +108,16 @@ export default function LaunchView({
           onSubmit={async (p) => {
             setSubmitError(null);
             setIsSubmitting(true);
-
             try {
-              // Submit to API first
-              const response = await fetch('/api/applications', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  name: p.name,
-                  ticker: p.ticker,
-                  problem: p.problem,
-                  description: p.description,
-                  contactEmail: p.application?.contactEmail,
-                  whyBuildersDex: p.application?.whyBuildersDex,
-                  wallet: wallet.connected ? wallet.address : undefined,
-                  tagline: p.tagline,
-                  category: p.category,
-                  githubRepo: p.githubRepo,
-                  goal: p.goal,
-                  journey: p.journey,
-                  builderStory: p.builderStory,
-                  demoUrl: p.application?.demoUrl,
-                  pitchDeckUrl: p.application?.pitchDeckUrl,
-                  videoUrl: p.application?.videoUrl,
-                  whitepaperUrl: p.application?.whitepaperUrl,
-                  hackathonName: p.application?.hackathonName,
-                  tracks: p.application?.tracks,
-                  techStack: p.application?.techStack,
-                  lookingFor: p.application?.lookingFor,
-                  teamSize: p.application?.teamSize,
-                  fundingStatus: p.application?.fundingStatus,
-                  previousLaunches: p.application?.previousLaunches,
-                  socials: p.application?.socials,
-                }),
-              });
-
-              if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to submit application');
-              }
-
-              const result = await response.json();
-
-              // On success, update local state and show confirmation
-              onLaunch(p);
+              const result = await submitApplication(p, walletAddress);
+              onLaunch(result.projectId);
               setConfirmationId(result.id);
+              setProjectId(result.projectId);
               setSubmitted(true);
             } catch (error) {
-              setSubmitError(error instanceof Error ? error.message : 'Network error. Please try again.');
+              setSubmitError(
+                error instanceof Error ? error.message : 'Network error. Please try again.',
+              );
             } finally {
               setIsSubmitting(false);
             }

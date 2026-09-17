@@ -48,6 +48,9 @@ export default function ExploreView({
   const [showRejected, setShowRejected] = useState(false);
   const [lane, setLane] = useState<'curated' | 'community'>('curated');
   const liveScores = useLiveScoreMap(projects.map((p) => p.id));
+  const pendingCount = projects.filter(
+    (p) => p.curation.status === 'pending' || p.curation.status === 'reviewed',
+  ).length;
   const [showShareToast, setShowShareToast] = useState(false);
   const [shareToastMeta, setShareToastMeta] = useState({
     xp: 0,
@@ -206,7 +209,11 @@ export default function ExploreView({
                   : 'border border-white/10 text-steel hover:border-white/20 hover:text-white'
               }`}
             >
-              {curatedOnly ? 'Curated only' : 'Include pending'}
+              {curatedOnly
+                ? pendingCount > 0
+                  ? `Curated only · ${pendingCount} in review`
+                  : 'Curated only'
+                : 'Include pending'}
             </button>
             <button
               type="button"
@@ -243,6 +250,14 @@ export default function ExploreView({
                   Own a company. Let AI make money. Built with Building Culture ecosystem — fair launch on Base, $29/mo or $299/yr. Real business validation from 1,000+ Vienna shops.
                 </p>
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPath('aura')}
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-mono text-xs font-bold text-ink transition hover:bg-accent-bright active:scale-95"
+                  >
+                    $AURA Live
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
                   <a
                     href="https://aibusiness.fun"
                     target="_blank"

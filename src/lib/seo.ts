@@ -47,7 +47,8 @@ export type SeoRoute =
   | 'guide'
   | 'investor'
   | 'builder-graph'
-  | 'builder-stories';
+  | 'builder-stories'
+  | 'aura';
 
 type SeoConfig = {
   title: string;
@@ -232,6 +233,12 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     description: 'Two-minute founder stories — why they build, what almost made them quit.',
     path: '/stories',
   },
+  aura: {
+    title: '$AURA Live — Builders DEX',
+    description:
+      'Live Aura OS token board on Base: market cap, Uni v3 AURA/USDC liquidity, supply, and 24h flow.',
+    path: '/aura',
+  },
 };
 
 export function getSeoForPath(path: string): SeoConfig {
@@ -269,6 +276,7 @@ const PATH_ALIASES: Record<string, SeoRoute> = {
   rankings: 'builders',
   graph: 'builder-graph',
   stories: 'builder-stories',
+  'aura-live': 'aura',
 };
 
 function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: string | null } {
@@ -365,6 +373,7 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
     { route: 'investor', changefreq: 'monthly', priority: '0.5' },
     { route: 'builder-graph', changefreq: 'weekly', priority: '0.5' },
     { route: 'builder-stories', changefreq: 'weekly', priority: '0.5' },
+    { route: 'aura', changefreq: 'hourly', priority: '0.7' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },
     { route: 'privacy', changefreq: 'yearly', priority: '0.2' },
     { route: 'imprint', changefreq: 'yearly', priority: '0.2' },

@@ -50,6 +50,7 @@ const MORE_LINKS = [
   { id: 'earn', label: 'Earn (sim)', icon: Coins },
   { id: 'dao', label: 'DAO (sim)', icon: Users },
   { id: 'launchpad', label: 'Accelerator', icon: Rocket },
+  { id: 'aura', label: '$AURA Live', icon: Zap },
   { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'team', label: 'Team', icon: Users },
   { id: 'explore', label: 'Stories', icon: Layers },

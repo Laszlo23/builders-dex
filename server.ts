@@ -109,6 +109,7 @@ import {
   upsertWalletLink,
 } from './src/lib/walletLink';
 import { getAuraBinding, PASSPORT_COLLECTION } from './src/data/crossChainRegistry';
+import { loadAuraLiveSnapshot } from './src/lib/auraLive';
 import {
   canOpenRaise,
   createRaiseDraft,
@@ -120,10 +121,16 @@ import {
   projectSeedBytes,
   syncRaiseOnchain,
 } from './src/lib/shareRaise';
+import {
+  getListedByApplication,
+  insertListedProject,
+  mergeCatalog,
+  publicProject,
+  setListedStatus,
+} from './src/lib/listedProjects';
 import type { ShareRaise, ShareRaiseStatus } from './src/types';
 import { PublicKey } from '@solana/web3.js';
 import { deriveRaisePda } from './src/lib/shareRaiseOnchain';
-import { BUILDER_SCORE_UNLOCK } from './src/lib/reputationRules';
 import {
   castVoteByTokenId,
   defaultBigBuyUsd,
@@ -607,14 +614,22 @@ function adminTokenMatches(provided: string, expected: string): boolean {
   return timingSafeEqual(a, b);
 }
 
+function providedAdminToken(req: express.Request): string {
+  return String(
+    req.headers['x-admin-token'] ||
+      (req.body && typeof req.body === 'object' ? req.body.adminToken : '') ||
+      req.query.token ||
+      '',
+  );
+}
+
 function rejectUnlessRaiseAdmin(req: express.Request, res: express.Response): boolean {
   const admin = raiseAdminToken();
   if (!admin) {
     res.status(503).json({ error: 'Admin token not configured' });
     return false;
   }
-  const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
-  if (!adminTokenMatches(provided, admin)) {
+  if (!adminTokenMatches(providedAdminToken(req), admin)) {
     res.status(401).json({ error: 'Unauthorized' });
     return false;
   }
@@ -631,6 +646,34 @@ function derivedRaisePda(raise: ShareRaise): string | null {
     return null;
   }
 }
+
+app.get('/api/catalog', rateLimit(60, 60_000, 'catalog'), (_req, res) => {
+  try {
+    getSqlite();
+    res.json({
+      projects: mergeCatalog().map(publicProject),
+    });
+  } catch (err) {
+    res.status(500).json({ error: safeErrorMessage(err, 'catalog failed') });
+  }
+});
+
+const auraLiveCache = new Map<string, { at: number; payload: unknown }>();
+
+app.get('/api/aura/live', rateLimit(60, 60_000, 'aura-live'), async (req, res) => {
+  try {
+    const range = String(req.query.range || '6h') === '1h' ? '1h' : '6h';
+    const cached = auraLiveCache.get(range);
+    if (cached && Date.now() - cached.at < 20_000) {
+      return res.json(cached.payload);
+    }
+    const payload = await loadAuraLiveSnapshot(range);
+    auraLiveCache.set(range, { at: Date.now(), payload });
+    res.json(payload);
+  } catch (err) {
+    res.status(502).json({ error: safeErrorMessage(err, 'aura live feed failed') });
+  }
+});
 
 app.get('/api/raises', rateLimit(60, 60_000, 'raises-list'), (req, res) => {
   try {
@@ -1076,14 +1119,7 @@ app.get('/api/daily-radar', rateLimit(40, 60_000, 'daily-radar'), async (_req, r
 /** Review an application (admin only) — triggers oracle bump on approval */
 app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), async (req, res) => {
   try {
-    const admin = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
-    if (!admin) {
-      return res.status(503).json({ error: 'Admin token not configured' });
-    }
-    const provided = String(req.headers['x-admin-token'] || req.body?.adminToken || '');
-    if (provided !== admin) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!rejectUnlessRaiseAdmin(req, res)) return;
 
     const id = String(req.params.id || '').trim();
     const status = String(req.body?.status || '').trim() as 'approved' | 'rejected';
@@ -1137,6 +1173,34 @@ app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), as
       return res.status(500).json({ error: 'Failed to save review' });
     }
 
+    let listed = null;
+    let raise = null;
+    try {
+      getSqlite();
+      listed = setListedStatus(
+        app.id,
+        status === 'approved' ? 'reviewed' : 'rejected',
+        app.payload,
+      );
+      if (status === 'approved' && listed) {
+        const founderWallet = String(app.payload?.wallet || '').trim();
+        if (isValidSolanaAddress(founderWallet) && !getRaiseByProject(listed.id)) {
+          raise = createRaiseDraft({
+            projectId: listed.id,
+            founderWallet,
+            priceLamports: 50_000_000,
+            shareSupply: 200,
+            holderPoolBps: 2000,
+            goalLamports: 10_000_000_000,
+            applicationId: app.id,
+            builderScore: 0,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[applications/review] listed/raise update failed:', err);
+    }
+
     // If approved, bump on-chain passport score
     let oracleResult = null;
     const wallet = app.payload?.wallet;
@@ -1144,12 +1208,9 @@ app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), as
       try {
         markRaiseInspection({
           applicationId: app.id,
-          projectId: app.payload?.projectId || app.payload?.id,
-          builderScore: Number.isFinite(Number(app.payload?.builderScore?.overall))
-            ? Math.max(0, Math.min(100, Number(app.payload.builderScore.overall)))
-            : 0,
-          pobVerified:
-            Number(app.payload?.builderScore?.overall) >= BUILDER_SCORE_UNLOCK,
+          projectId: listed?.id || app.payload?.projectId || app.payload?.id,
+          builderScore: 0,
+          pobVerified: false,
         });
       } catch (err) {
         console.warn('[share-raise] inspection mark failed:', err);
@@ -1170,6 +1231,8 @@ app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), as
     res.json({
       ok: true,
       application: app,
+      project: listed ? publicProject(listed) : null,
+      raise,
       oracleBump: oracleResult?.success ? {
         signature: oracleResult.signature,
         points: 100,
@@ -1178,6 +1241,26 @@ app.post('/api/applications/:id/review', rateLimit(20, 60_000, 'app-review'), as
   } catch (err) {
     console.error('[applications/review]', err);
     res.status(500).json({ error: safeErrorMessage(err, 'Failed to review application') });
+  }
+});
+
+app.post('/api/applications/:id/curate', rateLimit(20, 60_000, 'app-curate'), (req, res) => {
+  try {
+    if (!rejectUnlessRaiseAdmin(req, res)) return;
+    const id = String(req.params.id || '').trim();
+    if (!id) return res.status(400).json({ error: 'id required' });
+    getSqlite();
+    const existing = getListedByApplication(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Application is not listed yet — approve first' });
+    }
+    if (existing.curation.status === 'rejected') {
+      return res.status(400).json({ error: 'Rejected applications cannot be curated' });
+    }
+    const listed = setListedStatus(id, 'curated');
+    res.json({ ok: true, project: listed ? publicProject(listed) : null });
+  } catch (err) {
+    res.status(500).json({ error: safeErrorMessage(err, 'Failed to curate application') });
   }
 });
 
@@ -1772,6 +1855,7 @@ app.post('/api/applications', rateLimit(10, 60_000, 'applications'), (req, res) 
       fundingStatus,
       previousLaunches,
       socials,
+      chain,
     } = req.body || {};
 
     // Validate required fields
@@ -1828,6 +1912,7 @@ app.post('/api/applications', rateLimit(10, 60_000, 'applications'), (req, res) 
         fundingStatus: fundingStatus && typeof fundingStatus === 'string' ? String(fundingStatus).slice(0, 100) : undefined,
         previousLaunches: previousLaunches && typeof previousLaunches === 'string' ? String(previousLaunches).trim().slice(0, 1000) : undefined,
         socials: socials && typeof socials === 'object' ? socials : undefined,
+        chain: chain && typeof chain === 'string' ? String(chain).slice(0, 32) : undefined,
       },
     };
 
@@ -1839,8 +1924,17 @@ app.post('/api/applications', rateLimit(10, 60_000, 'applications'), (req, res) 
       return res.status(500).json({ error: 'Failed to save application' });
     }
 
-    console.log('[application]', id, entry.payload.name, entry.payload.contactEmail);
-    res.json({ ok: true, id });
+    let projectId = '';
+    try {
+      getSqlite();
+      projectId = insertListedProject(id, entry.payload).id;
+    } catch (err) {
+      console.error('[applications] listed project insert failed:', err);
+      return res.status(500).json({ error: 'Failed to list application' });
+    }
+
+    console.log('[application]', id, entry.payload.name, entry.payload.contactEmail, projectId);
+    res.json({ ok: true, id, projectId });
   } catch (error: any) {
     console.error('Application submit error:', error);
     res.status(500).json({ error: safeErrorMessage(error, 'Failed to submit application') });
@@ -1849,11 +1943,7 @@ app.post('/api/applications', rateLimit(10, 60_000, 'applications'), (req, res) 
 
 /** Admin endpoint to view all applications */
 app.get('/api/applications', (req, res) => {
-  const token = process.env.FEEDBACK_ADMIN_TOKEN || process.env.APPLICATIONS_ADMIN_TOKEN;
-  const provided = String(req.headers['x-admin-token'] || req.query.token || '');
-  if (!token || provided !== token) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (!rejectUnlessRaiseAdmin(req, res)) return;
 
   try {
     if (!fs.existsSync(APPLICATIONS_FILE)) {
@@ -1870,7 +1960,17 @@ app.get('/api/applications', (req, res) => {
       }
     }).filter(Boolean);
 
-    res.json({ count: items.length, items: items.reverse().slice(0, 100) });
+    getSqlite();
+    const enriched = items.reverse().slice(0, 100).map((item: { id?: string }) => {
+      const listed = item.id ? getListedByApplication(item.id) : null;
+      return {
+        ...item,
+        projectId: listed?.id,
+        listingStatus: listed?.curation.status,
+      };
+    });
+
+    res.json({ count: items.length, items: enriched });
   } catch (error: any) {
     console.error('Applications fetch error:', error);
     res.status(500).json({ error: safeErrorMessage(error, 'Failed to fetch applications') });

@@ -45,9 +45,15 @@ export default function LaunchpadView({
   tradeableMintSet,
 }: LaunchpadViewProps) {
   const { raises } = useShareRaises();
-  const pending = projects.filter((p) => p.curation.status === 'pending');
+  const pending = projects.filter(
+    (p) => p.curation.status === 'pending' || p.curation.status === 'reviewed',
+  );
   const curated = projects.filter((p) => p.curation.status === 'curated');
   const projectById = new Map(projects.map((p) => [p.id, p]));
+  const liveRaises = raises.filter(
+    (r: ShareRaise) => r.status === 'live' && Boolean(r.raisePda) && !r.demo,
+  );
+  const draftRaises = raises.filter((r: ShareRaise) => r.status === 'draft');
 
   const openRaise = (raise: ShareRaise) => {
     setSelectedRaiseId(raise.id);
@@ -64,8 +70,8 @@ export default function LaunchpadView({
         Inspected first. Then you mint a share.
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-steel">
-        Each certificate is an on-chain claim on deposited wins — not a simulated raise. Builders
-        DEX reviews Proof of Building™ and Builder Score™ before a raise can go live.
+        Each certificate is an on-chain claim on deposited wins. Apply first. We inspect. Then you
+        mint — one wallet, two Phantom prompts.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
@@ -90,7 +96,7 @@ export default function LaunchpadView({
           {
             icon: FilePlus2,
             title: 'Apply',
-            body: 'Submit for Proof of Building™ review and Passport™ standing.',
+            body: 'Submit a packet. You show as in-review on Explore the same day.',
             cta: 'Submit project',
             action: () => setCurrentPath('apply'),
           },
@@ -149,13 +155,13 @@ export default function LaunchpadView({
           </button>
         </div>
 
-        {raises.length === 0 ? (
+        {liveRaises.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-white/12 px-4 py-10 text-center text-sm text-steel">
-            No share raises yet — submit yours for inspection.
+            Aura is the live canary. New teams apply first — mint opens after inspection.
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {raises.map((raise) => {
+            {liveRaises.map((raise) => {
               const p = projectById.get(raise.projectId);
               const mintedPct = Math.min(
                 100,
@@ -223,7 +229,7 @@ export default function LaunchpadView({
                       onClick={() => openRaise(raise)}
                       className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-ink"
                     >
-                      Inspect & mint
+                      Mint share
                     </button>
                     {p && (
                       <button
@@ -251,7 +257,18 @@ export default function LaunchpadView({
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Pending</p>
           <h2 className="font-display mt-1 text-xl font-bold">In review — no mint yet</h2>
           <ul className="mt-4 space-y-2">
-            {pending.slice(0, 4).map((p) => (
+            {draftRaises.map((raise) => {
+              const p = projectById.get(raise.projectId);
+              return (
+                <li key={raise.id}>
+                  <div className="flex w-full items-center justify-between rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5">
+                    <span className="text-sm font-semibold">{p?.name || raise.projectId}</span>
+                    <span className="font-mono text-[10px] text-steel">Raise draft</span>
+                  </div>
+                </li>
+              );
+            })}
+            {pending.slice(0, 6).map((p) => (
               <li key={p.id}>
                 <button
                   type="button"
@@ -262,11 +279,13 @@ export default function LaunchpadView({
                   className="flex w-full items-center justify-between rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5 text-left hover:border-accent/30"
                 >
                   <span className="text-sm font-semibold">{p.name}</span>
-                  <span className="font-mono text-[10px] text-steel">PoB review</span>
+                  <span className="font-mono text-[10px] text-steel">{p.curation.status}</span>
                 </button>
               </li>
             ))}
-            {pending.length === 0 && <p className="text-xs text-steel">Queue clear.</p>}
+            {pending.length === 0 && draftRaises.length === 0 && (
+              <p className="text-xs text-steel">Queue clear — apply to join.</p>
+            )}
           </ul>
         </div>
         <div>

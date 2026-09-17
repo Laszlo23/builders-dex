@@ -59,6 +59,7 @@ export default function ProjectSubmitForm({
     'AI + Web3' | 'DeFi' | 'Infrastructure' | 'Creator Economy'
   >('AI + Web3');
   const [githubRepo, setGithubRepo] = useState('');
+  const [chain, setChain] = useState<'Polygon' | 'Base' | 'Solana' | 'Ethereum'>('Solana');
   const [journey, setJourney] = useState('Prototype → Review');
   const [goal, setGoal] = useState('100000');
   const [app, setApp] = useState<ProjectApplication>({
@@ -102,11 +103,11 @@ export default function ProjectSubmitForm({
     }
 
     const finalAi: ProjectAIAnalysis = {
-      quality: 72,
-      market: 68,
-      risk: 38,
-      innovation: 74,
-      summary: 'Hackathon-grade packet received. Awaiting Proof of Building™ review.',
+      quality: 50,
+      market: 50,
+      risk: 50,
+      innovation: 50,
+      summary: 'Application received. Awaiting Proof of Building™ review — this is not a live score.',
     };
 
     const application: ProjectApplication = {
@@ -140,8 +141,8 @@ export default function ProjectSubmitForm({
               ? 'Layers'
               : 'Share2',
       category,
-      chain: 'Solana',
-      githubRepo: githubRepo.trim() || 'pending-review/repo',
+      chain,
+      githubRepo: githubRepo.trim(),
       githubActivity: 0,
       roadmap: [
         {
@@ -195,12 +196,18 @@ export default function ProjectSubmitForm({
         <textarea className={field} rows={2} placeholder="Problem statement *" value={problem} onChange={(e) => setProblem(e.target.value)} />
         <textarea className={field} rows={3} placeholder="Product description *" value={description} onChange={(e) => setDescription(e.target.value)} />
         <textarea className={field} rows={2} placeholder="Builder story / founding narrative" value={builderStory} onChange={(e) => setBuilderStory(e.target.value)} />
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <select className={field} value={category} onChange={(e) => setCategory(e.target.value as typeof category)}>
             <option value="AI + Web3">AI + Web3</option>
             <option value="DeFi">DeFi</option>
             <option value="Infrastructure">Infrastructure</option>
             <option value="Creator Economy">Creator Economy</option>
+          </select>
+          <select className={field} value={chain} onChange={(e) => setChain(e.target.value as typeof chain)}>
+            <option value="Solana">Solana</option>
+            <option value="Base">Base</option>
+            <option value="Polygon">Polygon</option>
+            <option value="Ethereum">Ethereum</option>
           </select>
           <input className={field} placeholder="GitHub org/repo" value={githubRepo} onChange={(e) => setGithubRepo(e.target.value)} />
           <input className={field} placeholder="Raise goal USD" value={goal} onChange={(e) => setGoal(e.target.value)} />

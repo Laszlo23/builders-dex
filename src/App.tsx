@@ -34,6 +34,8 @@ const BuilderGraphExplorer = lazyWithRetry(() => import('./components/BuilderGra
 const BuilderStoriesView = lazyWithRetry(() => import('./components/BuilderStoriesView'));
 const TelegramBotView = lazyWithRetry(() => import('./components/TelegramBotView'));
 const TelegramVoteMiniApp = lazyWithRetry(() => import('./components/TelegramVoteMiniApp'));
+const ReviewDeskView = lazyWithRetry(() => import('./components/ReviewDeskView'));
+const AuraLiveView = lazyWithRetry(() => import('./components/AuraLiveView'));
 
 import { INITIAL_PROJECTS, INITIAL_BUILDERS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
 import { GrowthTask, PendingUnstake, createUnstakeRequest } from './data/earn';
@@ -247,7 +249,14 @@ export default function App() {
     }
     return EMPTY_PROFILE;
   });
-  const [myProjectIds, setMyProjectIds] = useState<string[]>([]);
+  const [myProjectIds, setMyProjectIds] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('bdx_my_projects');
+      return raw ? (JSON.parse(raw) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [convictions] = useState(INITIAL_CONVICTIONS);
   const [firstDiscoveryOpen, setFirstDiscoveryOpen] = useState(false);
   const [hasCompletedFirstDiscovery, setHasCompletedFirstDiscovery] = useState(
@@ -256,6 +265,30 @@ export default function App() {
   const [earnReady, setEarnReady] = useState(false);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
   const [ledgerSynced, setLedgerSynced] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch('/api/catalog')
+      .then((r) => r.json())
+      .then((data: { projects?: Project[] }) => {
+        if (cancelled || !Array.isArray(data.projects) || data.projects.length === 0) return;
+        setProjects(data.projects);
+      })
+      .catch(() => {
+        /* keep seed catalog */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPath]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bdx_my_projects', JSON.stringify(myProjectIds));
+    } catch {
+      /* ignore */
+    }
+  }, [myProjectIds]);
 
   // Scroll to top on navigation
   useEffect(() => {
@@ -728,25 +761,9 @@ export default function App() {
     setContributionsCount((c) => c + 1);
   };
 
-  const handleLaunchProject = (
-    newProj: Omit<Project, 'id' | 'rating' | 'upvotes' | 'comments' | 'tokenPriceHistory'>
-  ) => {
-    const finalProj: Project = {
-      ...newProj,
-      launchpadActive: newProj.launchpadActive ?? true,
-      id: `p_${Date.now()}`,
-      rating: 4.0,
-      upvotes: 0,
-      comments: [],
-      tokenPriceHistory: [
-        { time: '10:00', price: newProj.tokenPrice },
-        { time: '11:00', price: newProj.tokenPrice },
-      ],
-    };
-
-    setProjects((prev) => [finalProj, ...prev]);
-    setMyProjectIds((prev) => [finalProj.id, ...prev]);
-    setSelectedProjectId(finalProj.id);
+  const handleLaunchProject = (projectId: string) => {
+    setMyProjectIds((prev) => [projectId, ...prev.filter((id) => id !== projectId)]);
+    setSelectedProjectId(projectId);
     handleAddXp(300);
     setContributionsCount((c) => c + 1);
     setPassport((p) => ({
@@ -755,6 +772,16 @@ export default function App() {
       previousContributions: p.previousContributions + 1,
     }));
     handleCompleteQuest('g_q2');
+    void fetch('/api/catalog')
+      .then((r) => r.json())
+      .then((data: { projects?: Project[] }) => {
+        if (Array.isArray(data.projects) && data.projects.length > 0) {
+          setProjects(data.projects);
+        }
+      })
+      .catch(() => {
+        /* keep current catalog */
+      });
   };
 
   const openIntelligence = (prompt?: string) => {
@@ -928,6 +955,7 @@ export default function App() {
             onLaunch={handleLaunchProject}
             connectWallet={connectWallet}
             setCurrentPath={setCurrentPath}
+            walletAddress={walletKey || undefined}
           />
         );
       case 'launchpad':
@@ -1138,6 +1166,7 @@ export default function App() {
             setSelectedProjectId={setSelectedProjectId}
             setCurrentPath={setCurrentPath}
             connectWallet={connectWallet}
+            walletAddress={walletKey || undefined}
           />
         );
       case 'campaign':
@@ -1169,6 +1198,10 @@ export default function App() {
             }}
           />
         );
+      case 'review':
+        return <ReviewDeskView />;
+      case 'aura':
+        return <AuraLiveView setCurrentPath={setCurrentPath} />;
       default:
         return (
           <LandingView

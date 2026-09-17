@@ -131,6 +131,12 @@ export default function CrossChainBindingCard({ projectId, projectName }: Props)
         </div>
       </dl>
       <div className="mt-4 flex flex-wrap gap-2">
+        <a
+          href="/aura"
+          className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-ink hover:bg-accent-bright"
+        >
+          $AURA Live
+        </a>
         {swapUrl && (
           <a
             href={swapUrl}

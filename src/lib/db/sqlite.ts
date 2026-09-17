@@ -294,6 +294,28 @@ function migrate(database: Database.Database): void {
         CREATE INDEX IF NOT EXISTS idx_share_raises_founder ON share_raises(founder_wallet);
       `,
     },
+    {
+      name: '011_listed_projects',
+      sql: `
+        CREATE TABLE IF NOT EXISTS listed_projects (
+          id TEXT PRIMARY KEY,
+          application_id TEXT NOT NULL UNIQUE,
+          ticker TEXT NOT NULL,
+          name TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending'
+            CHECK (status IN ('pending', 'reviewed', 'curated', 'rejected')),
+          founder_wallet TEXT NOT NULL DEFAULT '',
+          project_json TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_listed_projects_status
+          ON listed_projects(status);
+        CREATE INDEX IF NOT EXISTS idx_listed_projects_ticker
+          ON listed_projects(ticker);
+      `,
+    },
   ];
 
   const mark = database.prepare(

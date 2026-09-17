@@ -24,6 +24,7 @@ import {
 } from '../types';
 import { CurationBadges } from './ScoreBars';
 import ProjectSubmitForm from './ProjectSubmitForm';
+import { submitApplication } from '../lib/submitApplication';
 import ReputationUnlocksCard from './ReputationUnlocksCard';
 import OnChainResumeCard from './OnChainResumeCard';
 import ReputationLeaderboard from './ReputationLeaderboard';
@@ -82,9 +83,7 @@ interface ProfileViewProps {
   profile: UserProfile;
   onSaveProfile: (profile: UserProfile) => void;
   myProjects: Project[];
-  onSubmitProject: (
-    project: Omit<Project, 'id' | 'rating' | 'upvotes' | 'comments' | 'tokenPriceHistory'>
-  ) => void;
+  onSubmitProject: (projectId: string) => void;
   quests?: Quest[];
   transactions?: SwapTransaction[];
   onOpenIntelligence?: () => void;
@@ -93,6 +92,7 @@ interface ProfileViewProps {
   setSelectedProjectId: (id: string) => void;
   setCurrentPath: (path: string) => void;
   connectWallet: () => void;
+  walletAddress?: string;
 }
 
 export default function ProfileView({
@@ -113,6 +113,7 @@ export default function ProfileView({
   setSelectedProjectId,
   setCurrentPath,
   connectWallet,
+  walletAddress,
 }: ProfileViewProps) {
   const { connection } = useConnection();
   const { publicKey, signTransaction } = useWallet();
@@ -126,6 +127,8 @@ export default function ProfileView({
   });
   const [showSubmit, setShowSubmit] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [appSubmitting, setAppSubmitting] = useState(false);
+  const [appError, setAppError] = useState<string | null>(null);
   const [neynarLoading, setNeynarLoading] = useState(false);
   const [neynar, setNeynar] = useState<NeynarResult | null>(null);
   const [minting, setMinting] = useState(false);
@@ -845,12 +848,22 @@ export default function ProfileView({
               defaultSocials={socials}
               walletConnected={wallet.connected}
               onConnect={connectWallet}
-              onSubmit={(p) => {
-                onSubmitProject(p);
-                setShowSubmit(false);
-                alert('Full application submitted. Track it on Accelerator under review.');
+              isSubmitting={appSubmitting}
+              onSubmit={async (p) => {
+                setAppError(null);
+                setAppSubmitting(true);
+                try {
+                  const result = await submitApplication(p, walletAddress);
+                  onSubmitProject(result.projectId);
+                  setShowSubmit(false);
+                } catch (err) {
+                  setAppError(err instanceof Error ? err.message : 'Submit failed');
+                } finally {
+                  setAppSubmitting(false);
+                }
               }}
             />
+            {appError && <p className="mt-3 text-xs text-amber-200/90">{appError}</p>}
           </div>
         )}
 
