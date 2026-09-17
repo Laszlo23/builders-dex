@@ -1,7 +1,11 @@
 import {
   AURA_BASE_ADDRESS,
+  AURA_BASE_DECIMALS,
   AURA_BASE_SUPPLY,
+  AURA_DEV_WALLET,
   AURA_USDC_V3_POOL,
+  BASE_USDC,
+  BASE_WETH,
 } from '../data/crossChainRegistry';
 
 export type AuraLiveRange = '1h' | '6h';
@@ -27,6 +31,19 @@ export type AuraLivePool = {
   createdAt: number | null;
 };
 
+export type AuraDevWalletSnapshot = {
+  address: string;
+  label: string;
+  live: boolean;
+  eth: number;
+  aura: number;
+  usdc: number;
+  weth: number;
+  txCount: number;
+  auraUsd: number;
+  supplyShare: number;
+};
+
 export type AuraLiveSnapshot = {
   token: string;
   chain: 'base';
@@ -36,6 +53,7 @@ export type AuraLiveSnapshot = {
   primary: AuraLivePool | null;
   pools: AuraLivePool[];
   candles: AuraLiveCandle[];
+  devWallet: AuraDevWalletSnapshot | null;
 };
 
 type DexPair = {
@@ -81,6 +99,104 @@ async function fetchJson(url: string): Promise<unknown> {
   });
   if (!res.ok) throw new Error(`upstream ${res.status}`);
   return res.json();
+}
+
+function hexToAmount(hex: string | undefined, decimals: number): number {
+  if (!hex || hex === '0x') return 0;
+  try {
+    const value = BigInt(hex);
+    const base = 10n ** BigInt(decimals);
+    const whole = value / base;
+    const frac = value % base;
+    return Number(whole) + Number(frac) / Number(base);
+  } catch {
+    return 0;
+  }
+}
+
+function balanceOfData(holder: string): string {
+  return `0x70a08231${holder.replace(/^0x/, '').toLowerCase().padStart(64, '0')}`;
+}
+
+function baseRpcUrls(): string[] {
+  const urls: string[] = [];
+  for (const key of ['BASE_RPC_URL', 'AVANTIS_BASE_RPC'] as const) {
+    const value = process.env[key]?.trim();
+    if (value) urls.push(value);
+  }
+  const alchemy = process.env.ALCHEMY_API_KEY?.trim();
+  if (alchemy) urls.push(`https://base-mainnet.g.alchemy.com/v2/${alchemy}`);
+  urls.push(
+    'https://base.publicnode.com',
+    'https://base.llamarpc.com',
+    'https://mainnet.base.org',
+  );
+  return [...new Set(urls)];
+}
+
+async function baseRpc(method: string, params: unknown[]): Promise<string> {
+  let lastError: unknown;
+  for (const url of baseRpcUrls()) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        signal: AbortSignal.timeout(6_000),
+      });
+      if (!res.ok) continue;
+      const body = (await res.json()) as { result?: string; error?: { message?: string } };
+      if (typeof body.result === 'string') return body.result;
+      lastError = body.error?.message || 'empty rpc result';
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError || 'base rpc failed'));
+}
+
+async function loadDevWallet(priceUsd: number): Promise<AuraDevWalletSnapshot | null> {
+  const address = (process.env.AURA_DEV_WALLET || AURA_DEV_WALLET).trim().toLowerCase();
+  if (!/^0x[a-f0-9]{40}$/.test(address)) return null;
+  try {
+    const token = AURA_BASE_ADDRESS;
+    const [ethHex, auraHex, usdcHex, wethHex, txHex] = await Promise.all([
+      baseRpc('eth_getBalance', [address, 'latest']),
+      baseRpc('eth_call', [{ to: token, data: balanceOfData(address) }, 'latest']),
+      baseRpc('eth_call', [{ to: BASE_USDC, data: balanceOfData(address) }, 'latest']),
+      baseRpc('eth_call', [{ to: BASE_WETH, data: balanceOfData(address) }, 'latest']),
+      baseRpc('eth_getTransactionCount', [address, 'latest']),
+    ]);
+    const aura = hexToAmount(auraHex, AURA_BASE_DECIMALS);
+    return {
+      address,
+      label: 'founder',
+      live: true,
+      eth: hexToAmount(ethHex, 18),
+      aura,
+      usdc: hexToAmount(usdcHex, 6),
+      weth: hexToAmount(wethHex, 18),
+      txCount: Number.parseInt(txHex, 16) || 0,
+      auraUsd: aura * (Number.isFinite(priceUsd) ? priceUsd : 0),
+      supplyShare: aura / AURA_BASE_SUPPLY,
+    };
+  } catch {
+    return {
+      address,
+      label: 'founder',
+      live: false,
+      eth: 0,
+      aura: 0,
+      usdc: 0,
+      weth: 0,
+      txCount: 0,
+      auraUsd: 0,
+      supplyShare: 0,
+    };
+  }
 }
 
 export async function loadAuraLiveSnapshot(
@@ -131,6 +247,9 @@ export async function loadAuraLiveSnapshot(
     candles = [];
   }
 
+  const priceUsd = primary?.priceUsd || 0;
+  const devWallet = await loadDevWallet(priceUsd);
+
   return {
     token,
     chain: 'base',
@@ -140,6 +259,7 @@ export async function loadAuraLiveSnapshot(
     primary,
     pools: basePairs,
     candles,
+    devWallet,
   };
 }
 

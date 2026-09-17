@@ -40,6 +40,9 @@ export const AURA_BASE_DECIMALS = 18;
 export const AURA_BASE_SUPPLY = 777_777_777;
 export const AURA_USDC_V3_POOL = '0x73eC0F9Cf1C1274F9988e7723d9822b57c2714d8';
 export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+export const BASE_WETH = '0x4200000000000000000000000000000000000006';
+/** Published Aura founder / deployer wallet on Base. */
+export const AURA_DEV_WALLET = '0x7894a4f43cec1e97cbaa9cd6676ac07abf34dd49';
 
 export function resolveAuraBaseAddress(): string {
   return (
@@ -51,6 +54,19 @@ export function resolveAuraBaseAddress(): string {
 
 export function basescanTokenUrl(address: string): string {
   return `https://basescan.org/token/${address}`;
+}
+
+export function basescanAddressUrl(address: string): string {
+  return `https://basescan.org/address/${address}`;
+}
+
+export function basescanTokenHoldingsUrl(token: string, holder: string): string {
+  return `https://basescan.org/token/${token}?a=${holder}`;
+}
+
+export function shortenHex(address: string, left = 6, right = 4): string {
+  if (address.length <= left + right + 2) return address;
+  return `${address.slice(0, left + 2)}…${address.slice(-right)}`;
 }
 
 export function dexScreenerTokenUrl(address: string): string {

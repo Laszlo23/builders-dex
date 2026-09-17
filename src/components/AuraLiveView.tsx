@@ -5,9 +5,13 @@ import {
   AURA_BASE_ADDRESS,
   AURA_BASE_DECIMALS,
   AURA_BASE_SUPPLY,
+  AURA_DEV_WALLET,
   AURA_USDC_V3_POOL,
+  basescanAddressUrl,
+  basescanTokenHoldingsUrl,
   basescanTokenUrl,
   dexScreenerTokenUrl,
+  shortenHex,
   uniswapBaseSwapUrl,
   watchAuraOnBase,
 } from '../data/crossChainRegistry';
@@ -30,11 +34,19 @@ function fmtCompact(n: number): string {
   return n.toFixed(0);
 }
 
+function fmtEth(n: number): string {
+  if (!Number.isFinite(n)) return '—';
+  if (n === 0) return '0';
+  if (n >= 1) return n.toFixed(3);
+  if (n >= 0.0001) return n.toFixed(4);
+  return n.toFixed(6);
+}
+
 export default function AuraLiveView({ setCurrentPath }: Props) {
   const [range, setRange] = useState<AuraLiveRange>('6h');
   const [snap, setSnap] = useState<AuraLiveSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<'contract' | 'dev' | null>(null);
   const [watchError, setWatchError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,8 +77,12 @@ export default function AuraLiveView({ setCurrentPath }: Props) {
   const per100k = price * 100_000;
   const inLp = primary?.liquidityBase ?? 0;
   const lpShare = snap ? Math.min(1, inLp / Math.max(1, snap.supply)) : 0;
+  const founder = snap?.devWallet;
+  const founderShare = founder?.live ? Math.min(1, founder.supplyShare) : 0;
   const blocks = snap ? Math.ceil(snap.supply / UNIT) : 0;
-  const lpBlocks = Math.round(lpShare * blocks);
+  const founderBlocks = Math.min(blocks, Math.round(founderShare * blocks));
+  const lpBlocks = Math.min(Math.max(0, blocks - founderBlocks), Math.round(lpShare * blocks));
+  const founderAddress = founder?.address || AURA_DEV_WALLET;
   const buys = snap?.pools.reduce((n, p) => n + p.buysH24, 0) ?? 0;
   const sells = snap?.pools.reduce((n, p) => n + p.sellsH24, 0) ?? 0;
   const flowTotal = Math.max(1, buys + sells);
@@ -79,15 +95,17 @@ export default function AuraLiveView({ setCurrentPath }: Props) {
     return 'shallow LP';
   }, [primary]);
 
-  const copy = async () => {
+  const copy = async (value: string, kind: 'contract' | 'dev') => {
     try {
-      await navigator.clipboard.writeText(AURA_BASE_ADDRESS);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
+      await navigator.clipboard.writeText(value);
+      setCopied(kind);
+      window.setTimeout(() => setCopied(null), 1600);
     } catch {
-      setCopied(false);
+      setCopied(null);
     }
   };
+
+  const liveNum = (ok: boolean, value: string) => (ok ? value : '—');
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
@@ -172,7 +190,7 @@ export default function AuraLiveView({ setCurrentPath }: Props) {
 
       <section className="mt-8 rounded-3xl border border-white/10 bg-surface/80 p-5 sm:p-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Rug check</p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className="font-mono text-[10px] text-steel">LP status</p>
             <p className="mt-1 text-2xl font-bold">{tankLabel}</p>
@@ -189,11 +207,108 @@ export default function AuraLiveView({ setCurrentPath }: Props) {
               {primary ? usd(primary.liquidityUsd, 0) : '—'}
             </p>
           </div>
+          <div>
+            <p className="font-mono text-[10px] text-steel">Founder $AURA</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(
+                Boolean(founder?.live),
+                `${(founderShare * 100).toFixed(1)}%`,
+              )}
+            </p>
+          </div>
         </div>
         <p className="mt-4 text-sm text-steel">
           Canonical pool is Uniswap v3 AURA/USDC on Base. USDC still sitting in the pool is not a
           pull. This page does not prove LP lock — check the NFT position on Basescan before you
-          size up.
+          size up. Founder holdings are the published wallet below, not every related address.
+        </p>
+      </section>
+
+      <section className="mt-8 rounded-3xl border border-white/10 bg-surface/80 p-5 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">
+              Dev wallet
+            </p>
+            <p className="mt-2 break-all font-mono text-sm text-white">{founderAddress}</p>
+            <p className="mt-1 font-mono text-[11px] text-steel">
+              Published founder wallet · {shortenHex(founderAddress)} · Base
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void copy(founderAddress, 'dev')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs"
+            >
+              <Copy className="h-3 w-3" />
+              {copied === 'dev' ? 'Copied' : 'Copy'}
+            </button>
+            <a
+              href={basescanAddressUrl(founderAddress)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs"
+            >
+              Basescan <ExternalLink className="h-3 w-3" />
+            </a>
+            <a
+              href={basescanTokenHoldingsUrl(AURA_BASE_ADDRESS, founderAddress)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs"
+            >
+              $AURA holdings <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <p className="font-mono text-[10px] text-steel">ETH on Base</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(Boolean(founder?.live), fmtEth(founder?.eth ?? 0))}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] text-steel">$AURA held</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(Boolean(founder?.live), fmtCompact(founder?.aura ?? 0))}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] text-steel">AURA value</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(Boolean(founder?.live), usd(founder?.auraUsd ?? 0, 0))}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] text-steel">Txns</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(Boolean(founder?.live), String(founder?.txCount ?? 0))}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] text-steel">USDC</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(Boolean(founder?.live), usd(founder?.usdc ?? 0, 2))}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] text-steel">WETH</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(Boolean(founder?.live), fmtEth(founder?.weth ?? 0))}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] text-steel">Share of supply</p>
+            <p className="mt-1 text-2xl font-bold">
+              {liveNum(Boolean(founder?.live), `${(founderShare * 100).toFixed(1)}%`)}
+            </p>
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-steel">
+          Watch this wallet for founder sells. It is public so you can check it yourself — not proof
+          that no other wallets exist, and not a lock on LP.
         </p>
       </section>
 
@@ -205,19 +320,32 @@ export default function AuraLiveView({ setCurrentPath }: Props) {
           {snap ? snap.supply.toLocaleString() : '—'} $AURA · 1 block = 1M
         </h2>
         <div className="mt-4 flex flex-wrap gap-1">
-          {Array.from({ length: Math.min(blocks, 800) }).map((_, i) => (
-            <span
-              key={i}
-              title={i < lpBlocks ? 'In AURA/USDC LP' : 'Outside this LP'}
-              className={`h-3 w-3 rounded-[2px] ${
-                i < lpBlocks ? 'bg-accent' : 'bg-white/12'
-              }`}
-            />
-          ))}
+          {Array.from({ length: Math.min(blocks, 800) }).map((_, i) => {
+            const inFounder = i < founderBlocks;
+            const inLpBlock = !inFounder && i < founderBlocks + lpBlocks;
+            return (
+              <span
+                key={i}
+                title={
+                  inFounder
+                    ? 'Founder wallet'
+                    : inLpBlock
+                      ? 'In AURA/USDC LP'
+                      : 'Elsewhere'
+                }
+                className={`h-3 w-3 rounded-[2px] ${
+                  inFounder ? 'bg-amber-300' : inLpBlock ? 'bg-accent' : 'bg-white/12'
+                }`}
+              />
+            );
+          })}
         </div>
         <p className="mt-3 font-mono text-[11px] text-steel">
-          {fmtCompact(inLp)} in the USDC pool ({(lpShare * 100).toFixed(1)}% of fixed supply) · rest
-          is wallets, the WETH pool, or unsold.
+          {founder?.live
+            ? `${fmtCompact(founder.aura)} in founder wallet (${(founderShare * 100).toFixed(1)}%) · `
+            : ''}
+          {fmtCompact(inLp)} in the USDC pool ({(lpShare * 100).toFixed(1)}%) · gold = founder, green
+          = LP.
         </p>
       </section>
 
@@ -276,11 +404,11 @@ export default function AuraLiveView({ setCurrentPath }: Props) {
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => void copy()}
+            onClick={() => void copy(AURA_BASE_ADDRESS, 'contract')}
             className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs"
           >
             <Copy className="h-3 w-3" />
-            {copied ? 'Copied' : 'Copy'}
+            {copied === 'contract' ? 'Copied' : 'Copy'}
           </button>
           <button
             type="button"
@@ -323,7 +451,7 @@ export default function AuraLiveView({ setCurrentPath }: Props) {
       </section>
 
       <p className="mt-8 font-mono text-[10px] text-steel">
-        Live from DexScreener + GeckoTerminal on Base. Not affiliated pricing advice. DYOR.{' '}
+        Live from DexScreener + GeckoTerminal + Base RPC. Not affiliated pricing advice. DYOR.{' '}
         Inspired by community live boards like{' '}
         <a
           href="https://rarefriends.intelstrata.com/"
