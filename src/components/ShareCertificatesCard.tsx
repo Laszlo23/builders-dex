@@ -6,6 +6,7 @@ import { useShareRaises } from '../hooks/useShareRaises';
 import {
   buildClaimIx,
   claimableLamports,
+  connectionForRaiseCluster,
   deriveCertificatePda,
   fetchOnchainCertificate,
   fetchOnchainRaise,
@@ -13,7 +14,7 @@ import {
 } from '../lib/shareRaiseOnchain';
 
 export default function ShareCertificatesCard() {
-  const { publicKey, signTransaction } = useWallet();
+  const { publicKey, signTransaction, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const { raises } = useShareRaises();
   const [rows, setRows] = useState<
@@ -31,13 +32,14 @@ export default function ShareCertificatesCard() {
       const found: typeof rows = [];
       for (const raise of raises) {
         if (!raise.raisePda) continue;
+        const clusterConnection = connectionForRaiseCluster(raise.cluster, connection);
         const raiseKey = new PublicKey(raise.raisePda);
-        const onchain = await fetchOnchainRaise(connection, raiseKey);
+        const onchain = await fetchOnchainRaise(clusterConnection, raiseKey);
         const minted = onchain?.sharesMinted ?? raise.sharesMinted;
         const acc = onchain?.accPerShare ?? 0n;
         for (let serial = 0; serial < minted; serial += 1) {
           const [pda] = deriveCertificatePda(raiseKey, serial);
-          const cert = await fetchOnchainCertificate(connection, pda);
+          const cert = await fetchOnchainCertificate(clusterConnection, pda);
           if (!cert || !cert.owner.equals(publicKey)) continue;
           found.push({
             raiseId: raise.id,
@@ -61,12 +63,14 @@ export default function ShareCertificatesCard() {
     if (!publicKey || !signTransaction) return;
     setBusy(row.pda);
     try {
+      const raise = raises.find((item) => item.raisePda === row.raisePda);
+      const clusterConnection = connectionForRaiseCluster(raise?.cluster, connection);
       const ix = buildClaimIx({
         raise: new PublicKey(row.raisePda),
         certificate: new PublicKey(row.pda),
         owner: publicKey,
       });
-      await sendRaiseTx(connection, publicKey, signTransaction, ix);
+      await sendRaiseTx(clusterConnection, publicKey, signTransaction, ix, [], sendTransaction);
     } finally {
       setBusy(null);
     }

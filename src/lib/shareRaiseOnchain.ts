@@ -27,6 +27,51 @@ export const RAISE_MAINNET_MINT =
         ?.VITE_RAISE_MAINNET_MINT === '1')) ||
   false;
 
+export const SOLANA_DEVNET_RPC =
+  (typeof import.meta !== 'undefined' &&
+    (import.meta as ImportMeta & { env?: Record<string, string> }).env
+      ?.VITE_SOLANA_DEVNET_RPC_URL) ||
+  'https://api.devnet.solana.com';
+
+export function connectionForRaiseCluster(
+  cluster: 'devnet' | 'mainnet-beta' | undefined,
+  fallback: Connection,
+): Connection {
+  if (cluster === 'devnet') {
+    if (fallback.rpcEndpoint.includes('devnet')) return fallback;
+    return new Connection(SOLANA_DEVNET_RPC, 'confirmed');
+  }
+  return fallback;
+}
+
+export function raiseExplorerTx(signature: string, cluster?: 'devnet' | 'mainnet-beta'): string {
+  const query = cluster === 'devnet' ? '?cluster=devnet' : '';
+  return `https://explorer.solana.com/tx/${signature}${query}`;
+}
+
+export function formatRaiseTxError(err: unknown): string {
+  const logs =
+    err && typeof err === 'object' && 'logs' in err && Array.isArray((err as { logs?: unknown }).logs)
+      ? ((err as { logs: string[] }).logs)
+      : [];
+  const fromLogs = logs.find(
+    (line) =>
+      /Error|failed|insufficient|0x1\b/i.test(line) && !line.includes('consumed'),
+  );
+  const message = err instanceof Error ? err.message : 'Mint failed';
+  const text = `${fromLogs || message} ${logs.slice(-4).join(' ')}`.toLowerCase();
+  if (text.includes('insufficient') || text.includes('0x1')) {
+    return 'Not enough SOL on Devnet. In Phantom, switch the network to Devnet, fund the wallet, then retry.';
+  }
+  if (text.includes('blockhash') || text.includes('expired')) {
+    return 'Devnet blockhash expired — retry the mint.';
+  }
+  if (text.includes('simulation') || text.includes('account not found') || text.includes('not on this cluster')) {
+    return 'Phantom simulated this on the wrong cluster. Approve it as a Devnet transaction (the dapp sends it to Devnet).';
+  }
+  return fromLogs || message;
+}
+
 const DISC = {
   createRaise: Buffer.from([234, 185, 148, 199, 102, 231, 133, 210]),
   openRaise: Buffer.from([131, 238, 79, 115, 242, 135, 142, 242]),
@@ -296,6 +341,11 @@ export async function sendRaiseTx(
   signTransaction: (tx: Transaction) => Promise<Transaction>,
   ix: TransactionInstruction | TransactionInstruction[],
   extraSigners: Signer[] = [],
+  sendTransaction?: (
+    tx: Transaction,
+    connection: Connection,
+    options?: { signers?: Signer[] },
+  ) => Promise<string>,
 ): Promise<string> {
   const ixs = Array.isArray(ix) ? ix : [ix];
   const tx = new Transaction().add(
@@ -303,14 +353,37 @@ export async function sendRaiseTx(
     ...ixs,
   );
   tx.feePayer = feePayer;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-  if (extraSigners.length > 0) tx.partialSign(...extraSigners);
-  const signed = await signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize(), {
-    skipPreflight: false,
-  });
-  await connection.confirmTransaction(sig, 'confirmed');
-  return sig;
+  const latest = await connection.getLatestBlockhash('confirmed');
+  tx.recentBlockhash = latest.blockhash;
+  let signature: string;
+  try {
+    if (sendTransaction) {
+      signature = await sendTransaction(tx, connection, { signers: extraSigners });
+    } else {
+      if (extraSigners.length > 0) tx.partialSign(...extraSigners);
+      const signed = await signTransaction(tx);
+      extraSigners.forEach((signer) => {
+        const hasSig = signed.signatures.some(
+          (entry) => entry.publicKey.equals(signer.publicKey) && Boolean(entry.signature),
+        );
+        if (!hasSig) signed.partialSign(signer);
+      });
+      signature = await connection.sendRawTransaction(signed.serialize(), {
+        skipPreflight: false,
+      });
+    }
+  } catch (err) {
+    throw new Error(formatRaiseTxError(err));
+  }
+  await connection.confirmTransaction(
+    {
+      signature,
+      blockhash: latest.blockhash,
+      lastValidBlockHeight: latest.lastValidBlockHeight,
+    },
+    'confirmed',
+  );
+  return signature;
 }
 
 export async function fetchConfigTreasury(

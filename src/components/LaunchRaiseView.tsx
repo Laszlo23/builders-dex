@@ -15,9 +15,12 @@ import { useShareRaise } from '../hooks/useShareRaises';
 import {
   RAISE_MAINNET_MINT,
   buildMintShareIx,
+  connectionForRaiseCluster,
   deriveRaisePda,
   fetchConfigTreasury,
   fetchOnchainRaise,
+  formatRaiseTxError,
+  raiseExplorerTx,
   sendRaiseTx,
 } from '../lib/shareRaiseOnchain';
 import { buildShareNftIxs } from '../lib/shareNft';
@@ -60,12 +63,18 @@ export default function LaunchRaiseView({
   const liveState = useLiveBuilderScore(project?.id || '', project?.builderScore || EMPTY_SCORE);
   const score = liveState.score;
   const { connection } = useConnection();
-  const { publicKey, signTransaction } = useWallet();
-  const { network, setNetwork } = useNetwork();
+  const { publicKey, signTransaction, sendTransaction, connected } = useWallet();
+  const { network } = useNetwork();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sig, setSig] = useState<string | null>(null);
   const [nftSig, setNftSig] = useState<string | null>(null);
+  const [onchainMinted, setOnchainMinted] = useState<number | null>(null);
+
+  const mintConnection = useMemo(
+    () => connectionForRaiseCluster(raise?.cluster, connection),
+    [raise?.cluster, connection],
+  );
 
   const proof = project ? proofOfBuildingFor(project) : null;
   const chip = project && proof ? reputationChipFor(project, proof) : null;
@@ -73,15 +82,26 @@ export default function LaunchRaiseView({
   const unlocks = builderUnlockLabels(access);
 
   useEffect(() => {
-    if (raise?.cluster === 'devnet' && network !== 'devnet') {
-      setNetwork('devnet');
+    if (!raise?.raisePda) {
+      setOnchainMinted(null);
+      return;
     }
-  }, [raise?.cluster, network, setNetwork]);
+    let cancelled = false;
+    void fetchOnchainRaise(mintConnection, new PublicKey(raise.raisePda)).then((live) => {
+      if (!cancelled && live) setOnchainMinted(live.sharesMinted);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [raise?.raisePda, mintConnection, sig]);
 
   const mintable = useMemo(() => {
     if (!raise) return { ok: false, reason: 'Raise not found' };
     if (raise.demo && !raise.raisePda) {
       return { ok: false, reason: 'Demo listing — on-chain mint after Devnet deploy + attestation' };
+    }
+    if (!raise.raisePda) {
+      return { ok: false, reason: 'Raise PDA missing' };
     }
     if (raise.status !== 'live') {
       return { ok: false, reason: `Raise is ${raise.status} — mint closed or not opened` };
@@ -90,12 +110,14 @@ export default function LaunchRaiseView({
       return { ok: false, reason: 'Inspection gate closed' };
     }
     if (chip?.tone === 'risk') return { ok: false, reason: 'Proof of Building™ is at risk' };
-    if (network === 'mainnet' && !RAISE_MAINNET_MINT) {
+    if (raise.cluster !== 'devnet' && network === 'mainnet' && !RAISE_MAINNET_MINT) {
       return { ok: false, reason: 'Mainnet share mint is gated until the Devnet canary' };
     }
-    if (raise.sharesMinted >= raise.shareSupply) return { ok: false, reason: 'Sold out' };
+    if ((onchainMinted ?? raise.sharesMinted) >= raise.shareSupply) {
+      return { ok: false, reason: 'Sold out' };
+    }
     return { ok: true, reason: '' };
-  }, [raise, chip, network]);
+  }, [raise, chip, network, onchainMinted]);
 
   const mint = async () => {
     if (!raise || !signTransaction || !publicKey) {
@@ -113,9 +135,9 @@ export default function LaunchRaiseView({
       const seed = seedFromHex(raise.projectSeedHex);
       const [pda] = deriveRaisePda(founder, seed);
       const raiseKey = raise.raisePda ? new PublicKey(raise.raisePda) : pda;
-      const onchain = await fetchOnchainRaise(connection, raiseKey);
-      if (!onchain) throw new Error('Raise account not on this cluster yet');
-      const treasury = await fetchConfigTreasury(connection);
+      const onchain = await fetchOnchainRaise(mintConnection, raiseKey);
+      if (!onchain) throw new Error('Raise account not on Devnet yet');
+      const treasury = await fetchConfigTreasury(mintConnection);
       if (!treasury) throw new Error('Raise config missing — program not initialized');
       const ix = buildMintShareIx({
         raise: raiseKey,
@@ -124,11 +146,19 @@ export default function LaunchRaiseView({
         treasury,
         serial: onchain.sharesMinted,
       });
-      const signature = await sendRaiseTx(connection, publicKey, signTransaction, ix);
+      const signature = await sendRaiseTx(
+        mintConnection,
+        publicKey,
+        signTransaction,
+        ix,
+        [],
+        sendTransaction,
+      );
       setSig(signature);
+      setOnchainMinted(onchain.sharesMinted + 1);
       try {
         const nft = await buildShareNftIxs({
-          connection,
+          connection: mintConnection,
           payer: publicKey,
           raiseId: raise.id,
           projectName: project?.name || raise.projectId,
@@ -136,22 +166,21 @@ export default function LaunchRaiseView({
           serial: onchain.sharesMinted,
         });
         const metadataSig = await sendRaiseTx(
-          connection,
+          mintConnection,
           publicKey,
           signTransaction,
           nft.ixs,
           [nft.mint],
+          sendTransaction,
         );
         setNftSig(metadataSig);
       } catch (nftErr) {
         setError(
-          nftErr instanceof Error
-            ? `Share minted; wallet NFT failed: ${nftErr.message}`
-            : 'Share minted; wallet NFT failed',
+          `Share minted; wallet NFT failed: ${formatRaiseTxError(nftErr)}`,
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Mint failed');
+      setError(formatRaiseTxError(err));
     } finally {
       setBusy(false);
     }
@@ -176,7 +205,7 @@ export default function LaunchRaiseView({
     );
   }
 
-  const nextSerial = raise.sharesMinted + 1;
+  const nextSerial = (onchainMinted ?? raise.sharesMinted) + 1;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
@@ -230,7 +259,7 @@ export default function LaunchRaiseView({
           )}
 
           <div className="relative mt-6">
-            {!wallet.connected ? (
+            {!connected ? (
               <button
                 type="button"
                 onClick={connectWallet}
@@ -254,16 +283,30 @@ export default function LaunchRaiseView({
             )}
             {raise.cluster === 'devnet' && (
               <p className="mt-2 text-xs text-accent/80">
-                Devnet canary — switch Phantom to Devnet, then approve two signatures (share +
-                wallet NFT).
+                Mints on Solana Devnet (0.05 SOL + rent). Phantom will be asked to sign a Devnet
+                transaction — you need Devnet SOL in the connected wallet.
               </p>
             )}
             {error && <p className="mt-2 text-xs text-amber-200/90">{error}</p>}
             {sig && (
-              <p className="mt-2 break-all font-mono text-[10px] text-accent">Share {sig}</p>
+              <a
+                href={raiseExplorerTx(sig, raise.cluster)}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 block break-all font-mono text-[10px] text-accent"
+              >
+                Share {sig}
+              </a>
             )}
             {nftSig && (
-              <p className="mt-2 break-all font-mono text-[10px] text-accent">NFT {nftSig}</p>
+              <a
+                href={raiseExplorerTx(nftSig, raise.cluster)}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 block break-all font-mono text-[10px] text-accent"
+              >
+                NFT {nftSig}
+              </a>
             )}
           </div>
         </section>
