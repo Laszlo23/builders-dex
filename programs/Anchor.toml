@@ -7,15 +7,15 @@ skip-lint = false
 
 [programs.localnet]
 builder_passport = "7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD"
-builder_raise = "ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB"
+builder_raise = "6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2"
 
 [programs.devnet]
 builder_passport = "7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD"
-builder_raise = "ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB"
+builder_raise = "6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2"
 
 [programs.mainnet]
 builder_passport = "7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD"
-builder_raise = "ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB"
+builder_raise = "6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2"
 
 [registry]
 url = "https://api.apr.dev"

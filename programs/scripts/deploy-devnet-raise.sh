@@ -13,7 +13,10 @@ cd "$(dirname "$0")/.."
   cargo-build-sbf --arch v1
 )
 
-solana program deploy target/deploy/builder_raise.so \
+# Devnet still expects SBF v1 (ELF e_flags=1). Default cargo-build-sbf output is v2
+# and crashes with "Access violation writing 1 bytes at address 0x32".
+SO="${SO:-target/sbpfv1-solana-solana/release/builder_raise.so}"
+solana program deploy "$SO" \
   --program-id target/deploy/builder_raise-keypair.json \
   --url "${SOLANA_DEVNET_RPC_URL:-https://api.devnet.solana.com}"
 

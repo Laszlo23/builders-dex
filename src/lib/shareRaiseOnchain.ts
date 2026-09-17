@@ -3,8 +3,10 @@
  * Transactions are signed by the caller wallet — never by the server.
  */
 import {
+  ComputeBudgetProgram,
   Connection,
   PublicKey,
+  Signer,
   SystemProgram,
   Transaction,
   TransactionInstruction,
@@ -14,7 +16,7 @@ export const BUILDER_RAISE_PROGRAM_ID = new PublicKey(
   (typeof import.meta !== 'undefined' &&
     (import.meta as ImportMeta & { env?: Record<string, string> }).env
       ?.VITE_BUILDER_RAISE_PROGRAM_ID) ||
-    'ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB',
+    '6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2',
 );
 
 export const RAISE_MAINNET_MINT =
@@ -220,6 +222,22 @@ export function buildClaimIx(args: {
   });
 }
 
+export function buildOpenRaiseIx(args: {
+  raise: PublicKey;
+  oracle: PublicKey;
+}): TransactionInstruction {
+  const [config] = deriveRaiseConfigPda();
+  return new TransactionInstruction({
+    programId: BUILDER_RAISE_PROGRAM_ID,
+    keys: [
+      { pubkey: args.raise, isSigner: false, isWritable: true },
+      { pubkey: config, isSigner: false, isWritable: false },
+      { pubkey: args.oracle, isSigner: true, isWritable: false },
+    ],
+    data: DISC.openRaise,
+  });
+}
+
 export function buildCreateRaiseIx(args: {
   founder: PublicKey;
   projectSeed: Buffer;
@@ -276,13 +294,21 @@ export async function sendRaiseTx(
   connection: Connection,
   feePayer: PublicKey,
   signTransaction: (tx: Transaction) => Promise<Transaction>,
-  ix: TransactionInstruction,
+  ix: TransactionInstruction | TransactionInstruction[],
+  extraSigners: Signer[] = [],
 ): Promise<string> {
-  const tx = new Transaction().add(ix);
+  const ixs = Array.isArray(ix) ? ix : [ix];
+  const tx = new Transaction().add(
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
+    ...ixs,
+  );
   tx.feePayer = feePayer;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+  if (extraSigners.length > 0) tx.partialSign(...extraSigners);
   const signed = await signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
+  const sig = await connection.sendRawTransaction(signed.serialize(), {
+    skipPreflight: false,
+  });
   await connection.confirmTransaction(sig, 'confirmed');
   return sig;
 }

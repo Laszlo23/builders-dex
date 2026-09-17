@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Loader2, ShieldAlert, Stamp } from 'lucide-react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
@@ -20,6 +20,7 @@ import {
   fetchOnchainRaise,
   sendRaiseTx,
 } from '../lib/shareRaiseOnchain';
+import { buildShareNftIxs } from '../lib/shareNft';
 import { useNetwork } from '../providers/NetworkProvider';
 import { seedFromHex } from '../lib/projectSeed';
 
@@ -60,15 +61,22 @@ export default function LaunchRaiseView({
   const score = liveState.score;
   const { connection } = useConnection();
   const { publicKey, signTransaction } = useWallet();
-  const { network } = useNetwork();
+  const { network, setNetwork } = useNetwork();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sig, setSig] = useState<string | null>(null);
+  const [nftSig, setNftSig] = useState<string | null>(null);
 
   const proof = project ? proofOfBuildingFor(project) : null;
   const chip = project && proof ? reputationChipFor(project, proof) : null;
   const access = builderAccessFromScore(score?.overall || 0);
   const unlocks = builderUnlockLabels(access);
+
+  useEffect(() => {
+    if (raise?.cluster === 'devnet' && network !== 'devnet') {
+      setNetwork('devnet');
+    }
+  }, [raise?.cluster, network, setNetwork]);
 
   const mintable = useMemo(() => {
     if (!raise) return { ok: false, reason: 'Raise not found' };
@@ -118,6 +126,30 @@ export default function LaunchRaiseView({
       });
       const signature = await sendRaiseTx(connection, publicKey, signTransaction, ix);
       setSig(signature);
+      try {
+        const nft = await buildShareNftIxs({
+          connection,
+          payer: publicKey,
+          raiseId: raise.id,
+          projectName: project?.name || raise.projectId,
+          ticker: project?.ticker || 'SHARE',
+          serial: onchain.sharesMinted,
+        });
+        const metadataSig = await sendRaiseTx(
+          connection,
+          publicKey,
+          signTransaction,
+          nft.ixs,
+          [nft.mint],
+        );
+        setNftSig(metadataSig);
+      } catch (nftErr) {
+        setError(
+          nftErr instanceof Error
+            ? `Share minted; wallet NFT failed: ${nftErr.message}`
+            : 'Share minted; wallet NFT failed',
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Mint failed');
     } finally {
@@ -220,9 +252,18 @@ export default function LaunchRaiseView({
             {!mintable.ok && (
               <p className="mt-2 text-xs text-steel">{mintable.reason}</p>
             )}
+            {raise.cluster === 'devnet' && (
+              <p className="mt-2 text-xs text-accent/80">
+                Devnet canary — switch Phantom to Devnet, then approve two signatures (share +
+                wallet NFT).
+              </p>
+            )}
             {error && <p className="mt-2 text-xs text-amber-200/90">{error}</p>}
             {sig && (
-              <p className="mt-2 break-all font-mono text-[10px] text-accent">Minted {sig}</p>
+              <p className="mt-2 break-all font-mono text-[10px] text-accent">Share {sig}</p>
+            )}
+            {nftSig && (
+              <p className="mt-2 break-all font-mono text-[10px] text-accent">NFT {nftSig}</p>
             )}
           </div>
         </section>

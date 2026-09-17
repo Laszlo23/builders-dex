@@ -17,7 +17,7 @@ import path from 'node:path';
 
 const PROGRAM_ID = new PublicKey(
   process.env.BUILDER_RAISE_PROGRAM_ID ||
-    'ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB',
+    '6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2',
 );
 
 const INIT_CONFIG_DISC = Buffer.from([208, 127, 21, 1, 194, 190, 196, 70]);
@@ -76,12 +76,22 @@ async function main() {
     ],
     data,
   });
-  const sig = await sendAndConfirmTransaction(
-    connection,
-    new Transaction().add(ix),
-    [authority],
-  );
-  console.log('Initialized', configPda.toBase58(), sig);
+  try {
+    const sig = await sendAndConfirmTransaction(
+      connection,
+      new Transaction().add(ix),
+      [authority],
+    );
+    console.log('Initialized', configPda.toBase58(), sig);
+  } catch (err) {
+    const logs =
+      err && typeof err === 'object' && 'getLogs' in err
+        ? await (err as { getLogs: () => Promise<unknown> }).getLogs()
+        : null;
+    console.error(err);
+    if (logs) console.error('logs', logs);
+    process.exit(1);
+  }
 }
 
 main().catch((e) => {

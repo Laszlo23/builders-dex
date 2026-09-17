@@ -1,0 +1,17 @@
+{
+  "id": "raise_aura_p5",
+  "projectId": "p5",
+  "cluster": "devnet",
+  "programId": "6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2",
+  "raisePda": "2cju2KfYS77XkAGd7Q9a5QoXKkcHaScs4PDbMub4KYdA",
+  "founderWallet": "6XitbmLNPGzsvGo6aNTbMG3uvwqdbmssy8g4zhbJrUTr",
+  "projectSeedHex": "7894a0a9b503609ac7e2201196a12e390ac2a01c98f1046e231216f2cec812e3",
+  "priceLamports": 50000000,
+  "shareSupply": 200,
+  "holderPoolBps": 2000,
+  "founderRetainedBps": 8000,
+  "goalLamports": 10000000000,
+  "applicationId": "app_aura_p5",
+  "builderScore": 92,
+  "explorer": "https://explorer.solana.com/address/2cju2KfYS77XkAGd7Q9a5QoXKkcHaScs4PDbMub4KYdA?cluster=devnet"
+}

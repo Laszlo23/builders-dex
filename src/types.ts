@@ -390,6 +390,7 @@ export interface ShareRaise {
   vaultMint: 'SOL';
   inspection: ShareRaiseInspection;
   demo?: boolean;
+  cluster?: 'devnet' | 'mainnet-beta';
   createdAt: string;
   updatedAt: string;
 }

@@ -3,6 +3,8 @@
  * On-chain balances live on builder_raise; this table is the product index.
  */
 import { createHash, randomBytes } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { getSqlite } from './db/sqlite';
 import type { ShareRaise, ShareRaiseStatus } from '../types';
 import { BUILDER_SCORE_UNLOCK } from './reputationRules';
@@ -10,7 +12,7 @@ import { BUILDER_SCORE_UNLOCK } from './reputationRules';
 export const SHARE_RAISE_PROGRAM_ID =
   process.env.VITE_BUILDER_RAISE_PROGRAM_ID ||
   process.env.BUILDER_RAISE_PROGRAM_ID ||
-  'ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB';
+  '6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2';
 
 type RaiseRow = {
   id: string;
@@ -62,7 +64,8 @@ function rowToRaise(row: RaiseRow): ShareRaise {
     },
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    demo: row.id === 'raise_demo_p5',
+    demo: row.id === 'raise_demo_p5' && !row.raise_pda,
+    cluster: row.raise_pda ? 'devnet' : undefined,
   };
 }
 
@@ -74,7 +77,99 @@ export function applicationHashBytes(applicationId: string): Buffer {
   return createHash('sha256').update(`builders-dex:application:${applicationId}`).digest();
 }
 
+type LiveSeed = {
+  id: string;
+  projectId: string;
+  cluster?: 'devnet' | 'mainnet-beta';
+  raisePda: string;
+  founderWallet: string;
+  priceLamports: number;
+  shareSupply: number;
+  holderPoolBps: number;
+  founderRetainedBps: number;
+  goalLamports: number;
+  applicationId: string;
+  builderScore: number;
+};
+
+function loadLiveSeed(): LiveSeed | null {
+  const candidates = [
+    path.join(process.cwd(), 'src/data/liveShareRaise.json'),
+    path.join(process.cwd(), 'data/liveShareRaise.json'),
+  ];
+  for (const file of candidates) {
+    if (!fs.existsSync(file)) continue;
+    try {
+      return JSON.parse(fs.readFileSync(file, 'utf8')) as LiveSeed;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/** Upsert the Devnet Aura canary so Accelerator mint is not the catalog demo. */
+export function ensureLiveRaise(): ShareRaise | null {
+  const seed = loadLiveSeed();
+  if (!seed?.raisePda || !seed.founderWallet) return null;
+  const db = getSqlite();
+  const existing = db
+    .prepare(`SELECT * FROM share_raises WHERE id = ?`)
+    .get(seed.id) as RaiseRow | undefined;
+  if (!existing) {
+    db.prepare(
+      `INSERT INTO share_raises (
+        id, project_id, raise_pda, collection, founder_wallet, status,
+        price_lamports, share_supply, shares_minted, holder_pool_bps,
+        founder_retained_bps, goal_lamports, raised_lamports, application_id,
+        builder_score, pob_verified, attested_at
+      ) VALUES (?, ?, ?, ?, ?, 'live', ?, ?, 0, ?, ?, ?, 0, ?, ?, 1, datetime('now'))`,
+    ).run(
+      seed.id,
+      seed.projectId,
+      seed.raisePda,
+      seed.raisePda,
+      seed.founderWallet,
+      seed.priceLamports,
+      seed.shareSupply,
+      seed.holderPoolBps,
+      seed.founderRetainedBps,
+      seed.goalLamports,
+      seed.applicationId,
+      seed.builderScore,
+    );
+  } else if (existing.raise_pda !== seed.raisePda || existing.status !== 'live') {
+    db.prepare(
+      `UPDATE share_raises SET
+         raise_pda = ?, collection = ?, founder_wallet = ?, status = 'live',
+         price_lamports = ?, share_supply = ?, holder_pool_bps = ?,
+         founder_retained_bps = ?, goal_lamports = ?, application_id = ?,
+         builder_score = ?, pob_verified = 1, attested_at = COALESCE(attested_at, datetime('now')),
+         updated_at = datetime('now')
+       WHERE id = ?`,
+    ).run(
+      seed.raisePda,
+      seed.raisePda,
+      seed.founderWallet,
+      seed.priceLamports,
+      seed.shareSupply,
+      seed.holderPoolBps,
+      seed.founderRetainedBps,
+      seed.goalLamports,
+      seed.applicationId,
+      seed.builderScore,
+      seed.id,
+    );
+  }
+  const row = db.prepare(`SELECT * FROM share_raises WHERE id = ?`).get(seed.id) as RaiseRow;
+  const raise = rowToRaise(row);
+  raise.cluster = seed.cluster || 'devnet';
+  raise.demo = false;
+  return raise;
+}
+
 export function listRaises(opts?: { status?: ShareRaiseStatus; projectId?: string }): ShareRaise[] {
+  ensureLiveRaise();
   const db = getSqlite();
   const clauses: string[] = [];
   const params: string[] = [];
@@ -91,13 +186,21 @@ export function listRaises(opts?: { status?: ShareRaiseStatus; projectId?: strin
     .prepare(`SELECT * FROM share_raises ${where} ORDER BY created_at DESC`)
     .all(...params) as RaiseRow[];
   const raises = rows.map(rowToRaise);
-  if (raises.length === 0 && !opts?.status && !opts?.projectId) {
+  const filtered = raises.some((r) => r.raisePda) ? raises.filter((r) => !r.demo) : raises;
+  if (filtered.length === 0 && !opts?.status && !opts?.projectId) {
     return [ensureDemoRaise()];
   }
-  return raises;
+  return filtered;
 }
 
 export function getRaise(id: string): ShareRaise | null {
+  const live = ensureLiveRaise();
+  if (
+    live &&
+    (id === live.id || id === live.projectId || id === 'raise_demo_p5' || id === 'p5')
+  ) {
+    return live;
+  }
   const db = getSqlite();
   const row = db.prepare(`SELECT * FROM share_raises WHERE id = ?`).get(id) as RaiseRow | undefined;
   if (row) return rowToRaise(row);
@@ -106,6 +209,8 @@ export function getRaise(id: string): ShareRaise | null {
 }
 
 export function getRaiseByProject(projectId: string): ShareRaise | null {
+  const live = ensureLiveRaise();
+  if (live && live.projectId === projectId) return live;
   const db = getSqlite();
   const row = db
     .prepare(`SELECT * FROM share_raises WHERE project_id = ? ORDER BY created_at DESC LIMIT 1`)
@@ -237,6 +342,8 @@ export function syncRaiseOnchain(id: string, patch: {
 
 /** Catalog demo so Accelerator is not empty before first founder draft. */
 export function ensureDemoRaise(): ShareRaise {
+  const live = ensureLiveRaise();
+  if (live) return live;
   const db = getSqlite();
   const existing = db
     .prepare(`SELECT * FROM share_raises WHERE id = ?`)

@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{self, Transfer};
 
-declare_id!("ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB");
+declare_id!("6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2");
 
 /// Scale for acc_per_share so deposits split cleanly across minted shares.
 pub const ACC_SCALE: u128 = 1_000_000_000;

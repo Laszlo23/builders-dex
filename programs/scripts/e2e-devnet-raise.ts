@@ -25,7 +25,7 @@ const ROOT = path.join(__dirname, '..');
 const RPC = process.env.SOLANA_DEVNET_RPC_URL || 'https://api.devnet.solana.com';
 const PROGRAM_ID = new PublicKey(
   process.env.BUILDER_RAISE_PROGRAM_ID ||
-    'ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB',
+    '6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2',
 );
 
 type Result = { name: string; ok: boolean; detail: string };

@@ -22,7 +22,7 @@ import {
 } from './src/data/builderPlatform';
 import { BUILDER_GENOMES } from './src/data/prideMovement';
 import { INITIAL_BUILDERS, INITIAL_PROJECTS } from './src/data/projects';
-import { buildSitemapXml, resolveSeoForRequest } from './src/lib/seo';
+import { buildSitemapXml, resolveSeoForRequest, SITE_URL } from './src/lib/seo';
 import { injectSeoIntoHtml, isPreviewBot } from './src/lib/seoHtml';
 import { proofOfBuildingFor } from './src/lib/proofOfBuilding';
 import { dnaFromScore } from './src/lib/builderDna';
@@ -619,6 +619,43 @@ app.get('/api/raises/:id', rateLimit(60, 60_000, 'raises-get'), (req, res) => {
     res.status(500).json({ error: safeErrorMessage(err, 'raise failed') });
   }
 });
+
+app.get(
+  ['/api/nft/share/:id/:serial.json', '/api/nft/share/:id/:serial'],
+  rateLimit(120, 60_000, 'nft-share-meta'),
+  (req, res) => {
+    try {
+      getSqlite();
+      const id = String(req.params.id || '').trim();
+      const serial = Number(String(req.params.serial || '').replace(/\.json$/i, ''));
+      if (!id || !Number.isInteger(serial) || serial < 0 || serial > 10_000) {
+        return res.status(400).json({ error: 'Invalid share NFT' });
+      }
+      const raise = getRaise(id) || getRaiseByProject(id);
+      if (!raise) return res.status(404).json({ error: 'Raise not found' });
+      const project = INITIAL_PROJECTS.find((p) => p.id === raise.projectId);
+      const label = String(serial + 1).padStart(3, '0');
+      const name = `${project?.name || raise.projectId} Share #${label}`.slice(0, 32);
+      res.json({
+        name,
+        symbol: (project?.ticker || 'SHARE').slice(0, 10),
+        description:
+          'Builders DEX share certificate — an on-chain claim on deposited wins, not equity.',
+        image: `${SITE_URL}/og/project-${raise.projectId}.webp`,
+        external_url: `${SITE_URL}/raise?id=${encodeURIComponent(raise.id)}`,
+        attributes: [
+          { trait_type: 'Project', value: project?.name || raise.projectId },
+          { trait_type: 'Serial', value: serial + 1 },
+          { trait_type: 'Supply', value: raise.shareSupply },
+          { trait_type: 'Holder pool', value: `${(raise.holderPoolBps / 100).toFixed(1)}%` },
+          { trait_type: 'Cluster', value: raise.cluster || 'devnet' },
+        ],
+      });
+    } catch (err) {
+      res.status(500).json({ error: safeErrorMessage(err, 'nft metadata failed') });
+    }
+  },
+);
 
 app.post('/api/raises', rateLimit(10, 60_000, 'raises-post'), (req, res) => {
   try {

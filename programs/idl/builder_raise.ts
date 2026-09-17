@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/builder_raise.json`.
  */
 export type BuilderRaise = {
-  "address": "ApfLKeKDbRUmMsf7Fq8n6kH8wvn8YW4ideKiLzt4oafB",
+  "address": "6weAy9KBNBf6MFsiA4csnEj5yJEhLV5nA5fzvnHD6wS2",
   "metadata": {
     "name": "builderRaise",
     "version": "0.1.0",
