@@ -755,11 +755,11 @@ export default function ProjectDetailView({
             {hoodAsset ? (
               <>
                 <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
-                  Hood mint
+                  On Hood
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-steel">
-                  {hoodAsset.name} lives on Robinhood Chain. Mint on the official page with ETH
-                  for gas — this is not a Solana share certificate and not Jupiter.
+                  We are all-in on this network. {hoodAsset.name} lives on Robinhood Chain — mint
+                  with ETH for gas on the official page. Not a Solana share certificate, not Jupiter.
                 </p>
                 <a
                   href={hoodAsset.mintUrl}
@@ -781,7 +781,7 @@ export default function ProjectDetailView({
                   onClick={() => setCurrentPath('hood')}
                   className="mt-2 w-full rounded-xl border border-white/12 py-2.5 text-xs font-semibold text-white"
                 >
-                  Solana → Hood guide
+                  On Hood
                 </button>
               </>
             ) : (

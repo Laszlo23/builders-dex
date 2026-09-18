@@ -13,6 +13,12 @@ export const BRAND_SUPPORT =
 export const BRAND_CATEGORY =
   'A builder intelligence network with integrated trading.';
 
+/** Public chain stance — Solana + Base + Robinhood Chain */
+export const BRAND_MULTICHAIN = 'All-in on multichain.';
+
+export const BRAND_HOOD_STANCE =
+  'We love how Robinhood Chain moves — same 0x across L2s, partner hops, gas first. We are doing everything we can to participate in this network.';
+
 export const BRAND_NAME = 'Builders DEX';
 
 export const BRAND_OS_LINE =
@@ -44,6 +50,8 @@ export const MANIFESTO = {
     "We don't reward hype.",
     'We reward people who ship.',
     'Every listing is deserved.',
+    'We are all-in on multichain.',
+    'We love how Robinhood Chain moves — and we are here to participate.',
     'Welcome to the proof economy.',
   ],
 } as const;

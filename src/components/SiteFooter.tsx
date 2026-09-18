@@ -26,7 +26,7 @@ import {
   ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
-import { BRAND_SOCIALS, BRAND_SUPPORT, BRAND_TAGLINE, CULTURE_NODE_X_POST } from '../data/brand';
+import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN, BRAND_SOCIALS, BRAND_SUPPORT, BRAND_TAGLINE, CULTURE_NODE_X_POST } from '../data/brand';
 
 type FooterLink = { id: string; label: string; icon: LucideIcon };
 
@@ -39,7 +39,7 @@ const PRODUCT: FooterLink[] = [
   { id: 'investor', label: 'Investor Mode', icon: Briefcase },
   { id: 'launchpad', label: 'Accelerator', icon: Rocket },
   { id: 'aura', label: '$AURA Live', icon: Activity },
-  { id: 'hood', label: 'Hood hop', icon: ArrowLeftRight },
+  { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
   { id: 'cubes', label: 'Cubes Live', icon: Layers },
   { id: 'apply', label: 'Apply', icon: Rocket },
   { id: 'earn', label: 'Earn', icon: Coins },
@@ -108,6 +108,9 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
             </p>
             <p className="mt-1.5 text-[11px] leading-relaxed text-steel/80">
               {BRAND_SUPPORT}
+            </p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-white/70">
+              {BRAND_MULTICHAIN} {BRAND_HOOD_STANCE}
             </p>
             <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1.5 font-mono text-[10px] text-accent">
               <span className="relative flex h-1.5 w-1.5">

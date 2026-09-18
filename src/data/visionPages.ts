@@ -55,6 +55,13 @@ export const VISION = {
         'Builders DEX is that shared layer: identity → social score → code → reputation → curated trade. Build > Hype — for us, and for anyone who wants the ecosystem to heal.',
       ],
     },
+    {
+      heading: 'All-in on multichain — including Hood',
+      body: [
+        'We love how Robinhood Chain moves: one 0x on every L2, partner hops instead of a fake one-click bridge, gas first. That is how people actually live across networks.',
+        'Solana stays Passport and share mint. Base stays canonical AURA. We are doing everything we can to participate on Hood — Cubes in the catalog, live phases, Apply on chain 4663, EVM bind on Passport — without pretending we are Robinhood or inventing a wrap.',
+      ],
+    },
   ],
 } as const;
 
@@ -71,6 +78,7 @@ export const ROADMAP = {
         'Talent Protocol + Neynar / Farcaster as first listing criteria',
         'Repo & shipping review before any curated mint',
         'Builder Score™, Passport™, and curated Solana swaps',
+        'Robinhood Chain: Cubes Live, Hood hop, same-0x wallet link — we participate in this network',
         'Feedback + Support Agent so the standard stays honest',
       ],
     },
@@ -131,6 +139,10 @@ export const MANIFEST_PAGE = {
     {
       title: 'Reputation before liquidity',
       body: 'Trading is earned. Listing without reputation is how ecosystems get looted.',
+    },
+    {
+      title: 'All-in on multichain',
+      body: 'We love how Robinhood Chain moves — same 0x, partner hops, gas first — and we are doing everything we can to participate in this network. Solana and Base stay first-class. Hood is not a side quest.',
     },
     {
       title: 'Build > Hype',

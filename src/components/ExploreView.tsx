@@ -6,6 +6,7 @@ import DepthCard from './DepthCard';
 import { resolveTradeMint, getCuratedToken } from '../data/curatedTokens';
 import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
 import { hoodAssetForProject, openHoodMint, resolveHoodAssetAddress } from '../data/hoodChain';
+import { BRAND_MULTICHAIN } from '../data/brand';
 import { proofOfBuildingFor } from '../lib/proofOfBuilding';
 import { reputationChipFor } from '../lib/reputationRules';
 import { ReputationChipBadge } from './ReputationUnlocksCard';
@@ -288,10 +289,13 @@ export default function ExploreView({
             </div>
           </div>
           <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-5">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-accent">Robinhood Chain</p>
-            <h3 className="mt-2 font-display text-xl font-bold text-white">Cubes on Hood</h3>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+              {BRAND_MULTICHAIN} · Robinhood Chain
+            </p>
+            <h3 className="mt-2 font-display text-xl font-bold text-white">We love how Hood moves</h3>
             <p className="mt-2 text-sm text-steel">
-              No canonical SOL→Hood bridge. Hop a test amount to ETH, arrive with gas on 4663, then mint outbound. Same 0x as Base.
+              Cubes is how we participate on this network today — live phases, outbound mint, same
+              0x as Base. Hop a test amount, arrive with ETH gas on 4663.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
@@ -299,7 +303,7 @@ export default function ExploreView({
                 onClick={() => setCurrentPath('hood')}
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-mono text-xs font-bold text-ink"
               >
-                Hood hop guide
+                On Hood
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
               <button

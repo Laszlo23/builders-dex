@@ -611,7 +611,7 @@ export const INITIAL_PROJECTS: Project[] = [
     quests: [
       {
         id: 'q_p6_1',
-        name: 'Read the Hood hop',
+        name: 'Read On Hood',
         description: 'Follow /hood — test amount, ETH gas first, type bridge URLs yourself.',
         xp: 150,
         category: 'research',

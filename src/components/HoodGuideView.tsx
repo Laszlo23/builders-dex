@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ExternalLink, Wallet, AlertTriangle, ArrowRight } from 'lucide-react';
+import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN } from '../data/brand';
 import {
   CUBES_MINT_URL,
   DEBRIDGE_APP_URL,
@@ -49,16 +50,16 @@ export default function HoodGuideView({ setCurrentPath }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 text-white sm:px-6">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-        Solana → Robinhood Chain
+        {BRAND_MULTICHAIN} · Robinhood Chain {HOOD_CHAIN_ID}
       </p>
       <h1 className="font-display mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
-        Get ETH on Hood
+        We love how Hood moves
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-steel">
-        There is no canonical Solana → Robinhood Chain bridge. Phantom users hop SOL to ETH or
-        USDC on Ethereum or Base, then a listed partner route onto chain {HOOD_CHAIN_ID}. Arrive
-        with <span className="text-white">{HOOD_NATIVE_SYMBOL} for gas first</span> — a token-only
-        arrival cannot mint or swap.
+        {BRAND_HOOD_STANCE} Cubes is in the catalog. Apply lists Hood. Passport binds the same 0x
+        you use on Base. This page is the honest hop so you can actually join — there is no
+        canonical Solana → Robinhood Chain bridge. Arrive with{' '}
+        <span className="text-white">{HOOD_NATIVE_SYMBOL} for gas first</span>.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">

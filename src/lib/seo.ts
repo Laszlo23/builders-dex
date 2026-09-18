@@ -1,11 +1,11 @@
-import { BRAND_SUPPORT, BRAND_TAGLINE, BRAND_SOCIALS } from '../data/brand';
+import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN, BRAND_SUPPORT, BRAND_TAGLINE, BRAND_SOCIALS } from '../data/brand';
 import { BLOG_POSTS, getPostBySlug, type BlogPost } from '../data/blog';
 import { INITIAL_PROJECTS } from '../data/projects';
 import type { Project } from '../types';
 
 export const SITE_URL = 'https://dex.buildingcultureid.space';
 export const SITE_NAME = 'Builders DEX';
-export const DEFAULT_DESCRIPTION = `${BRAND_TAGLINE} ${BRAND_SUPPORT}`;
+export const DEFAULT_DESCRIPTION = `${BRAND_TAGLINE} ${BRAND_MULTICHAIN} ${BRAND_SUPPORT}`;
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const DEFAULT_OG_IMAGE = '/og-image.webp';
@@ -242,9 +242,8 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     path: '/aura',
   },
   hood: {
-    title: 'Solana → Robinhood Chain — Builders DEX',
-    description:
-      'Honest hop: Phantom SOL to ETH/Base, then Relay, Across, or the Arbitrum portal onto Hood 4663. Gas-first. NFA. Not affiliated with Robinhood Markets.',
+    title: 'On Hood — Builders DEX',
+    description: `${BRAND_MULTICHAIN} ${BRAND_HOOD_STANCE} Honest hop onto chain 4663. Gas-first. NFA. Not affiliated with Robinhood Markets.`,
     path: '/hood',
   },
   cubes: {

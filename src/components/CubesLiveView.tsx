@@ -10,6 +10,7 @@ import {
   hoodExplorerAddressUrl,
   hoodExplorerTokenUrl,
 } from '../data/hoodChain';
+import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN } from '../data/brand';
 import { shortenHex } from '../data/crossChainRegistry';
 import type { CubesLiveSnapshot, CubesPhaseSnapshot } from '../lib/hoodLive';
 
@@ -107,11 +108,15 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-            Cubes · live on Hood {HOOD_CHAIN_ID}
+            {BRAND_MULTICHAIN} · Cubes on Hood {HOOD_CHAIN_ID}
           </p>
           <h1 className="font-display mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
             Cubes Live
           </h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-steel">
+            {BRAND_HOOD_STANCE} This board is how we participate today — on-chain phases, outbound
+            mint, not a Solana wrap.
+          </p>
         </div>
         <p className="font-mono text-[10px] text-steel">on-chain phases() · every 30s · NFA</p>
       </div>
@@ -176,7 +181,7 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
               onClick={() => setCurrentPath('hood')}
               className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white"
             >
-              Solana → Hood guide
+              On Hood
             </button>
             <button
               type="button"
