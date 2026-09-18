@@ -17,6 +17,8 @@ function explorerTokenUrl(chain: string | undefined, mint: string): string {
       return `https://snowtrace.io/token/${mint}`;
     case 'optimism':
       return `https://optimistic.etherscan.io/token/${mint}`;
+    case 'robinhood':
+      return `https://robinhoodchain.blockscout.com/token/${mint}`;
     case 'sui':
       return `https://suiscan.xyz/mainnet/coin/${encodeURIComponent(mint)}`;
     case 'ton':

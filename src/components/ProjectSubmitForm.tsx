@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Project, ProjectAIAnalysis, ProjectApplication, UserSocials } from '../types';
+import { Project, ProjectAIAnalysis, ProjectApplication, ProjectChain, UserSocials } from '../types';
 import { scoreFromAiAnalysis } from '../lib/builderScore';
 
 const EMPTY_SOCIALS: UserSocials = {
@@ -59,7 +59,7 @@ export default function ProjectSubmitForm({
     'AI + Web3' | 'DeFi' | 'Infrastructure' | 'Creator Economy'
   >('AI + Web3');
   const [githubRepo, setGithubRepo] = useState('');
-  const [chain, setChain] = useState<'Polygon' | 'Base' | 'Solana' | 'Ethereum'>('Solana');
+  const [chain, setChain] = useState<ProjectChain>('Solana');
   const [journey, setJourney] = useState('Prototype → Review');
   const [goal, setGoal] = useState('100000');
   const [app, setApp] = useState<ProjectApplication>({
@@ -208,6 +208,7 @@ export default function ProjectSubmitForm({
             <option value="Base">Base</option>
             <option value="Polygon">Polygon</option>
             <option value="Ethereum">Ethereum</option>
+            <option value="Robinhood">Robinhood Chain</option>
           </select>
           <input className={field} placeholder="GitHub org/repo" value={githubRepo} onChange={(e) => setGithubRepo(e.target.value)} />
           <input className={field} placeholder="Raise goal USD" value={goal} onChange={(e) => setGoal(e.target.value)} />

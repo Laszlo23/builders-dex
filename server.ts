@@ -100,16 +100,28 @@ import { getSqlite } from './src/lib/db/sqlite';
 import { bumpScoreForScout, bumpScoreForApplication } from './src/lib/passportOracle';
 import {
   buildBaseLinkMessage,
+  buildEvmLinkMessage,
+  buildLegacySolLinkMessage,
+  buildLegacySolUnlinkMessage,
   buildSolLinkMessage,
   buildSolUnlinkMessage,
   deleteWalletLink,
   getWalletLink,
-  isValidBaseAddress,
+  isValidEvmAddress,
   isValidSolanaAddress,
   upsertWalletLink,
 } from './src/lib/walletLink';
 import { getAuraBinding, PASSPORT_COLLECTION } from './src/data/crossChainRegistry';
+import {
+  CUBES_CONTRACT,
+  HOOD_ASSETS,
+  HOOD_CHAIN_ID,
+  HOOD_DOCS_URL,
+  HOOD_EXPLORER_URL,
+  HOOD_RPC_URL,
+} from './src/data/hoodChain';
 import { loadAuraLiveSnapshot } from './src/lib/auraLive';
+import { loadCubesLiveSnapshot } from './src/lib/hoodLive';
 import {
   canOpenRaise,
   createRaiseDraft,
@@ -539,12 +551,20 @@ app.get('/api/builder-passport', (req, res) => {
   });
 });
 
-/** Cross-chain registry + wallet links (Solana identity ↔ Base AURA) */
+/** Cross-chain registry + wallet links (Solana identity ↔ EVM on Base/Hood) */
 app.get('/api/cross-chain/registry', rateLimit(60, 60_000, 'xchain-reg'), (_req, res) => {
   res.json({
     passportCollection: PASSPORT_COLLECTION,
     aura: getAuraBinding(),
     bridgeDocs: getAuraBinding().bridgeDocsUrl,
+    hood: {
+      chainId: HOOD_CHAIN_ID,
+      rpcUrl: HOOD_RPC_URL,
+      explorerUrl: HOOD_EXPLORER_URL,
+      docsUrl: HOOD_DOCS_URL,
+      assets: HOOD_ASSETS,
+      cubes: CUBES_CONTRACT,
+    },
   });
 });
 
@@ -567,36 +587,49 @@ app.post('/api/wallet-link', rateLimit(20, 60_000, 'wlink-post'), (req, res) => 
   try {
     getSqlite();
     const solanaWallet = String(req.body?.solanaWallet || '').trim();
-    const baseWallet = String(req.body?.baseWallet || '').trim();
+    const evmWallet = String(req.body?.evmWallet || req.body?.baseWallet || '').trim();
     const solSig = req.body?.solSig ? String(req.body.solSig) : undefined;
-    const baseSig = req.body?.baseSig ? String(req.body.baseSig) : undefined;
+    const evmSig = req.body?.evmSig
+      ? String(req.body.evmSig)
+      : req.body?.baseSig
+        ? String(req.body.baseSig)
+        : undefined;
 
     if (!isValidSolanaAddress(solanaWallet)) {
       return res.status(400).json({ error: 'Invalid Solana address' });
     }
-    if (!isValidBaseAddress(baseWallet)) {
-      return res.status(400).json({ error: 'Invalid Base address' });
+    if (!isValidEvmAddress(evmWallet)) {
+      return res.status(400).json({ error: 'Invalid EVM address' });
     }
     if (!solSig) {
       return res.status(400).json({
         error: 'solSig required',
         expectedMessages: {
-          solana: buildSolLinkMessage(solanaWallet, baseWallet),
-          base: buildBaseLinkMessage(solanaWallet, baseWallet),
+          solana: buildSolLinkMessage(solanaWallet, evmWallet),
+          evm: buildEvmLinkMessage(solanaWallet, evmWallet),
+          base: buildBaseLinkMessage(solanaWallet, evmWallet),
         },
       });
     }
-    if (
-      !verifyWalletSignature(
-        buildSolLinkMessage(solanaWallet, baseWallet),
+    const solOk =
+      verifyWalletSignature(buildSolLinkMessage(solanaWallet, evmWallet), solanaWallet, solSig) ||
+      verifyWalletSignature(
+        buildLegacySolLinkMessage(solanaWallet, evmWallet),
         solanaWallet,
         solSig,
-      )
-    ) {
+      );
+    if (!solOk) {
       return res.status(401).json({ error: 'Invalid Solana signature' });
     }
 
-    const link = upsertWalletLink({ solanaWallet, baseWallet, solSig, baseSig });
+    const link = upsertWalletLink({
+      solanaWallet,
+      evmWallet,
+      baseWallet: evmWallet,
+      solSig,
+      evmSig,
+      baseSig: evmSig,
+    });
     return res.json({ ok: true, link });
   } catch (err: any) {
     return res.status(500).json({ error: err?.message || 'wallet-link failed' });
@@ -672,6 +705,22 @@ app.get('/api/aura/live', rateLimit(60, 60_000, 'aura-live'), async (req, res) =
     res.json(payload);
   } catch (err) {
     res.status(502).json({ error: safeErrorMessage(err, 'aura live feed failed') });
+  }
+});
+
+const cubesLiveCache: { at: number; payload: unknown } = { at: 0, payload: null };
+
+app.get('/api/cubes/live', rateLimit(60, 60_000, 'cubes-live'), async (_req, res) => {
+  try {
+    if (cubesLiveCache.payload && Date.now() - cubesLiveCache.at < 20_000) {
+      return res.json(cubesLiveCache.payload);
+    }
+    const payload = await loadCubesLiveSnapshot();
+    cubesLiveCache.at = Date.now();
+    cubesLiveCache.payload = payload;
+    res.json(payload);
+  } catch (err) {
+    res.status(502).json({ error: safeErrorMessage(err, 'cubes live feed failed') });
   }
 });
 
@@ -840,7 +889,13 @@ app.delete('/api/wallet-link/:solanaWallet', rateLimit(10, 60_000, 'wlink-del'),
       return res.status(400).json({ error: 'Invalid Solana address' });
     }
     const solSig = String(req.body?.solSig || req.query.solSig || '').trim();
-    if (!solSig || !verifyWalletSignature(buildSolUnlinkMessage(sol), sol, solSig)) {
+    if (
+      !solSig ||
+      !(
+        verifyWalletSignature(buildSolUnlinkMessage(sol), sol, solSig) ||
+        verifyWalletSignature(buildLegacySolUnlinkMessage(sol), sol, solSig)
+      )
+    ) {
       return res.status(401).json({ error: 'Invalid Solana signature' });
     }
     const removed = deleteWalletLink(sol);

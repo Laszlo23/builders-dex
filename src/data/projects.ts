@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { makeBuilderScore } from '../lib/builderScore';
 import { AURA_BASE_ADDRESS } from './crossChainRegistry';
+import { CUBES_CONTRACT, CUBES_MINT_URL } from './hoodChain';
 
 /** Builders Index™ — live Genesis Index first */
 export const BUILDERS_INDEX: BuildersIndex = {
@@ -553,6 +554,89 @@ export const INITIAL_PROJECTS: Project[] = [
     liquidityLocked: true,
     reputationDelta: 0,
     communityMilestones: ['1,000 Vienna businesses', 'Fair launch on Base', 'AI company OS', 'Building Culture partner'],
+  },
+  {
+    id: 'p6',
+    name: 'Cubes',
+    ticker: 'CUBES',
+    tagline: 'CCFF00 Cubes NFT on Robinhood Chain — mint with Hood ETH, not Jupiter.',
+    description:
+      'CCFF00 Cubes is an ERC-721 collection on Robinhood Chain (4663). Mint is payable ETH on the Square Apes mint page. Builders DEX lists the confirmed contract and live phases() windows; we are not the minter and we do not wrap this collection onto Solana.',
+    problem:
+      'Founders on Solana have no canonical bridge onto Hood. A token-only arrival leaves you unable to mint. Cubes needs ETH on 4663 first.',
+    builderStory:
+      'Reviewed on-chain (Sourcify match) at 0x5b9e105b28e6313222ee6572a90374c91a296639 before listing. Payout is immutable. Merkle allowlists are configured per phase. Config and metadata were unfrozen at review time — DYOR before you mint.',
+    foundedYear: 2026,
+    journey: 'Mint live on Hood',
+    whySelected:
+      'First confirmed Hood asset in the catalog. Outbound mint/explorer only until a Hood DEX is wired the same way Uniswap is for Base AURA.',
+    marketCapLabel: 'NFT mint on Hood · ETH gas',
+    logoUrl: 'Layers',
+    category: 'Creator Economy',
+    chain: 'Robinhood',
+    hoodTokenAddress: CUBES_CONTRACT,
+    rating: 4.2,
+    upvotes: 0,
+    githubRepo: '—',
+    githubActivity: 0,
+    roadmap: [
+      { phase: 'Phase 0', title: 'Allowlist window', description: 'On-chain phases() with merkle gate.', date: 'Sep 2026', status: 'in-progress' },
+      { phase: 'Phase 1', title: 'Paid waves', description: 'Later windows price in ETH on 4663.', date: 'Sep 2026', status: 'in-progress' },
+      { phase: 'Phase 2', title: 'DEX listing', description: 'No Hood Jupiter. Trade URL stays the mint page until a Hood DEX is confirmed.', date: 'TBD', status: 'upcoming' },
+    ],
+    team: [{ name: 'Square Apes', role: 'Minter', avatarUrl: '/og-image.webp' }],
+    raised: 0,
+    goal: 0,
+    tokenPrice: 0,
+    tokenPriceHistory: [{ time: 'now', price: 0 }],
+    aiAnalysis: {
+      quality: 72,
+      market: 68,
+      risk: 48,
+      innovation: 70,
+      summary:
+        'Verified Hood NFT with live phases. Risk is unpublished merkle details, unfrozen config/metadata, and 7-day canonical bridge exit — not an unverified drainer.',
+    },
+    builderScore: makeBuilderScore({
+      development: 70,
+      innovation: 68,
+      community: 62,
+      transparency: 78,
+      productProgress: 74,
+      builderReputation: 60,
+      liquidityHealth: 40,
+    }),
+    curation: { status: 'curated', builderVerified: true, reviewedAt: '2026-09-17' },
+    comments: [],
+    quests: [
+      {
+        id: 'q_p6_1',
+        name: 'Read the Hood hop',
+        description: 'Follow /hood — test amount, ETH gas first, type bridge URLs yourself.',
+        xp: 150,
+        category: 'research',
+        completed: false,
+        badge: 'Research Badge',
+      },
+      {
+        id: 'q_p6_2',
+        name: 'Open Cubes Live',
+        description: 'Check on-chain mint windows on /cubes before using the Square Apes mint.',
+        xp: 200,
+        category: 'community',
+        completed: false,
+        badge: 'Community Signal',
+      },
+    ],
+    socials: {
+      twitter: '',
+      website: CUBES_MINT_URL,
+      discord: '',
+    },
+    launchpadActive: false,
+    liquidityLocked: false,
+    reputationDelta: 0,
+    communityMilestones: ['Robinhood Chain 4663', 'Sourcify-verified Cubes', 'ETH gas first'],
   },
 ];
 

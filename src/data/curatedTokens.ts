@@ -23,6 +23,7 @@ export const RAY_MINT = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R';
  * Bridged/wrapped Aura OS AURA on Solana. Canonical token is Base
  * `0xDb1E6D4FaB43c8cb5871D32D41df00ea34350723`. Only registered here when
  * AURA_SOLANA_MINT is set after a confirmed Base↔Solana Bridge wrap.
+ * Hood hop does not invent a wrap. TRADEABLE_AURA stays off until that mint exists.
  */
 export function resolveAuraSolanaMint(
   env: Record<string, string | undefined> = typeof process !== 'undefined' ? process.env : {},

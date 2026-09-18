@@ -36,8 +36,11 @@ const TelegramBotView = lazyWithRetry(() => import('./components/TelegramBotView
 const TelegramVoteMiniApp = lazyWithRetry(() => import('./components/TelegramVoteMiniApp'));
 const ReviewDeskView = lazyWithRetry(() => import('./components/ReviewDeskView'));
 const AuraLiveView = lazyWithRetry(() => import('./components/AuraLiveView'));
+const HoodGuideView = lazyWithRetry(() => import('./components/HoodGuideView'));
+const CubesLiveView = lazyWithRetry(() => import('./components/CubesLiveView'));
 
 import { INITIAL_PROJECTS, INITIAL_BUILDERS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
+import { LIVE_AURA_RAISE_SEED, isLiveAuraRaiseId } from './data/liveShareRaise';
 import { GrowthTask, PendingUnstake, createUnstakeRequest } from './data/earn';
 import { canSpin } from './data/growthWheel';
 import { ARENA_MATCH, INITIAL_SCOUT_MISSIONS } from './data/reputation';
@@ -117,13 +120,20 @@ export default function App() {
   const { tokens: tradeableTokens, mintSet: tradeableMintSet } = useTradeableTokens();
 
   const [currentPath, setCurrentPathRaw] = useState<string>(() => getPathFromUrl());
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(
-    () => getProjectIdFromUrl() || 'p1',
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(() => {
+    const fromUrl = getProjectIdFromUrl();
+    if (getPathFromUrl() === 'raise') {
+      return isLiveAuraRaiseId(fromUrl) || !fromUrl ? LIVE_AURA_RAISE_SEED.projectId : fromUrl;
+    }
+    return fromUrl || 'p1';
+  });
   const [blogSlug, setBlogSlug] = useState<string | null>(() => getBlogSlugFromUrl());
-  const [selectedRaiseId, setSelectedRaiseId] = useState<string | null>(
-    () => getRaiseIdFromUrl(),
-  );
+  const [selectedRaiseId, setSelectedRaiseId] = useState<string | null>(() => {
+    if (getPathFromUrl() === 'raise') {
+      return getRaiseIdFromUrl() || LIVE_AURA_RAISE_SEED.id;
+    }
+    return getRaiseIdFromUrl();
+  });
   const setCurrentPath = (path: string, state?: NavState) => {
     startTransition(() => {
       safeNavigate(path, setCurrentPathRaw, 'landing', state);
@@ -153,8 +163,18 @@ export default function App() {
       const path = getPathFromUrl();
       setCurrentPathRaw(path);
       const projectId = getProjectIdFromUrl();
-      if (projectId) setSelectedProjectId(projectId);
-      setSelectedRaiseId(path === 'raise' ? getRaiseIdFromUrl() : null);
+      if (path === 'raise') {
+        const raiseId = getRaiseIdFromUrl() || LIVE_AURA_RAISE_SEED.id;
+        setSelectedRaiseId(raiseId);
+        setSelectedProjectId(
+          isLiveAuraRaiseId(raiseId) || isLiveAuraRaiseId(projectId)
+            ? LIVE_AURA_RAISE_SEED.projectId
+            : projectId || LIVE_AURA_RAISE_SEED.projectId,
+        );
+      } else {
+        if (projectId) setSelectedProjectId(projectId);
+        setSelectedRaiseId(null);
+      }
       setBlogSlug(path === 'blog' ? getBlogSlugFromUrl() : null);
     };
     window.addEventListener('hashchange', onHash);
@@ -919,10 +939,13 @@ export default function App() {
             project={activeProj}
             wallet={wallet}
             onFund={handleFundProject}
-            onOpenRaise={(projectId) => {
-              setSelectedProjectId(projectId);
-              setSelectedRaiseId(projectId);
-              setCurrentPath('raise', { projectId, raiseId: projectId });
+            onOpenRaise={() => {
+              setSelectedProjectId(LIVE_AURA_RAISE_SEED.projectId);
+              setSelectedRaiseId(LIVE_AURA_RAISE_SEED.id);
+              setCurrentPath('raise', {
+                projectId: LIVE_AURA_RAISE_SEED.projectId,
+                raiseId: LIVE_AURA_RAISE_SEED.id,
+              });
             }}
             onAddComment={handleAddComment}
             onBack={() => setCurrentPath('explore')}
@@ -966,10 +989,13 @@ export default function App() {
             setSelectedRaiseId={setSelectedRaiseId}
             setCurrentPath={setCurrentPath}
             onTrade={navigateToTrade}
-            onSupport={(projectId) => {
-              setSelectedProjectId(projectId);
-              setSelectedRaiseId(projectId);
-              setCurrentPath('raise', { projectId, raiseId: projectId });
+            onSupport={() => {
+              setSelectedProjectId(LIVE_AURA_RAISE_SEED.projectId);
+              setSelectedRaiseId(LIVE_AURA_RAISE_SEED.id);
+              setCurrentPath('raise', {
+                projectId: LIVE_AURA_RAISE_SEED.projectId,
+                raiseId: LIVE_AURA_RAISE_SEED.id,
+              });
             }}
             tradeableMintSet={tradeableMintSet}
           />
@@ -977,8 +1003,11 @@ export default function App() {
       case 'raise':
         return (
           <LaunchRaiseView
-            raiseId={selectedRaiseId}
-            project={projects.find((p) => p.id === selectedProjectId)}
+            raiseId={selectedRaiseId || LIVE_AURA_RAISE_SEED.id}
+            project={
+              projects.find((p) => p.id === selectedProjectId) ||
+              projects.find((p) => p.id === LIVE_AURA_RAISE_SEED.projectId)
+            }
             wallet={wallet}
             connectWallet={connectWallet}
             onBack={() => setCurrentPath('launchpad')}
@@ -1202,6 +1231,10 @@ export default function App() {
         return <ReviewDeskView />;
       case 'aura':
         return <AuraLiveView setCurrentPath={setCurrentPath} />;
+      case 'hood':
+        return <HoodGuideView setCurrentPath={setCurrentPath} />;
+      case 'cubes':
+        return <CubesLiveView setCurrentPath={setCurrentPath} />;
       default:
         return (
           <LandingView

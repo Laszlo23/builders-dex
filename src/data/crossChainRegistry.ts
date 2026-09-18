@@ -164,7 +164,7 @@ export function getAuraBinding(): CrossChainTokenBinding {
     bridgeDocsUrl: BASE_SOLANA_BRIDGE_DOCS,
     bridgeAppUrl: BASE_SOLANA_BRIDGE_APP,
     notes:
-      'Canonical AURA is the Base ERC-20. Jupiter TRADEABLE_AURA stays off until a confirmed Solana wrap exists.',
+      'Canonical AURA is the Base ERC-20. Jupiter TRADEABLE_AURA stays off until a confirmed Solana wrap exists. Hood hop does not invent a wrap or port Passport / builder_raise.',
   };
 }
 

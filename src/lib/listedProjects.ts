@@ -15,7 +15,7 @@ import { scoreFromAiAnalysis } from './builderScore';
 const SEED_IDS = new Set(INITIAL_PROJECTS.map((p) => p.id));
 
 const CATEGORIES = ['AI + Web3', 'DeFi', 'Infrastructure', 'Creator Economy'] as const;
-const CHAINS = ['Polygon', 'Base', 'Solana', 'Ethereum'] as const;
+const CHAINS = ['Polygon', 'Base', 'Solana', 'Ethereum', 'Robinhood'] as const;
 
 type Category = (typeof CATEGORIES)[number];
 type Chain = (typeof CHAINS)[number];

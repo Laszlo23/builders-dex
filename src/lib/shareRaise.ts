@@ -3,11 +3,10 @@
  * On-chain balances live on builder_raise; this table is the product index.
  */
 import { createHash, randomBytes } from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
 import { getSqlite } from './db/sqlite';
 import type { ShareRaise, ShareRaiseStatus } from '../types';
 import { BUILDER_SCORE_UNLOCK } from './reputationRules';
+import { LIVE_AURA_RAISE_SEED } from '../data/liveShareRaise';
 
 export const SHARE_RAISE_PROGRAM_ID =
   process.env.VITE_BUILDER_RAISE_PROGRAM_ID ||
@@ -42,7 +41,10 @@ function rowToRaise(row: RaiseRow): ShareRaise {
   return {
     id: row.id,
     projectId: row.project_id,
-    projectSeedHex: projectSeedBytes(row.project_id).toString('hex'),
+    projectSeedHex:
+      row.id === LIVE_AURA_RAISE_SEED.id || row.project_id === LIVE_AURA_RAISE_SEED.projectId
+        ? LIVE_AURA_RAISE_SEED.projectSeedHex
+        : projectSeedBytes(row.project_id).toString('hex'),
     raisePda: row.raise_pda,
     collection: row.collection,
     founderWallet: row.founder_wallet,
@@ -69,6 +71,26 @@ function rowToRaise(row: RaiseRow): ShareRaise {
   };
 }
 
+function stampLiveRaise(raise: ShareRaise): ShareRaise {
+  if (raise.id !== LIVE_AURA_RAISE_SEED.id && raise.projectId !== LIVE_AURA_RAISE_SEED.projectId) {
+    return raise;
+  }
+  raise.cluster = LIVE_AURA_RAISE_SEED.cluster;
+  raise.demo = false;
+  raise.projectSeedHex = LIVE_AURA_RAISE_SEED.projectSeedHex;
+  raise.status = 'live';
+  raise.raisePda = LIVE_AURA_RAISE_SEED.raisePda;
+  raise.collection = LIVE_AURA_RAISE_SEED.raisePda;
+  raise.founderWallet = LIVE_AURA_RAISE_SEED.founderWallet;
+  raise.inspection = {
+    ...raise.inspection,
+    applicationId: LIVE_AURA_RAISE_SEED.applicationId,
+    builderScore: Math.max(raise.inspection.builderScore, LIVE_AURA_RAISE_SEED.builderScore),
+    pobVerified: true,
+  };
+  return raise;
+}
+
 export function projectSeedBytes(projectId: string): Buffer {
   return createHash('sha256').update(`builders-dex:project:${projectId}`).digest();
 }
@@ -92,20 +114,8 @@ type LiveSeed = {
   builderScore: number;
 };
 
-function loadLiveSeed(): LiveSeed | null {
-  const candidates = [
-    path.join(process.cwd(), 'src/data/liveShareRaise.json'),
-    path.join(process.cwd(), 'data/liveShareRaise.json'),
-  ];
-  for (const file of candidates) {
-    if (!fs.existsSync(file)) continue;
-    try {
-      return JSON.parse(fs.readFileSync(file, 'utf8')) as LiveSeed;
-    } catch {
-      return null;
-    }
-  }
-  return null;
+function loadLiveSeed(): LiveSeed {
+  return LIVE_AURA_RAISE_SEED;
 }
 
 /** Upsert the Devnet Aura canary so Accelerator mint is not the catalog demo. */
@@ -162,10 +172,7 @@ export function ensureLiveRaise(): ShareRaise | null {
     );
   }
   const row = db.prepare(`SELECT * FROM share_raises WHERE id = ?`).get(seed.id) as RaiseRow;
-  const raise = rowToRaise(row);
-  raise.cluster = seed.cluster || 'devnet';
-  raise.demo = false;
-  return raise;
+  return stampLiveRaise(rowToRaise(row));
 }
 
 export function listRaises(opts?: { status?: ShareRaiseStatus; projectId?: string }): ShareRaise[] {
@@ -185,7 +192,7 @@ export function listRaises(opts?: { status?: ShareRaiseStatus; projectId?: strin
   const rows = db
     .prepare(`SELECT * FROM share_raises ${where} ORDER BY created_at DESC`)
     .all(...params) as RaiseRow[];
-  const raises = rows.map(rowToRaise);
+  const raises = rows.map((row) => stampLiveRaise(rowToRaise(row)));
   const filtered = raises.some((r) => r.raisePda) ? raises.filter((r) => !r.demo) : raises;
   if (filtered.length === 0 && !opts?.status && !opts?.projectId) {
     return [ensureDemoRaise()];

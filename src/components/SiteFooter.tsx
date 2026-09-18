@@ -39,6 +39,8 @@ const PRODUCT: FooterLink[] = [
   { id: 'investor', label: 'Investor Mode', icon: Briefcase },
   { id: 'launchpad', label: 'Accelerator', icon: Rocket },
   { id: 'aura', label: '$AURA Live', icon: Activity },
+  { id: 'hood', label: 'Hood hop', icon: ArrowLeftRight },
+  { id: 'cubes', label: 'Cubes Live', icon: Layers },
   { id: 'apply', label: 'Apply', icon: Rocket },
   { id: 'earn', label: 'Earn', icon: Coins },
   { id: 'profile', label: 'Passport™', icon: User },

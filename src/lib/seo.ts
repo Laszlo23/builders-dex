@@ -48,7 +48,9 @@ export type SeoRoute =
   | 'investor'
   | 'builder-graph'
   | 'builder-stories'
-  | 'aura';
+  | 'aura'
+  | 'hood'
+  | 'cubes';
 
 type SeoConfig = {
   title: string;
@@ -239,6 +241,18 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
       'Live Aura OS token board on Base: market cap, Uni v3 AURA/USDC liquidity, supply, and 24h flow.',
     path: '/aura',
   },
+  hood: {
+    title: 'Solana → Robinhood Chain — Builders DEX',
+    description:
+      'Honest hop: Phantom SOL to ETH/Base, then Relay, Across, or the Arbitrum portal onto Hood 4663. Gas-first. NFA. Not affiliated with Robinhood Markets.',
+    path: '/hood',
+  },
+  cubes: {
+    title: 'Cubes Live — Builders DEX',
+    description:
+      'CCFF00 Cubes mint windows on Robinhood Chain from on-chain phases(). Outbound mint and explorer only.',
+    path: '/cubes',
+  },
 };
 
 export function getSeoForPath(path: string): SeoConfig {
@@ -277,6 +291,8 @@ const PATH_ALIASES: Record<string, SeoRoute> = {
   graph: 'builder-graph',
   stories: 'builder-stories',
   'aura-live': 'aura',
+  bridge: 'hood',
+  'cubes-live': 'cubes',
 };
 
 function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: string | null } {
@@ -374,6 +390,8 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
     { route: 'builder-graph', changefreq: 'weekly', priority: '0.5' },
     { route: 'builder-stories', changefreq: 'weekly', priority: '0.5' },
     { route: 'aura', changefreq: 'hourly', priority: '0.7' },
+    { route: 'hood', changefreq: 'weekly', priority: '0.6' },
+    { route: 'cubes', changefreq: 'hourly', priority: '0.6' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },
     { route: 'privacy', changefreq: 'yearly', priority: '0.2' },
     { route: 'imprint', changefreq: 'yearly', priority: '0.2' },

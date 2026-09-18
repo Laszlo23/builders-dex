@@ -27,6 +27,8 @@ export interface BuilderScore {
 
 export type CurationStatus = 'pending' | 'reviewed' | 'curated' | 'rejected';
 
+export type ProjectChain = 'Polygon' | 'Base' | 'Solana' | 'Ethereum' | 'Robinhood';
+
 export type OpenSourceImpact = 'Low' | 'Medium' | 'High' | 'Exceptional';
 
 export interface CurationMeta {
@@ -145,10 +147,12 @@ export interface Project {
   /** Optional cover / story image */
   coverImage?: string;
   category: 'AI + Web3' | 'DeFi' | 'Infrastructure' | 'Creator Economy';
-  chain: 'Polygon' | 'Base' | 'Solana' | 'Ethereum';
+  chain: ProjectChain;
   mint?: string;
   /** Canonical Base ERC-20 when chain is Base (Aura OS AURA, etc.) */
   baseTokenAddress?: string;
+  /** Confirmed Hood contract when chain is Robinhood (Cubes NFT, etc.) */
+  hoodTokenAddress?: string;
   rating: number;
   upvotes: number;
   githubRepo: string;
@@ -211,7 +215,7 @@ export interface UserWallet {
   connected: boolean;
   address: string;
   balances: { [ticker: string]: number };
-  selectedChain: 'Polygon' | 'Base' | 'Solana' | 'Ethereum';
+  selectedChain: ProjectChain;
 }
 
 export interface UserProfile {

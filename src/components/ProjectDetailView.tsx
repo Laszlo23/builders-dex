@@ -30,6 +30,9 @@ import { dnaFromScore } from '../lib/builderDna';
 import { proofOfBuildingFor } from '../lib/proofOfBuilding';
 import { resolveTradeMint } from '../data/curatedTokens';
 import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
+import { hoodAssetForProject, openHoodMint, resolveHoodAssetAddress } from '../data/hoodChain';
+import { hrefForRoute } from '../lib/routes';
+import { LIVE_AURA_RAISE_SEED } from '../data/liveShareRaise';
 import { reputationChipFor } from '../lib/reputationRules';
 import { storyChaptersFor, storyReadingMinutes } from '../lib/projectStory';
 import ProjectSocialLinks from './ProjectSocialLinks';
@@ -152,6 +155,8 @@ export default function ProjectDetailView({
   });
   const tradeMint = resolveTradeMint(project, tradeableMintSet);
   const baseTradeAddress = resolveBaseTradeAddress(project);
+  const hoodTradeAddress = resolveHoodAssetAddress(project);
+  const hoodAsset = hoodAssetForProject(project.id);
   const repChip = reputationChipFor({ ...project, builderScore: liveScore }, proof);
   const founder =
     builders.find((b) => b.projectsCreated.includes(project.id)) ||
@@ -334,16 +339,17 @@ export default function ProjectDetailView({
               <ExternalLink className="h-3.5 w-3.5" />
               Post on X
             </button>
-            {(tradeMint || baseTradeAddress) && (
+            {(tradeMint || baseTradeAddress || hoodTradeAddress) && (
               <button
                 type="button"
                 onClick={() => {
-                  if (tradeMint) onTrade(tradeMint);
+                  if (hoodTradeAddress) openHoodMint(project.id);
+                  else if (tradeMint) onTrade(tradeMint);
                   else if (baseTradeAddress) openBaseTrade(baseTradeAddress);
                 }}
                 className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink hover:bg-accent-bright"
               >
-                Trade {project.ticker}
+                {hoodAsset?.kind === 'nft' ? `Mint ${project.ticker}` : `Trade ${project.ticker}`}
               </button>
             )}
             {onAskIntelligence && (
@@ -746,20 +752,66 @@ export default function ProjectDetailView({
         {/* Sidebar */}
         <aside className="space-y-6">
           <div className="rounded-3xl border border-white/10 bg-surface p-5">
-            <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
-              Share certificate
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-steel">
-              Buy a numbered NFT share after Builders DEX inspection. Holders claim a fixed
-              percentage of wins the founder deposits on-chain — not simulated support.
-            </p>
-            <button
-              type="button"
-              onClick={() => onOpenRaise?.(project.id)}
-              className="mt-4 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-ink"
-            >
-              Inspect & mint share NFT
-            </button>
+            {hoodAsset ? (
+              <>
+                <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
+                  Hood mint
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-steel">
+                  {hoodAsset.name} lives on Robinhood Chain. Mint on the official page with ETH
+                  for gas — this is not a Solana share certificate and not Jupiter.
+                </p>
+                <a
+                  href={hoodAsset.mintUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 flex w-full items-center justify-center rounded-xl bg-accent py-2.5 text-xs font-bold text-ink"
+                >
+                  Mint {project.ticker}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPath('cubes')}
+                  className="mt-2 w-full rounded-xl border border-white/12 py-2.5 text-xs font-semibold text-white"
+                >
+                  Cubes Live
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPath('hood')}
+                  className="mt-2 w-full rounded-xl border border-white/12 py-2.5 text-xs font-semibold text-white"
+                >
+                  Solana → Hood guide
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
+                  Share certificate
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-steel">
+                  {project.id === LIVE_AURA_RAISE_SEED.projectId
+                    ? 'Buy a numbered NFT share after Builders DEX inspection. Holders claim a fixed percentage of wins the founder deposits on-chain — not simulated support. Live on Solana Devnet.'
+                    : 'The live share mint you can complete today is Aura OS on Solana Devnet. Other teams open a certificate after inspection.'}
+                </p>
+                <a
+                  href={hrefForRoute('raise', {
+                    projectId: LIVE_AURA_RAISE_SEED.projectId,
+                    raiseId: LIVE_AURA_RAISE_SEED.id,
+                  })}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (onOpenRaise) onOpenRaise(LIVE_AURA_RAISE_SEED.projectId);
+                    else setCurrentPath('raise');
+                  }}
+                  className="mt-4 flex w-full items-center justify-center rounded-xl bg-accent py-2.5 text-xs font-bold text-ink"
+                >
+                  {project.id === LIVE_AURA_RAISE_SEED.projectId
+                    ? 'Inspect & mint share NFT'
+                    : 'Mint live Aura share'}
+                </a>
+              </>
+            )}
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-surface p-5">

@@ -26,6 +26,8 @@ import {
 import { buildShareNftIxs } from '../lib/shareNft';
 import { useNetwork } from '../providers/NetworkProvider';
 import { seedFromHex } from '../lib/projectSeed';
+import { hoodAssetForProject } from '../data/hoodChain';
+import { liveAuraRaise } from '../data/liveShareRaise';
 
 interface LaunchRaiseViewProps {
   raiseId: string | null;
@@ -59,12 +61,14 @@ export default function LaunchRaiseView({
   onBack,
   setCurrentPath,
 }: LaunchRaiseViewProps) {
-  const { raise, loading: raiseLoading } = useShareRaise(raiseId);
+  const { raise: fetchedRaise, loading: raiseLoading } = useShareRaise(raiseId);
+  const hood = project ? hoodAssetForProject(project.id) : undefined;
+  const raise = fetchedRaise ?? (hood ? null : liveAuraRaise());
   const liveState = useLiveBuilderScore(project?.id || '', project?.builderScore || EMPTY_SCORE);
   const score = liveState.score;
   const { connection } = useConnection();
   const { publicKey, signTransaction, sendTransaction, connected } = useWallet();
-  const { network } = useNetwork();
+  const { network, setNetwork } = useNetwork();
   const [busy, setBusy] = useState(false);
   const [mintStep, setMintStep] = useState<'share' | 'nft' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +85,12 @@ export default function LaunchRaiseView({
   const chip = project && proof ? reputationChipFor(project, proof) : null;
   const access = builderAccessFromScore(score?.overall || 0);
   const unlocks = builderUnlockLabels(access);
+
+  useEffect(() => {
+    if (raise?.cluster === 'devnet' && network !== 'devnet') {
+      setNetwork('devnet');
+    }
+  }, [raise?.cluster, network, setNetwork]);
 
   useEffect(() => {
     if (!raise?.raisePda) {
@@ -110,7 +120,6 @@ export default function LaunchRaiseView({
     if (!raise.inspection.pobVerified || raise.inspection.builderScore < BUILDER_SCORE_UNLOCK) {
       return { ok: false, reason: 'Inspection gate closed' };
     }
-    if (chip?.tone === 'risk') return { ok: false, reason: 'Proof of Building™ is at risk' };
     if (raise.cluster !== 'devnet' && network === 'mainnet' && !RAISE_MAINNET_MINT) {
       return { ok: false, reason: 'Mainnet share mint is gated until the Devnet canary' };
     }
@@ -125,7 +134,7 @@ export default function LaunchRaiseView({
       };
     }
     return { ok: true, reason: '' };
-  }, [raise, chip, network, onchainMinted, publicKey]);
+  }, [raise, network, onchainMinted, publicKey]);
 
   const mint = async () => {
     if (!raise || !signTransaction || !publicKey) {
@@ -197,7 +206,7 @@ export default function LaunchRaiseView({
     }
   };
 
-  if (raiseLoading) {
+  if (raiseLoading && !raise) {
     return (
       <div className="flex justify-center py-20 text-steel">
         <Loader2 className="h-5 w-5 animate-spin" />
@@ -207,11 +216,48 @@ export default function LaunchRaiseView({
 
   if (!raise) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-steel">
-        <p>Raise not found.</p>
-        <button type="button" onClick={onBack} className="mt-4 text-accent">
-          Back to Accelerator
-        </button>
+      <div className="mx-auto max-w-lg px-4 py-16 text-center text-white">
+        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
+          Share certificate
+        </p>
+        <h1 className="font-display mt-2 text-2xl font-bold">Mint isn’t open yet</h1>
+        <p className="mt-3 text-sm leading-relaxed text-steel">
+          {project?.name || 'This project'} has no inspected share raise on Solana. Share NFTs open
+          after Proof of Building™ review — the story button is not a public mint.
+        </p>
+        <div className="mt-6 flex flex-col gap-2">
+          {hood && (
+            <a
+              href={hood.mintUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-accent py-2.5 text-xs font-bold text-ink"
+            >
+              Mint {project?.ticker || hood.symbol} on Hood
+            </a>
+          )}
+          {hood && (
+            <button
+              type="button"
+              onClick={() => setCurrentPath('cubes')}
+              className="rounded-xl border border-white/12 py-2.5 text-xs font-semibold"
+            >
+              Cubes Live
+            </button>
+          )}
+          {project && (
+            <button
+              type="button"
+              onClick={() => setCurrentPath('project-detail')}
+              className="rounded-xl border border-white/12 py-2.5 text-xs font-semibold"
+            >
+              Back to story
+            </button>
+          )}
+          <button type="button" onClick={onBack} className="text-xs text-accent">
+            Accelerator
+          </button>
+        </div>
       </div>
     );
   }

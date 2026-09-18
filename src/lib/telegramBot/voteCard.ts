@@ -57,6 +57,7 @@ function dexscreenerNetwork(chainId: string): string {
     optimism: 'optimism',
     sui: 'sui',
     ton: 'ton',
+    robinhood: 'robinhood',
   };
   return map[chainId] || 'solana';
 }
@@ -88,6 +89,9 @@ export function buyUrl(token: TokenProfile): string | null {
   }
   if (token.chain === 'bsc') {
     return `https://pancakeswap.finance/swap?outputCurrency=${encodeURIComponent(token.mint)}`;
+  }
+  if (token.chain === 'robinhood') {
+    return `https://robinhoodchain.blockscout.com/token/${encodeURIComponent(token.mint)}`;
   }
   return chartUrl(token);
 }

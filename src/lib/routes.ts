@@ -37,6 +37,8 @@ export const APP_ROUTES = [
   'tg-vote',
   'review',
   'aura',
+  'hood',
+  'cubes',
 ] as const;
 
 export type AppRoute = (typeof APP_ROUTES)[number];
@@ -58,6 +60,8 @@ const ROUTE_ALIASES: Record<string, AppRoute> = {
   graph: 'builder-graph',
   stories: 'builder-stories',
   'aura-live': 'aura',
+  bridge: 'hood',
+  'cubes-live': 'cubes',
 };
 
 export function isAppRoute(path: string): path is AppRoute {

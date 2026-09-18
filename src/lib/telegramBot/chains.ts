@@ -11,7 +11,8 @@ export type ChainId =
   | 'avalanche'
   | 'optimism'
   | 'sui'
-  | 'ton';
+  | 'ton'
+  | 'robinhood';
 
 export type ChainDef = {
   id: ChainId;
@@ -102,6 +103,14 @@ export const CHAINS: Record<ChainId, ChainDef> = {
     explorerToken: (a) => `https://tonviewer.com/${a}`,
     explorerTx: (tx) => `https://tonviewer.com/transaction/${tx}`,
   },
+  robinhood: {
+    id: 'robinhood',
+    label: 'Robinhood Chain',
+    geckoNetwork: null,
+    validateAddress: (a) => EVM_RE.test(a.trim()),
+    explorerToken: (a) => `https://robinhoodchain.blockscout.com/token/${a}`,
+    explorerTx: (tx) => `https://robinhoodchain.blockscout.com/tx/${tx}`,
+  },
 };
 
 export const CHAIN_IDS = Object.keys(CHAINS) as ChainId[];
@@ -131,6 +140,9 @@ export function normalizeChainId(raw: string): ChainId | null {
     optimism: 'optimism',
     sui: 'sui',
     ton: 'ton',
+    hood: 'robinhood',
+    robinhood: 'robinhood',
+    rh: 'robinhood',
   };
   return aliases[s] ?? (isChainId(s) ? s : null);
 }

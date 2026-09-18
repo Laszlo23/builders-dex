@@ -131,6 +131,16 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dex.buildingcultureid.space/hood</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://dex.buildingcultureid.space/cubes</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://dex.buildingcultureid.space/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
