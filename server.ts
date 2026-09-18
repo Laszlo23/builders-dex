@@ -121,7 +121,17 @@ import {
   HOOD_RPC_URL,
 } from './src/data/hoodChain';
 import { loadAuraLiveSnapshot } from './src/lib/auraLive';
-import { loadCubesLiveSnapshot } from './src/lib/hoodLive';
+import { loadCubesLiveSnapshot, loadHoodFounderStatus, loadHoodShareOnchain } from './src/lib/hoodLive';
+import {
+  HOOD_SHARE_ADDRESS,
+  HOOD_SHARE_HOLDER_POOL_BPS,
+  HOOD_SHARE_ID,
+  HOOD_SHARE_MAX_PER_WALLET,
+  HOOD_SHARE_PRICE_WEI,
+  HOOD_SHARE_PROJECT_ID,
+  HOOD_SHARE_SUPPLY,
+} from './src/data/hoodShare';
+import { logHoodDeployerBoot } from './src/lib/hoodDeployer';
 import {
   canOpenRaise,
   createRaiseDraft,
@@ -564,6 +574,15 @@ app.get('/api/cross-chain/registry', rateLimit(60, 60_000, 'xchain-reg'), (_req,
       docsUrl: HOOD_DOCS_URL,
       assets: HOOD_ASSETS,
       cubes: CUBES_CONTRACT,
+      share: {
+        id: HOOD_SHARE_ID,
+        projectId: HOOD_SHARE_PROJECT_ID,
+        address: HOOD_SHARE_ADDRESS,
+        priceWei: HOOD_SHARE_PRICE_WEI.toString(),
+        supply: HOOD_SHARE_SUPPLY,
+        maxPerWallet: HOOD_SHARE_MAX_PER_WALLET,
+        holderPoolBps: HOOD_SHARE_HOLDER_POOL_BPS,
+      },
     },
   });
 });
@@ -709,6 +728,65 @@ app.get('/api/aura/live', rateLimit(60, 60_000, 'aura-live'), async (req, res) =
 });
 
 const cubesLiveCache: { at: number; payload: unknown } = { at: 0, payload: null };
+const hoodStatusCache: { at: number; payload: unknown } = { at: 0, payload: null };
+
+app.get('/api/hood/status', rateLimit(60, 60_000, 'hood-status'), async (_req, res) => {
+  try {
+    if (hoodStatusCache.payload && Date.now() - hoodStatusCache.at < 20_000) {
+      return res.json(hoodStatusCache.payload);
+    }
+    const [founder, shareOnchain] = await Promise.all([
+      loadHoodFounderStatus(),
+      loadHoodShareOnchain(),
+    ]);
+    const payload = {
+      founder,
+      launchpad: shareOnchain ? 'live' : 'planned',
+      share: {
+        id: HOOD_SHARE_ID,
+        projectId: HOOD_SHARE_PROJECT_ID,
+        address: HOOD_SHARE_ADDRESS,
+        priceWei: HOOD_SHARE_PRICE_WEI.toString(),
+        supply: HOOD_SHARE_SUPPLY,
+        maxPerWallet: HOOD_SHARE_MAX_PER_WALLET,
+        holderPoolBps: HOOD_SHARE_HOLDER_POOL_BPS,
+        minted: shareOnchain?.minted ?? 0,
+        live: shareOnchain?.live ?? false,
+        explorerUrl: `https://robinhoodchain.blockscout.com/address/${HOOD_SHARE_ADDRESS}`,
+      },
+    };
+    hoodStatusCache.at = Date.now();
+    hoodStatusCache.payload = payload;
+    res.json(payload);
+  } catch (err) {
+    res.status(502).json({ error: safeErrorMessage(err, 'hood status failed') });
+  }
+});
+
+app.get('/api/hood/share/:id', rateLimit(120, 60_000, 'hood-share-meta'), (req, res) => {
+  const id = Number.parseInt(String(req.params.id), 10);
+  if (!Number.isInteger(id) || id < 1 || id > HOOD_SHARE_SUPPLY) {
+    return res.status(404).json({ error: 'unknown share' });
+  }
+  const origin = 'https://dex.buildingcultureid.space';
+  res.json({
+    name: `Aura Share #${id}`,
+    description:
+      'Inspected Builders DEX share certificate on Robinhood Chain. Not equity. Holders are in line for a fixed percentage of deposited wins.',
+    image: `${origin}/hood-share.svg`,
+    external_url: `${origin}/raise?id=${HOOD_SHARE_ID}`,
+    attributes: [
+      { trait_type: 'Serial', value: id },
+      { trait_type: 'Max supply', value: HOOD_SHARE_SUPPLY },
+      { trait_type: 'Holder pool bps', value: HOOD_SHARE_HOLDER_POOL_BPS },
+      { trait_type: 'Max per wallet', value: HOOD_SHARE_MAX_PER_WALLET },
+      { trait_type: 'Price wei', value: HOOD_SHARE_PRICE_WEI.toString() },
+      { trait_type: 'Chain', value: 'Robinhood Chain' },
+      { trait_type: 'Chain ID', value: 4663 },
+      { trait_type: 'Inspection score', value: 92 },
+    ],
+  });
+});
 
 app.get('/api/cubes/live', rateLimit(60, 60_000, 'cubes-live'), async (_req, res) => {
   try {
@@ -2683,6 +2761,7 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`[Builders DEX Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+    logHoodDeployerBoot();
   });
 
   const shutdown = () => {

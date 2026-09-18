@@ -8,6 +8,13 @@ import { proofOfBuildingFor } from '../lib/proofOfBuilding';
 import { BUILDER_SCORE_UNLOCK, reputationChipFor } from '../lib/reputationRules';
 import { ReputationChipBadge } from './ReputationUnlocksCard';
 import { useShareRaises } from '../hooks/useShareRaises';
+import {
+  HOOD_SHARE_HOLDER_POOL_BPS,
+  HOOD_SHARE_ID,
+  HOOD_SHARE_PROJECT_ID,
+  HOOD_SHARE_SUPPLY,
+  formatHoodSharePrice,
+} from '../data/hoodShare';
 
 interface LaunchpadViewProps {
   projects: Project[];
@@ -55,6 +62,12 @@ export default function LaunchpadView({
   );
   const draftRaises = raises.filter((r: ShareRaise) => r.status === 'draft');
 
+  const openHoodShare = () => {
+    setSelectedRaiseId(HOOD_SHARE_ID);
+    setSelectedProjectId(HOOD_SHARE_PROJECT_ID);
+    setCurrentPath('raise', { projectId: HOOD_SHARE_PROJECT_ID, raiseId: HOOD_SHARE_ID });
+  };
+
   const openRaise = (raise: ShareRaise) => {
     setSelectedRaiseId(raise.id);
     setSelectedProjectId(raise.projectId);
@@ -71,7 +84,8 @@ export default function LaunchpadView({
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-steel">
         Each certificate is an on-chain claim on deposited wins. Apply first. We inspect. Then you
-        mint — one wallet, two Phantom prompts.
+        mint. The public mint is on Robinhood Chain — same 0x as Base, gas first. Solana Devnet
+        stays the program canary.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
@@ -112,9 +126,7 @@ export default function LaunchpadView({
             title: 'Buy a share NFT',
             body: 'Mint a numbered certificate. Claim your % when wins hit the vault.',
             cta: 'Browse certificates',
-            action: () => {
-              document.getElementById('active-raises')?.scrollIntoView({ behavior: 'smooth' });
-            },
+            action: openHoodShare,
           },
         ].map((card) => {
           const Icon = card.icon;
@@ -154,6 +166,48 @@ export default function LaunchpadView({
             Join Accelerator
           </button>
         </div>
+
+        <article className="share-cert-card mb-4 p-5">
+          <div className="share-cert-foil" />
+          <div className="relative flex items-start justify-between gap-2">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent/80">
+                Robinhood Chain 4663 · {HOOD_SHARE_SUPPLY} shares
+              </p>
+              <h3 className="font-display mt-1 text-xl font-bold">Aura OS</h3>
+              <p className="font-mono text-[11px] text-steel">
+                $AURA · holder pool {(HOOD_SHARE_HOLDER_POOL_BPS / 100).toFixed(0)}% ·{' '}
+                {formatHoodSharePrice()}
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent">
+              <Stamp className="h-3 w-3" /> Inspected · Hood
+            </span>
+          </div>
+          <p className="relative mt-3 text-sm text-steel">
+            Public mint on Robinhood Chain. Same 0x as Base AURA — ERC-721 share, not the token.
+            Pay ETH, get a numbered NFT.
+          </p>
+          <div className="relative mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={openHoodShare}
+              className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-ink"
+            >
+              Mint on Hood
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedProjectId(HOOD_SHARE_PROJECT_ID);
+                setCurrentPath('project-detail');
+              }}
+              className="rounded-full border border-white/12 px-3 py-1.5 text-xs font-semibold hover:border-accent/40"
+            >
+              Story
+            </button>
+          </div>
+        </article>
 
         {liveRaises.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-white/12 px-4 py-10 text-center text-sm text-steel">

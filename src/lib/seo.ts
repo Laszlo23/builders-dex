@@ -115,13 +115,13 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
   launchpad: {
     title: 'Builder Accelerator — Builders DEX',
     description:
-      'Inspection-gated share certificates. Proof of Building™ first, then mint a claim on deposited wins.',
+      'Inspection-gated share certificates. Public Aura mint is on Robinhood Chain — Proof of Building™ first.',
     path: '/launchpad',
   },
   raise: {
-    title: 'Share certificate — Builders DEX',
+    title: 'Aura Share — Builders DEX',
     description:
-      'Inspected raise: mint a numbered share NFT and claim your percentage of deposited proceeds.',
+      'Inspected Aura share NFT on Robinhood Chain. Pay ETH on 4663 for a numbered certificate.',
     path: '/raise',
   },
   ai: {

@@ -33,6 +33,7 @@ import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegist
 import { hoodAssetForProject, openHoodMint, resolveHoodAssetAddress } from '../data/hoodChain';
 import { hrefForRoute } from '../lib/routes';
 import { LIVE_AURA_RAISE_SEED } from '../data/liveShareRaise';
+import { HOOD_SHARE_ID, HOOD_SHARE_PROJECT_ID } from '../data/hoodShare';
 import { reputationChipFor } from '../lib/reputationRules';
 import { storyChaptersFor, storyReadingMinutes } from '../lib/projectStory';
 import ProjectSocialLinks from './ProjectSocialLinks';
@@ -791,17 +792,17 @@ export default function ProjectDetailView({
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-steel">
                   {project.id === LIVE_AURA_RAISE_SEED.projectId
-                    ? 'Buy a numbered NFT share after Builders DEX inspection. Holders claim a fixed percentage of wins the founder deposits on-chain — not simulated support. Live on Solana Devnet.'
-                    : 'The live share mint you can complete today is Aura OS on Solana Devnet. Other teams open a certificate after inspection.'}
+                    ? 'Buy a numbered NFT share on Robinhood Chain after inspection. Same 0x as Base. Solana Devnet stays the program canary.'
+                    : 'The live share mint you can complete today is Aura OS on Robinhood Chain. Other teams open a certificate after inspection.'}
                 </p>
                 <a
                   href={hrefForRoute('raise', {
-                    projectId: LIVE_AURA_RAISE_SEED.projectId,
-                    raiseId: LIVE_AURA_RAISE_SEED.id,
+                    projectId: HOOD_SHARE_PROJECT_ID,
+                    raiseId: HOOD_SHARE_ID,
                   })}
                   onClick={(e) => {
                     e.preventDefault();
-                    if (onOpenRaise) onOpenRaise(LIVE_AURA_RAISE_SEED.projectId);
+                    if (onOpenRaise) onOpenRaise(HOOD_SHARE_PROJECT_ID);
                     else setCurrentPath('raise');
                   }}
                   className="mt-4 flex w-full items-center justify-center rounded-xl bg-accent py-2.5 text-xs font-bold text-ink"

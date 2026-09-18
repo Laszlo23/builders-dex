@@ -2,6 +2,7 @@
  * Cubes live snapshot on Robinhood Chain — phases() + explorer, no fake Hood Jupiter.
  * Passport / builder_raise stay on Solana. No Hood wrap of AURA.
  */
+import { AURA_DEV_WALLET } from '../data/crossChainRegistry';
 import {
   CUBES_CONTRACT,
   CUBES_MINT_URL,
@@ -9,9 +10,11 @@ import {
   CUBES_SQUARES_CONTRACT,
   HOOD_CHAIN_ID,
   HOOD_EXPLORER_URL,
+  hoodExplorerAddressUrl,
   hoodExplorerTokenUrl,
   hoodRpcUrl,
 } from '../data/hoodChain';
+import { HOOD_SHARE_ADDRESS } from '../data/hoodShare';
 
 export type CubesGate = 'public' | 'allowlist' | 'squares' | 'unknown';
 
@@ -154,6 +157,55 @@ async function hoodRpc(method: string, params: unknown[]): Promise<string> {
 
 async function ethCall(data: string): Promise<string> {
   return hoodRpc('eth_call', [{ to: CUBES_CONTRACT, data }, 'latest']);
+}
+
+export type HoodFounderStatus = {
+  chainId: number;
+  address: string;
+  eth: number;
+  ethWei: string;
+  explorerUrl: string;
+  fetchedAt: string;
+};
+
+export async function loadHoodFounderStatus(
+  address = AURA_DEV_WALLET,
+): Promise<HoodFounderStatus> {
+  const hex = await hoodRpc('eth_getBalance', [address, 'latest']);
+  const wei = BigInt(hex || '0x0');
+  return {
+    chainId: HOOD_CHAIN_ID,
+    address,
+    eth: Number(wei) / 1e18,
+    ethWei: wei.toString(),
+    explorerUrl: hoodExplorerAddressUrl(address),
+    fetchedAt: new Date().toISOString(),
+  };
+}
+
+export type HoodShareOnchain = {
+  address: string;
+  minted: number;
+  live: boolean;
+  fetchedAt: string;
+};
+
+export async function loadHoodShareOnchain(): Promise<HoodShareOnchain | null> {
+  if (!HOOD_SHARE_ADDRESS || /^0x0+$/i.test(HOOD_SHARE_ADDRESS)) return null;
+  const mintedHex = await hoodRpc('eth_call', [
+    { to: HOOD_SHARE_ADDRESS, data: '0x18160ddd' },
+    'latest',
+  ]);
+  const liveHex = await hoodRpc('eth_call', [
+    { to: HOOD_SHARE_ADDRESS, data: '0x957aa58c' },
+    'latest',
+  ]);
+  return {
+    address: HOOD_SHARE_ADDRESS,
+    minted: hexToInt(mintedHex),
+    live: BigInt(liveHex || '0x0') === 1n,
+    fetchedAt: new Date().toISOString(),
+  };
 }
 
 function hexToInt(hex: string | undefined): number {

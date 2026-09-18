@@ -38,9 +38,11 @@ const ReviewDeskView = lazyWithRetry(() => import('./components/ReviewDeskView')
 const AuraLiveView = lazyWithRetry(() => import('./components/AuraLiveView'));
 const HoodGuideView = lazyWithRetry(() => import('./components/HoodGuideView'));
 const CubesLiveView = lazyWithRetry(() => import('./components/CubesLiveView'));
+const HoodShareView = lazyWithRetry(() => import('./components/HoodShareView'));
 
 import { INITIAL_PROJECTS, INITIAL_BUILDERS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
 import { LIVE_AURA_RAISE_SEED, isLiveAuraRaiseId } from './data/liveShareRaise';
+import { HOOD_SHARE_ID, HOOD_SHARE_PROJECT_ID, isHoodShareId } from './data/hoodShare';
 import { GrowthTask, PendingUnstake, createUnstakeRequest } from './data/earn';
 import { canSpin } from './data/growthWheel';
 import { ARENA_MATCH, INITIAL_SCOUT_MISSIONS } from './data/reputation';
@@ -123,14 +125,16 @@ export default function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>(() => {
     const fromUrl = getProjectIdFromUrl();
     if (getPathFromUrl() === 'raise') {
-      return isLiveAuraRaiseId(fromUrl) || !fromUrl ? LIVE_AURA_RAISE_SEED.projectId : fromUrl;
+      return isHoodShareId(fromUrl) || isLiveAuraRaiseId(fromUrl) || !fromUrl
+        ? HOOD_SHARE_PROJECT_ID
+        : fromUrl;
     }
     return fromUrl || 'p1';
   });
   const [blogSlug, setBlogSlug] = useState<string | null>(() => getBlogSlugFromUrl());
   const [selectedRaiseId, setSelectedRaiseId] = useState<string | null>(() => {
     if (getPathFromUrl() === 'raise') {
-      return getRaiseIdFromUrl() || LIVE_AURA_RAISE_SEED.id;
+      return getRaiseIdFromUrl() || HOOD_SHARE_ID;
     }
     return getRaiseIdFromUrl();
   });
@@ -164,12 +168,12 @@ export default function App() {
       setCurrentPathRaw(path);
       const projectId = getProjectIdFromUrl();
       if (path === 'raise') {
-        const raiseId = getRaiseIdFromUrl() || LIVE_AURA_RAISE_SEED.id;
+        const raiseId = getRaiseIdFromUrl() || HOOD_SHARE_ID;
         setSelectedRaiseId(raiseId);
         setSelectedProjectId(
-          isLiveAuraRaiseId(raiseId) || isLiveAuraRaiseId(projectId)
-            ? LIVE_AURA_RAISE_SEED.projectId
-            : projectId || LIVE_AURA_RAISE_SEED.projectId,
+          isHoodShareId(raiseId) || isHoodShareId(projectId) || isLiveAuraRaiseId(raiseId)
+            ? HOOD_SHARE_PROJECT_ID
+            : projectId || HOOD_SHARE_PROJECT_ID,
         );
       } else {
         if (projectId) setSelectedProjectId(projectId);
@@ -940,11 +944,11 @@ export default function App() {
             wallet={wallet}
             onFund={handleFundProject}
             onOpenRaise={() => {
-              setSelectedProjectId(LIVE_AURA_RAISE_SEED.projectId);
-              setSelectedRaiseId(LIVE_AURA_RAISE_SEED.id);
+              setSelectedProjectId(HOOD_SHARE_PROJECT_ID);
+              setSelectedRaiseId(HOOD_SHARE_ID);
               setCurrentPath('raise', {
-                projectId: LIVE_AURA_RAISE_SEED.projectId,
-                raiseId: LIVE_AURA_RAISE_SEED.id,
+                projectId: HOOD_SHARE_PROJECT_ID,
+                raiseId: HOOD_SHARE_ID,
               });
             }}
             onAddComment={handleAddComment}
@@ -990,17 +994,29 @@ export default function App() {
             setCurrentPath={setCurrentPath}
             onTrade={navigateToTrade}
             onSupport={() => {
-              setSelectedProjectId(LIVE_AURA_RAISE_SEED.projectId);
-              setSelectedRaiseId(LIVE_AURA_RAISE_SEED.id);
+              setSelectedProjectId(HOOD_SHARE_PROJECT_ID);
+              setSelectedRaiseId(HOOD_SHARE_ID);
               setCurrentPath('raise', {
-                projectId: LIVE_AURA_RAISE_SEED.projectId,
-                raiseId: LIVE_AURA_RAISE_SEED.id,
+                projectId: HOOD_SHARE_PROJECT_ID,
+                raiseId: HOOD_SHARE_ID,
               });
             }}
             tradeableMintSet={tradeableMintSet}
           />
         );
       case 'raise':
+        if (isHoodShareId(selectedRaiseId) || !selectedRaiseId) {
+          return (
+            <HoodShareView
+              project={
+                projects.find((p) => p.id === selectedProjectId) ||
+                projects.find((p) => p.id === HOOD_SHARE_PROJECT_ID)
+              }
+              onBack={() => setCurrentPath('launchpad')}
+              setCurrentPath={setCurrentPath}
+            />
+          );
+        }
         return (
           <LaunchRaiseView
             raiseId={selectedRaiseId || LIVE_AURA_RAISE_SEED.id}
