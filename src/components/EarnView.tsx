@@ -110,12 +110,12 @@ export default function EarnView({
             Earn
           </p>
           <h1 className="font-display mt-3 max-w-xl text-2xl font-bold tracking-tight sm:text-3xl">
-            Lock conviction. Unlock the network.
+            Tasks are live. Vaults are still a preview.
           </h1>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/75">
-            Liquidity and stake are how members prove they believe in builders — not just browse
-            them. Unstaking takes {UNSTAKE_COOLDOWN_LABEL} so conviction stays real. Tasks and XP
-            save automatically ({builderXp.toLocaleString()} XP on this profile).
+            Growth tasks and the daily spin already save on this profile ({builderXp.toLocaleString()}{' '}
+            XP). Stake and LP below are a simulation of the future vault — not on-chain. Unstaking
+            in the preview takes {UNSTAKE_COOLDOWN_LABEL}.
           </p>
         </div>
       </div>

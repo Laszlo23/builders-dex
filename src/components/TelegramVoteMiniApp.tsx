@@ -26,6 +26,8 @@ type TgWebApp = {
   };
   ready: () => void;
   expand: () => void;
+  setHeaderColor?: (color: string) => void;
+  setBackgroundColor?: (color: string) => void;
   themeParams?: { bg_color?: string; text_color?: string; button_color?: string };
   MainButton?: { hide: () => void };
   HapticFeedback?: { impactOccurred: (style: string) => void };

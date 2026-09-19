@@ -32,6 +32,7 @@ import {
   venueLabelsFromRoute,
 } from '../lib/jupiter';
 import { useOnchainBalances } from '../hooks/useOnchainBalances';
+import { useSmartWalletConnect } from '../hooks/useSmartWalletConnect';
 import { SwapTransaction } from '../types';
 import TradeShareModal from './TradeShareModal';
 
@@ -99,6 +100,7 @@ export default function SwapView({
 }: SwapViewProps) {
   const { publicKey, connected, signTransaction } = useWallet();
   const { setVisible } = useWalletModal();
+  const { connectNow, connecting } = useSmartWalletConnect();
   const {
     tokens: tradeableTokens,
     mintSet,
@@ -316,7 +318,8 @@ export default function SwapView({
 
   const handleSwap = async () => {
     if (!connected || !publicKey) {
-      setVisible(true);
+      const result = await connectNow('solana');
+      if (result === 'picker') setVisible(true);
       return;
     }
     if (!pairValid || !inputToken || !outputToken) {
@@ -398,7 +401,7 @@ export default function SwapView({
     if (tokensLoading) return 'Loading tokens…';
     if (tokensError) return 'Token config error';
     if (tradeableTokens.length < 2) return 'No tradeable pairs';
-    if (!connected) return 'Connect wallet';
+    if (!connected) return connecting ? 'Connecting…' : 'Connect wallet';
     if (quoting) return 'Quoting…';
     if (status === 'confirming') return 'Confirming…';
     if (!fromAmount) return 'Enter amount';
@@ -433,8 +436,8 @@ export default function SwapView({
     <div className="relative px-4 py-6 text-white sm:py-10">
       <div className="mx-auto w-full max-w-md">
         <div className="mb-5 text-center sm:text-left">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Trade</p>
-          <h1 className="font-display mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+          <p className="page-kicker">Trade</p>
+          <h1 className="page-display mt-1 text-2xl font-extrabold sm:text-4xl">
             Curated swap
           </h1>
           <p className="mt-1 text-sm text-steel">
@@ -469,7 +472,7 @@ export default function SwapView({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/12 bg-gradient-to-b from-white/[0.07] to-surface/90 p-4 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:p-5">
+        <div className="swap-terminal rounded-2xl border border-white/12 bg-gradient-to-b from-white/[0.07] to-surface/90 p-4 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:p-5">
           <div className="mb-4 flex items-center justify-between">
             <span className="rounded-full border border-accent/25 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase text-accent">
               Spot · Solana · Jupiter

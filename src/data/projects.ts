@@ -573,6 +573,7 @@ export const INITIAL_PROJECTS: Project[] = [
       'The Hood project we can actually participate in today: official site, founding membership, live mint phases, same 0x as Base. Catalog lists the ecosystem — not a Cubes-only footnote.',
     marketCapLabel: 'CCFF00 membership · Hood ETH',
     logoUrl: 'Layers',
+    coverImage: '/campaign/hook-wide.webp',
     category: 'Creator Economy',
     chain: 'Robinhood',
     hoodTokenAddress: CUBES_CONTRACT,

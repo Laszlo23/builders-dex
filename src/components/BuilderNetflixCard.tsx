@@ -19,7 +19,7 @@ export default function BuilderNetflixCard({
       <div className="relative aspect-[16/9] max-h-[280px] w-full overflow-hidden bg-ink">
         <OptimizedImage
           src={ep.coverImage}
-          alt={`${ep.title} cover`}
+          alt={`${ep.founderName} cover`}
           className="h-full w-full object-cover opacity-70"
           onError={(e) => {
             (e.target as HTMLImageElement).src = ep.avatarUrl;
@@ -30,14 +30,15 @@ export default function BuilderNetflixCard({
         <button
           type="button"
           onClick={() => onOpenProject?.(ep.projectId)}
-          className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-accent/40 bg-accent text-ink shadow-lg shadow-accent/20 transition hover:scale-105"
-          aria-label={`Play ${ep.founderName}`}
+          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border border-accent/40 bg-accent px-5 py-3 text-xs font-bold text-ink shadow-lg shadow-accent/20 transition hover:scale-105"
+          aria-label={`Open ${ep.projectName} story`}
         >
-          <Play className="h-6 w-6 fill-current" />
+          <Play className="h-4 w-4 fill-current" />
+          Open story
         </button>
         <div className="absolute bottom-4 left-4 right-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
-            Builder Netflix
+            Catalog brief
           </p>
           <h2 className="font-display mt-1 text-lg font-bold md:text-xl">{ep.question}</h2>
           <p className="mt-0.5 text-xs text-white/70">
@@ -65,7 +66,7 @@ export default function BuilderNetflixCard({
             >
               <OptimizedImage
                 src={e.coverImage}
-                alt={`${e.title} thumbnail`}
+                alt={`${e.founderName} thumbnail`}
                 className="h-16 w-28 object-cover"
                 onError={(ev) => {
                   (ev.target as HTMLImageElement).src = e.avatarUrl;

@@ -224,5 +224,10 @@ export function getPathFromUrl(): string {
     return resolved;
   }
 
-  return 'landing';
+  try {
+    sessionStorage.setItem('bdx_coming_soon', path);
+  } catch {
+    /* ignore */
+  }
+  return 'coming-soon';
 }

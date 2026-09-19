@@ -1,18 +1,42 @@
 {
+  "id": "/",
   "name": "Builders DEX",
   "short_name": "Builders DEX",
-  "description": "The quality layer of Solana — where the best builders get discovered.",
+  "description": "The place where Web3 discovers who deserves to win. Open in Phantom, Solflare, MetaMask, Rainbow, Coinbase, or Trust.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#07080A",
   "theme_color": "#07080A",
   "lang": "en",
+  "categories": ["finance", "utilities"],
   "icons": [
     {
       "src": "/brand-mark.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Trade",
+      "short_name": "Trade",
+      "url": "/swap",
+      "icons": [{ "src": "/brand-mark.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Radar",
+      "short_name": "Radar",
+      "url": "/terminal",
+      "icons": [{ "src": "/brand-mark.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "HoodStreet",
+      "short_name": "Hood",
+      "url": "/hoodstreet",
+      "icons": [{ "src": "/brand-mark.png", "sizes": "512x512" }]
     }
   ]
 }

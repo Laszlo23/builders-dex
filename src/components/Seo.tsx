@@ -1,16 +1,15 @@
 import { useEffect } from 'react';
-import { getPostBySlug } from '../data/blog';
-import type { Project } from '../types';
 import {
   OG_HEIGHT,
   OG_WIDTH,
+  OG_LOCALE,
   SITE_NAME,
-  SITE_URL,
   TWITTER_SITE,
   absoluteUrl,
-  getSeoForPath,
-  projectOgPath,
+  jsonLdGraph,
+  resolveSeoForRequest,
 } from '../lib/seo';
+import type { Project } from '../types';
 
 type Props = {
   path: string;
@@ -52,23 +51,20 @@ function upsertJsonLd(id: string, data: Record<string, unknown>) {
 
 export default function Seo({ path, project, projectName, blogSlug }: Props) {
   useEffect(() => {
-    const base = getSeoForPath(path);
-    const post = path === 'blog' && blogSlug ? getPostBySlug(blogSlug) : null;
-    const title = post
-      ? `${post.title} — Builders DEX Blog`
-      : path === 'project-detail' && (project?.name || projectName)
-        ? `${project?.name || projectName} — Builders DEX`
-        : base.title;
-    const description = post?.excerpt || project?.tagline || base.description;
+    const seo = resolveSeoForRequest(window.location.pathname, window.location.search);
+    const title = project
+      ? `${project.name} — Builder Story | Builders DEX`
+      : seo.title;
+    const description = project?.tagline || seo.description;
     const url = absoluteUrl(
-      post ? `/blog/${post.slug}` : project ? `/explore?id=${project.id}` : base.path,
+      project ? `/explore?id=${project.id}` : seo.path,
     );
-    const image = absoluteUrl(
-      project ? projectOgPath(project.id) : post?.coverImage || '/og-image.webp',
-    );
+    const image = absoluteUrl(seo.image);
+    const type = seo.type;
 
     document.title = title;
     upsertMeta('name', 'description', description);
+    upsertMeta('name', 'robots', seo.robots);
     upsertMeta('name', 'application-name', SITE_NAME);
     upsertMeta('name', 'theme-color', '#07080A');
     upsertMeta('name', 'twitter:card', 'summary_large_image');
@@ -76,97 +72,40 @@ export default function Seo({ path, project, projectName, blogSlug }: Props) {
     upsertMeta('name', 'twitter:title', title);
     upsertMeta('name', 'twitter:description', description);
     upsertMeta('name', 'twitter:image', image);
+    upsertMeta('name', 'twitter:image:alt', title);
     upsertMeta('name', 'twitter:image:width', String(OG_WIDTH));
     upsertMeta('name', 'twitter:image:height', String(OG_HEIGHT));
-    upsertMeta('property', 'og:type', post ? 'article' : 'website');
+    upsertMeta('property', 'og:type', type);
+    upsertMeta('property', 'og:locale', OG_LOCALE);
     upsertMeta('property', 'og:site_name', SITE_NAME);
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', url);
     upsertMeta('property', 'og:image', image);
+    upsertMeta('property', 'og:image:secure_url', image);
     upsertMeta('property', 'og:image:type', 'image/webp');
     upsertMeta('property', 'og:image:width', String(OG_WIDTH));
     upsertMeta('property', 'og:image:height', String(OG_HEIGHT));
-    upsertMeta('property', 'og:image:alt', `${SITE_NAME} — Reputation layer of Web3`);
+    upsertMeta('property', 'og:image:alt', title);
+    if (seo.publishedTime) {
+      upsertMeta('property', 'article:published_time', seo.publishedTime);
+      upsertMeta('property', 'article:modified_time', seo.publishedTime);
+    }
     upsertLink('canonical', url);
 
-    upsertJsonLd('builders-dex-org', {
-      '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: SITE_NAME,
-      url: SITE_URL,
-      logo: `${SITE_URL}/brand-mark.webp`,
-      description: 'A builder intelligence network with integrated trading on Solana',
-      sameAs: ['https://x.com/buildingcultu3', 'https://github.com/Laszlo23/builders-dex'],
+    const graph = jsonLdGraph({
+      ...seo,
+      title,
+      description,
+      path: project ? `/explore?id=${project.id}` : seo.path,
+      project: project ?? seo.project,
     });
+    graph.forEach((node, i) => upsertJsonLd(`builders-dex-ld-${i}`, node));
 
-    upsertJsonLd('builders-dex-website', {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: SITE_NAME,
-      url: SITE_URL,
-      description:
-        'Discover curated Solana builders and projects with quality ratings and integrated trading',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: `${SITE_URL}/explore?q={search_term_string}`,
-        },
-        'query-input': 'required name=search_term_string',
-      },
+    document.head.querySelectorAll('script[id^="builders-dex-ld-"]').forEach((el) => {
+      const n = Number(el.id.replace('builders-dex-ld-', ''));
+      if (Number.isFinite(n) && n >= graph.length) el.remove();
     });
-
-    if (project) {
-      upsertJsonLd('builders-dex-jsonld', {
-        '@context': 'https://schema.org',
-        '@type': 'SoftwareApplication',
-        name: project.name,
-        url,
-        image,
-        description: project.tagline || project.description,
-        applicationCategory: 'FinanceApplication',
-        operatingSystem: 'Web',
-        additionalProperty: {
-          '@type': 'PropertyValue',
-          name: 'Builder Score',
-          value: project.builderScore.overall,
-        },
-      });
-    } else if (post) {
-      upsertJsonLd('builders-dex-jsonld', {
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: post.title,
-        datePublished: post.date,
-        author: { '@type': 'Person', name: post.author },
-        description: post.excerpt,
-        image: absoluteUrl(post.coverImage),
-        url,
-        publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
-        mainEntityOfPage: url,
-      });
-    } else {
-      upsertJsonLd('builders-dex-jsonld', {
-        '@context': 'https://schema.org',
-        '@type': 'WebApplication',
-        name: SITE_NAME,
-        url: SITE_URL,
-        applicationCategory: 'FinanceApplication',
-        operatingSystem: 'Web',
-        description,
-        featureList: [
-          'Curated Solana project discovery',
-          'Live Builder Score™ quality ratings',
-          'Jupiter-powered token swaps',
-          'Community-driven builder verification',
-        ],
-        offers: {
-          '@type': 'Offer',
-          description: 'Free builder discovery and quality research. Swap fees via Jupiter protocol.',
-        },
-      });
-    }
   }, [path, project, projectName, blogSlug]);
 
   return null;

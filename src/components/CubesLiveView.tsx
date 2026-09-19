@@ -221,7 +221,7 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
                   key={phase.id}
                   className="rounded-3xl border border-white/10 bg-ink/60 p-5"
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-display text-lg font-bold">Phase {phase.id}</p>
                     <span className="rounded-full border border-white/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
                       {phaseStatus(phase, now)} · {gateLabel(phase)}

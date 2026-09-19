@@ -3,6 +3,8 @@
  * People-first: Passport identity over tokens.
  */
 
+import type { Project } from '../types';
+
 export type ScoreSignal = { polarity: '+' | '-'; text: string };
 
 export type ScoreTransparency = {
@@ -118,8 +120,28 @@ export const PROJECT_REALITY: Record<string, ProjectReality> = {
   },
 };
 
-/** Real founder stories — empty until we publish recorded episodes. */
+/** Recorded founder videos — empty until we publish an episode. Catalog briefs are separate. */
 export const FOUNDER_EPISODES: FounderEpisode[] = [];
+
+/** Real catalog narratives — not invented trailers. */
+export function catalogStoryBriefs(projects: Project[]): FounderEpisode[] {
+  return projects
+    .filter((p) => Boolean(p.builderStory?.trim()) && p.curation.status !== 'rejected')
+    .map((p) => {
+      const lead = p.team[0];
+      return {
+        id: `brief-${p.id}`,
+        founderName: lead?.name ?? p.name,
+        projectId: p.id,
+        projectName: p.name,
+        avatarUrl: lead?.avatarUrl || '/brand-mark.webp',
+        duration: 'Catalog brief',
+        question: p.tagline,
+        teaser: p.builderStory,
+        coverImage: p.coverImage || '/campaign/hook-stories.webp',
+      };
+    });
+}
 
 /** Dual conviction % — empty until real community + AI votes exist. */
 export const DUAL_CONVICTION: Record<string, DualConviction> = {};
@@ -245,9 +267,11 @@ export function scoreTransparencyFor(
   );
 }
 
-export function episodesFor(projectId: string): typeof FOUNDER_EPISODES {
+export function episodesFor(projectId: string, project?: Project): FounderEpisode[] {
   const mine = FOUNDER_EPISODES.filter((e) => e.projectId === projectId);
-  return mine.length > 0 ? mine : FOUNDER_EPISODES.slice(0, 2);
+  if (mine.length > 0) return mine;
+  if (project?.builderStory) return catalogStoryBriefs([project]);
+  return [];
 }
 
 export function educationalReviewFor(projectId: string): EducationalReview {

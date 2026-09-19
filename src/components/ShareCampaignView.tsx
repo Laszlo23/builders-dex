@@ -9,14 +9,20 @@ import {
   CAMPAIGN_TAGLINE,
   MEME_CAMPAIGN_ASSETS,
   MEME_CAMPAIGN_POSTS,
+  campaignMemeByQuery,
+  campaignPostForAsset,
+  CampaignAsset,
   CampaignChannel,
   CampaignHook,
+  CampaignPost,
 } from '../data/campaign';
 import {
   campaignShareUrl,
+  composeShareBody,
   openXIntent,
   shareNativePayload,
 } from '../lib/shareHelper';
+import { getOrCreateScoutCode } from '../lib/referral';
 import {
   getDailyShareStatus,
   SHARE_MAX_PER_DAY,
@@ -46,10 +52,15 @@ const CHANNELS: Array<CampaignChannel | 'All'> = [
 
 export default function ShareCampaignView({
   onShareAction,
+  walletAddress,
 }: {
   onShareAction?: (channel?: string) => ShareActionResult | void;
+  walletAddress?: string | null;
 }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedScout, setCopiedScout] = useState(false);
+  const scoutCode = getOrCreateScoutCode(walletAddress);
+  const scoutUrl = campaignShareUrl('copy');
   const [hookFilter, setHookFilter] = useState<(typeof HOOKS)[number]>('All');
   const [channelFilter, setChannelFilter] = useState<(typeof CHANNELS)[number]>('All');
   const [weekFilter, setWeekFilter] = useState<number | 'All'>('All');
@@ -87,9 +98,19 @@ export default function ShareCampaignView({
     }
   };
 
-  const copyText = async (id: string, text: string, channel?: string) => {
+  const shareUrl = (medium: 'copy' | 'native' | 'x', post?: CampaignPost) => {
+    const meme = post
+      ? campaignMemeByQuery(post.id)?.id ||
+        MEME_CAMPAIGN_ASSETS.find((a) => a.path === post.asset)?.id
+      : undefined;
+    return campaignShareUrl(medium, meme ? { meme } : undefined);
+  };
+
+  const postBody = (post: CampaignPost) => composeShareBody(post.copy, post.hashtags);
+
+  const copyText = async (id: string, text: string, channel?: string, post?: CampaignPost) => {
     try {
-      await navigator.clipboard.writeText(`${text}\n\n${campaignShareUrl('copy')}`);
+      await navigator.clipboard.writeText(`${text}\n\n${shareUrl('copy', post)}`);
       setCopiedId(id);
       afterShare(channel);
       window.setTimeout(() => setCopiedId(null), 1800);
@@ -98,18 +119,36 @@ export default function ShareCampaignView({
     }
   };
 
-  const shareNative = async (title: string, text: string, channel?: string) => {
+  const copyScout = async () => {
+    try {
+      await navigator.clipboard.writeText(scoutUrl);
+      setCopiedScout(true);
+      window.setTimeout(() => setCopiedScout(false), 1800);
+    } catch {
+      alert('Could not copy the scout link.');
+    }
+  };
+
+  const shareNative = async (title: string, text: string, channel?: string, post?: CampaignPost) => {
     const ok = await shareNativePayload({
       title,
       text,
-      url: campaignShareUrl('native'),
+      url: shareUrl('native', post),
     });
     if (ok) afterShare(channel);
   };
 
-  const shareX = (text: string) => {
-    openXIntent(text, campaignShareUrl('x'));
+  const shareX = (text: string, post?: CampaignPost) => {
+    openXIntent(text, shareUrl('x', post));
     afterShare('X / Twitter');
+  };
+
+  const shareMemeOnX = (asset: CampaignAsset) => {
+    const post = campaignPostForAsset(asset);
+    const body = post
+      ? postBody(post)
+      : `${asset.label}\n\nUNRUGGABLE energy. Proof of Building™ before the trade.`;
+    shareX(body, post);
   };
 
   const energyPct = Math.round((energy.remaining / SHARE_MAX_PER_DAY) * 100);
@@ -127,12 +166,12 @@ export default function ShareCampaignView({
             <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-accent">
               Signal kit · future feed
             </p>
-            <h1 className="font-display mt-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="page-display mt-3 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
               Push a button. <span className="text-accent">Earn the pulse.</span>
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-steel sm:text-base">
-              Each copy / share grants +{SHARE_XP_PER_PUSH} XP — max {SHARE_MAX_PER_DAY}/day. Meme
-              drop + full kit. {CAMPAIGN_TAGLINE}
+              Tap Post on X — the meme copy and your scout link are already in the compose window.
+              +{SHARE_XP_PER_PUSH} XP, max {SHARE_MAX_PER_DAY}/day. {CAMPAIGN_TAGLINE}
             </p>
           </div>
           <div className="w-full max-w-xs space-y-3">
@@ -159,13 +198,24 @@ export default function ShareCampaignView({
                 <p className="mt-2 font-mono text-[10px] text-steel">
                   {energy.remaining === 0
                     ? 'Energy depleted · resets UTC midnight'
-                    : 'Tap copy / share on any post'}
+                    : 'Tap Post on X — scout link is already in the draft'}
                 </p>
               )}
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-md">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent">Cadence</p>
-              <p className="mt-1 max-w-[220px] text-xs leading-relaxed text-white/70">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+                Your scout link
+              </p>
+              <p className="mt-1 break-all font-mono text-[11px] text-white/80">ref={scoutCode}</p>
+              <button
+                type="button"
+                onClick={() => void copyScout()}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-bright"
+              >
+                {copiedScout ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {copiedScout ? 'Copied' : 'Copy referral URL'}
+              </button>
+              <p className="mt-2 max-w-[220px] text-[11px] leading-relaxed text-white/55">
                 {CAMPAIGN_SCHEDULE_NOTE}
               </p>
             </div>
@@ -203,15 +253,30 @@ export default function ShareCampaignView({
               UNRUGGABLE <span className="text-accent">ENERGY</span>
             </p>
             <p className="mt-1 max-w-lg text-sm text-white/75">
-              No more zero. We touched the repo so you can touch grass.
+              No more zero. One tap opens X with the post and your scout link already filled in.
             </p>
-            <button
-              type="button"
-              onClick={() => setWeekFilter(5)}
-              className="mt-4 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink"
-            >
-              Jump to meme posts
-            </button>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  shareMemeOnX(
+                    MEME_CAMPAIGN_ASSETS.find((a) => a.id === 'meme-unruggable') ||
+                      MEME_CAMPAIGN_ASSETS[1],
+                  )
+                }
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Post on X
+              </button>
+              <button
+                type="button"
+                onClick={() => setWeekFilter(5)}
+                className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-white hover:border-accent/40"
+              >
+                Jump to meme posts
+              </button>
+            </div>
           </div>
         </div>
 
@@ -226,7 +291,7 @@ export default function ShareCampaignView({
                 Share these winners
               </h2>
               <p className="mt-1 text-sm text-steel">
-                Unruggable · No more zero · Outsourced DYOR · Rug season over · Touch grass
+                Post on X opens compose with the meme copy and your referral already inserted.
               </p>
             </div>
           </div>
@@ -259,14 +324,24 @@ export default function ShareCampaignView({
                       {asset.ratio} · {asset.use}
                     </p>
                   </div>
-                  <a
-                    href={asset.path}
-                    download
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/20"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    Save
-                  </a>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => shareMemeOnX(asset)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-ink hover:bg-accent-bright"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Post on X
+                    </button>
+                    <a
+                      href={asset.path}
+                      download
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-steel hover:text-white"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Save
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
@@ -416,7 +491,7 @@ export default function ShareCampaignView({
 
           <div className="mt-8 space-y-5">
             {posts.map((post) => {
-              const full = `${post.copy}\n\n${post.hashtags}`;
+              const full = postBody(post);
               return (
                 <article
                   key={post.id}
@@ -456,31 +531,31 @@ export default function ShareCampaignView({
                     <div className="mt-5 flex flex-wrap gap-2">
                       <button
                         type="button"
-                      onClick={() => copyText(post.id, full, post.channel)}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright"
-                    >
-                      {copiedId === post.id ? (
-                        <Check className="h-3.5 w-3.5" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                      {copiedId === post.id ? 'Copied' : 'Copy post'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => shareNative(post.title, full, post.channel)}
+                        onClick={() => shareX(full, post)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Post on X
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyText(post.id, full, post.channel, post)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent"
+                      >
+                        {copiedId === post.id ? (
+                          <Check className="h-3.5 w-3.5" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                        {copiedId === post.id ? 'Copied' : 'Copy post'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => shareNative(post.title, full, post.channel, post)}
                         className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent"
                       >
                         <Share2 className="h-3.5 w-3.5" />
                         Share
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => shareX(full)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white hover:border-accent/40 hover:text-accent"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Post on X
                       </button>
                       <a
                         href={post.asset}

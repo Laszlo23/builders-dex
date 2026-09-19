@@ -224,11 +224,9 @@ export default function TerminalView({
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6 sm:py-10">
-      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-        Builder Terminal™
-      </p>
-      <h1 className="font-display mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+    <div className="mx-auto max-w-6xl px-4 py-5 text-white sm:px-6 sm:py-10">
+      <p className="page-kicker">Builder Terminal™</p>
+      <h1 className="page-display mt-2 text-2xl font-extrabold sm:text-5xl">
         Builder intelligence network
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-steel">

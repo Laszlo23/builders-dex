@@ -25,6 +25,9 @@ import {
   Map,
   ExternalLink,
   Wallet,
+  Share2,
+  Vote,
+  Box,
   type LucideIcon,
 } from 'lucide-react';
 import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN, BRAND_SOCIALS, BRAND_SUPPORT, BRAND_TAGLINE, CULTURE_NODE_X_POST } from '../data/brand';
@@ -43,8 +46,10 @@ const PRODUCT: FooterLink[] = [
   { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
   { id: 'hoodstreet', label: 'HoodStreet', icon: Layers },
   { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
+  { id: 'cubes', label: 'Cubes Live', icon: Box },
   { id: 'apply', label: 'Apply', icon: Rocket },
   { id: 'earn', label: 'Earn', icon: Coins },
+  { id: 'dao', label: 'Governance', icon: Vote },
   { id: 'profile', label: 'Passport™', icon: User },
 ];
 
@@ -60,6 +65,7 @@ const COMMUNITY: FooterLink[] = [
   { id: 'support', label: 'Support', icon: Headphones },
   { id: 'guide', label: 'Site guide', icon: Compass },
   { id: 'blog', label: 'Blog', icon: Newspaper },
+  { id: 'campaign', label: 'Share kit', icon: Share2 },
 ];
 
 const LEGAL: FooterLink[] = [
@@ -76,7 +82,7 @@ interface SiteFooterProps {
 
 export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFooterProps) {
   return (
-    <footer className="relative z-10 overflow-hidden border-t border-white/8 bg-ink/90 pb-24 pt-12 lg:pb-10">
+    <footer className="site-footer relative z-10 overflow-hidden pb-24 pt-12 lg:pb-10">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-30"
@@ -101,7 +107,7 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
                 loading="lazy"
                 decoding="async"
               />
-              <p className="font-sans text-sm font-bold tracking-tight">
+              <p className="font-display text-sm font-extrabold tracking-tight">
                 BUILDERS <span className="text-accent">DEX</span>
               </p>
             </div>
@@ -142,9 +148,24 @@ export default function SiteFooter({ setCurrentPath, tradeableCount }: SiteFoote
             >
               Like · share · comment Culture Node ↗
             </a>
+            <p className="mt-4 font-mono text-[10px] leading-relaxed text-steel lg:hidden">
+              Radar, Trade, Hood, and More live in the tab bar. Legal is below.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2 lg:hidden">
+              {LEGAL.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => setCurrentPath(l.id)}
+                  className="rounded-full border border-white/12 px-3 py-1.5 font-mono text-[10px] text-steel"
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid flex-1 grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="mt-8 hidden flex-1 grid-cols-2 gap-8 sm:grid-cols-3 lg:mt-0 lg:grid">
             {[
               { title: 'Product', links: PRODUCT },
               { title: 'Community', links: COMMUNITY },

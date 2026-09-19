@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
+  ExternalLink,
   FilePlus2,
   Layers,
   Sparkles,
@@ -48,6 +49,7 @@ import EducationalReviewCard from './EducationalReviewCard';
 import { educationalReviewFor } from '../data/builderPlatform';
 import OptimizedImage from './OptimizedImage';
 import DailyScoutCard from './DailyScoutCard';
+import MobileAppHome from './MobileAppHome';
 import ChainLaneBar from './ChainLaneBar';
 import ProjectSignalButtons from './ProjectSignalButtons';
 import {
@@ -58,6 +60,8 @@ import {
   type SignalSnapshot,
 } from '../lib/projectSignal';
 import { getDailyProject, getCurrentRitualStreak, recordRitualCompletion } from '../lib/dailyScoutRitual';
+import { MEME_CAMPAIGN_ASSETS, campaignPostForAsset } from '../data/campaign';
+import { campaignShareUrl, composeShareBody, openXIntent } from '../lib/shareHelper';
 
 interface LandingViewProps {
   setCurrentPath: (path: string) => void;
@@ -69,10 +73,12 @@ interface LandingViewProps {
   tradeableMintSet: Set<string>;
   tradeableTokens: CuratedToken[];
   onStartFirstDiscovery?: () => void;
+  onOpenWalletRoom: () => void;
   highlightWallet?: string | null;
   onSignal: (id: string, side: SignalSide) => void;
   signal: SignalSnapshot;
   builderXp: number;
+  onShareMeme?: () => void;
 }
 
 const HERO_PILLARS: { icon: LucideIcon; label: string }[] = [
@@ -134,10 +140,12 @@ export default function LandingView({
   tradeableMintSet,
   tradeableTokens,
   onStartFirstDiscovery,
+  onOpenWalletRoom,
   highlightWallet,
   onSignal,
   signal,
   builderXp,
+  onShareMeme,
 }: LandingViewProps) {
   const featured = GENESIS_PROJECT_IDS.map(
     (id) => projects.find((p) => p.id === id),
@@ -156,10 +164,18 @@ export default function LandingView({
 
   return (
     <div className="relative text-white">
-      {/* 1 — HERO: one composition */}
-      <section className="relative flex min-h-[calc(100svh-4.5rem)] flex-col justify-center overflow-hidden px-4 pb-20 pt-10">
+      <MobileAppHome
+        projects={projects}
+        setCurrentPath={setCurrentPath}
+        onOpenStory={onOpenStory}
+        onStartFirstDiscovery={onStartFirstDiscovery}
+        onOpenWalletRoom={onOpenWalletRoom}
+      />
+
+      {/* 1 — HERO: one composition (desktop) */}
+      <section className="relative hidden min-h-[calc(100svh-4.5rem)] flex-col justify-center overflow-hidden px-4 pb-20 pt-10 lg:flex">
         <VideoBackground intensity="hero" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(200,232,104,0.12),transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_28%,rgba(204,255,0,0.10),transparent_58%)]" />
 
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center text-center">
           <motion.div
@@ -183,7 +199,7 @@ export default function LandingView({
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.7 }}
-            className="font-sans brand-glow text-[clamp(2rem,6.5vw,3.5rem)] font-bold leading-[0.95] tracking-tight"
+            className="font-display brand-glow text-[clamp(2.4rem,8vw,4.6rem)] font-extrabold leading-[0.88] tracking-tight"
           >
             BUILDERS{' '}
             <span className="text-accent">DEX</span>
@@ -193,7 +209,7 @@ export default function LandingView({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18 }}
-            className="mt-5 max-w-2xl font-sans text-base font-medium tracking-tight text-white/90 sm:text-xl"
+            className="mt-5 max-w-2xl font-sans text-base font-medium tracking-tight text-white/90 sm:text-2xl"
           >
             {BRAND_TAGLINE}
           </motion.h1>
@@ -233,6 +249,39 @@ export default function LandingView({
             </button>
           </motion.div>
 
+          <motion.nav
+            aria-label="Start here"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.44 }}
+            className="mt-6 flex w-full max-w-xl flex-wrap items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/65"
+          >
+            <span className="text-accent">New here?</span>
+            <button
+              type="button"
+              onClick={() =>
+                onStartFirstDiscovery ? onStartFirstDiscovery() : setCurrentPath('explore')
+              }
+              className="rounded-full border border-white/15 px-3 py-1.5 hover:border-accent/40 hover:text-accent"
+            >
+              1 · Discover
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPath('terminal')}
+              className="rounded-full border border-white/15 px-3 py-1.5 hover:border-accent/40 hover:text-accent"
+            >
+              2 · Terminal
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPath('guide')}
+              className="rounded-full border border-white/15 px-3 py-1.5 hover:border-accent/40 hover:text-accent"
+            >
+              3 · How it works
+            </button>
+          </motion.nav>
+
           <motion.ul
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -242,7 +291,7 @@ export default function LandingView({
             {HERO_PILLARS.map(({ icon: Icon, label }) => (
               <li
                 key={label}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-black/25 px-2.5 py-3 backdrop-blur-md"
+                className="glass-tile flex flex-col items-center gap-1.5 rounded-xl px-2.5 py-3"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent">
                   <Icon className="h-4 w-4" />
@@ -258,7 +307,7 @@ export default function LandingView({
 
       {/* 2 — Daily Scout Ritual */}
       {dailyProject && (
-        <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-12">
+        <section className="relative z-10 px-4 py-5 lg:border-b lg:border-white/5 lg:bg-ink lg:py-12">
           <div className="mx-auto max-w-3xl">
             <DailyScoutCard
               project={dailyProject}
@@ -269,6 +318,7 @@ export default function LandingView({
         </section>
       )}
 
+      <div className="hidden lg:block">
       {/* 3 — Manifesto */}
       <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-12">
         <div className="mx-auto max-w-3xl">
@@ -278,13 +328,14 @@ export default function LandingView({
 
       {/* 3b — Multichain / Robinhood Chain */}
       <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-12">
-        <div className="mx-auto max-w-3xl overflow-hidden rounded-[1.75rem] border border-[#CCFF00]/35 bg-gradient-to-br from-[#CCFF00]/[0.14] via-ink to-surface p-6 sm:p-10">
+        <div className="hood-hero mx-auto max-w-3xl overflow-hidden p-6 sm:p-10">
           <ChainLaneBar active="hood" setCurrentPath={setCurrentPath} compact />
           <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.32em] text-[#CCFF00]">
             {BRAND_MULTICHAIN} · HoodStreet
           </p>
-          <h2 className="font-display mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            Wall Street reimagined onchain.
+          <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            Wall Street reimagined
+            <span className="hood-title-neon block">onchain.</span>
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80">
             {BRAND_HOOD_STANCE} HoodStreet is the Hood project we actually participate in — CCFF00
@@ -295,7 +346,7 @@ export default function LandingView({
             <button
               type="button"
               onClick={() => setCurrentPath('hoodstreet')}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#CCFF00] px-5 py-2.5 text-xs font-bold text-ink"
+              className="hood-cta-fill inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold"
             >
               HoodStreet
               <ArrowRight className="h-3.5 w-3.5" />
@@ -303,21 +354,21 @@ export default function LandingView({
             <button
               type="button"
               onClick={() => setCurrentPath('ccff00')}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[#CCFF00]/40 px-5 py-2.5 text-xs font-semibold text-[#CCFF00]"
+              className="hood-cta inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold"
             >
               CCFF00 Wallet
             </button>
             <button
               type="button"
               onClick={() => setCurrentPath('hood')}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold text-white"
+              className="hood-cta inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold"
             >
               Honest hop
             </button>
             <button
               type="button"
               onClick={() => setCurrentPath('cubes')}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold text-white"
+              className="hood-cta inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold"
             >
               Live phases
             </button>
@@ -799,15 +850,34 @@ export default function LandingView({
                 Share the standard
               </h2>
               <p className="mt-3 text-sm text-white/75">
-                UNRUGGABLE. No more zero. We DYOR&apos;d it — copy-paste posts + winner creatives.
+                UNRUGGABLE. One tap opens X with the meme copy and your scout link already filled in.
               </p>
-              <button
-                type="button"
-                onClick={() => setCurrentPath('campaign')}
-                className="mt-6 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-6 py-3 text-sm font-bold text-accent hover:bg-accent/20"
-              >
-                Open meme kit <ArrowRight className="h-4 w-4" />
-              </button>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const asset = MEME_CAMPAIGN_ASSETS.find((a) => a.id === 'meme-unruggable')
+                      || MEME_CAMPAIGN_ASSETS[1];
+                    const post = campaignPostForAsset(asset);
+                    const body = post
+                      ? composeShareBody(post.copy, post.hashtags)
+                      : 'UNRUGGABLE.\n\nWe already DYOR\'d it.\n\n#Unruggable #BuildersDEX';
+                    openXIntent(body, campaignShareUrl('x', { meme: asset.id }));
+                    onShareMeme?.();
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-ink hover:bg-accent-bright"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Post on X
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPath('campaign')}
+                  className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-6 py-3 text-sm font-bold text-accent hover:bg-accent/20"
+                >
+                  Open meme kit <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -815,6 +885,7 @@ export default function LandingView({
           Builders DEX — {BRAND_CATEGORY}
         </p>
       </section>
+      </div>
     </div>
   );
 }

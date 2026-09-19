@@ -1,7 +1,7 @@
-import React, { Suspense, useEffect, useState, startTransition } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import Navbar from './components/Navbar';
+import Ccff00Field from './components/Ccff00Field';
 import Seo from './components/Seo';
 import SiteFooter from './components/SiteFooter';
 import FirstDiscoveryModal from './components/FirstDiscoveryModal';
@@ -9,6 +9,7 @@ import WalletRoomModal from './components/WalletRoomModal';
 import ChatDrawer, { ChatFab } from './components/ChatDrawer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useWalletDisplayName } from './hooks/useWalletDisplayName';
+import { useSmartWalletConnect } from './hooks/useSmartWalletConnect';
 import { lazyWithRetry } from './lib/lazyWithRetry';
 
 const LandingView = lazyWithRetry(() => import('./components/LandingView'));
@@ -67,6 +68,7 @@ import {
 import { upvoteMessage } from './lib/reputation/messages';
 import { submitScoutCall } from './lib/scout/client';
 import { claimDailyShareReward } from './lib/dailyShareRewards';
+import { captureInboundReferral, setReferralWallet } from './lib/referral';
 import type { ShareActionResult } from './components/ShareCampaignView';
 import bs58 from 'bs58';
 import {
@@ -90,6 +92,7 @@ import {
   type SignalSide,
 } from './lib/projectSignal';
 import { loadEvmAccount, loadWalletRoom, shortenWallet } from './lib/walletRoom';
+import { laneForRoute } from './data/chainLanes';
 import { useTradeableTokens, isMintTradeable } from './hooks/useTradeableTokens';
 import {
   safeNavigate,
@@ -132,7 +135,7 @@ function truncateAddress(address: string): string {
 
 export default function App() {
   const { publicKey, connected, signMessage } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { connectNow } = useSmartWalletConnect();
   const { tokens: tradeableTokens, mintSet: tradeableMintSet } = useTradeableTokens();
 
   const [currentPath, setCurrentPathRaw] = useState<string>(() => getPathFromUrl());
@@ -153,20 +156,22 @@ export default function App() {
     return getRaiseIdFromUrl();
   });
   const setCurrentPath = (path: string, state?: NavState) => {
-    startTransition(() => {
-      safeNavigate(path, setCurrentPathRaw, 'landing', state);
-    });
+    safeNavigate(path, setCurrentPathRaw, 'landing', state);
   };
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
-    if (tg?.initData) {
+    if (tg) {
       try {
         tg.ready();
         tg.expand();
+        tg.setHeaderColor?.('#07080A');
+        tg.setBackgroundColor?.('#07080A');
       } catch {
         /* ignore */
       }
+    }
+    if (tg?.initData) {
       const initialPath = getPathFromUrl();
       if (initialPath === 'tg-vote') setCurrentPath('tg-vote');
     }
@@ -517,7 +522,12 @@ export default function App() {
     setStartedTaskIds((prev) => (prev.includes(taskId) ? prev : [...prev, taskId]));
   };
 
-  const connectWallet = () => setVisible(true);
+  const connectWallet = () => {
+    void (async () => {
+      const result = await connectNow('auto');
+      if (result === 'picker') setWalletRoomOpen(true);
+    })();
+  };
 
   const navigateToStory = (projectId: string) => {
     setFirstDiscoveryOpen(false);
@@ -644,6 +654,11 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPath]);
+
+  useEffect(() => {
+    setReferralWallet(walletKey);
+    captureInboundReferral();
+  }, [walletKey, currentPath]);
 
   const handleCampaignShare = (channel?: string): ShareActionResult => {
     handleCompleteGrowthTask('t_share');
@@ -957,10 +972,12 @@ export default function App() {
             tradeableMintSet={tradeableMintSet}
             tradeableTokens={tradeableTokens}
             onStartFirstDiscovery={() => setFirstDiscoveryOpen(true)}
+            onOpenWalletRoom={() => setWalletRoomOpen(true)}
             highlightWallet={walletKey}
             onSignal={handleSignalVote}
             signal={signal}
             builderXp={builderXp}
+            onShareMeme={() => handleCampaignShare('X / Twitter')}
           />
         );
       case 'explore':
@@ -1276,7 +1293,12 @@ export default function App() {
           />
         );
       case 'campaign':
-        return <ShareCampaignView onShareAction={handleCampaignShare} />;
+        return (
+          <ShareCampaignView
+            onShareAction={handleCampaignShare}
+            walletAddress={walletKey}
+          />
+        );
       case 'investor':
         return (
           <InvestorModeView
@@ -1298,6 +1320,7 @@ export default function App() {
       case 'builder-stories':
         return (
           <BuilderStoriesView
+            projects={projects}
             onOpenProject={(id) => {
               setSelectedProjectId(id);
               setCurrentPath('project-detail');
@@ -1358,11 +1381,15 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col justify-between bg-ink font-sans text-white selection:bg-accent selection:text-ink">
+    <div
+      className="app-shell relative min-h-screen font-sans text-white selection:bg-accent selection:text-ink"
+      data-lane={laneForRoute(currentPath)}
+    >
+      <Ccff00Field />
+      <div className="relative z-10 flex min-h-screen flex-col justify-between">
       <Seo
         path={currentPath}
         project={currentPath === 'project-detail' ? activeProject : undefined}
-        projectName={activeProject?.name}
         blogSlug={blogSlug}
       />
       {import.meta.env.VITE_SHOW_DEV_RIBBON === 'true' && (
@@ -1453,6 +1480,7 @@ export default function App() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

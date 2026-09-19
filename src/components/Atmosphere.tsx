@@ -57,7 +57,7 @@ export default function Atmosphere({ variant = 'app', className = '' }: Props) {
         ref={spotRef}
         className="absolute left-0 top-0 h-[560px] w-[560px] rounded-full opacity-60 mix-blend-screen will-change-transform"
         style={{
-          background: `radial-gradient(circle, rgba(200, 232, 104,${bloomStrength * 0.18}) 0%, transparent 62%)`,
+          background: `radial-gradient(circle, rgba(204, 255, 0,${bloomStrength * 0.16}) 0%, transparent 62%)`,
         }}
       />
 
@@ -65,14 +65,14 @@ export default function Atmosphere({ variant = 'app', className = '' }: Props) {
       <div
         className="atm-orb absolute -left-[20%] top-[10%] h-[55vh] w-[55vh] rounded-full blur-3xl"
         style={{
-          background: `radial-gradient(circle, rgba(200, 232, 104,${bloomStrength * 0.55}) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, rgba(204, 255, 0,${bloomStrength * 0.55}) 0%, transparent 70%)`,
           animationDelay: '0s',
         }}
       />
       <div
         className="atm-orb absolute -right-[15%] top-[35%] h-[45vh] w-[45vh] rounded-full blur-3xl"
         style={{
-          background: `radial-gradient(circle, rgba(160, 190, 80,${bloomStrength * 0.35}) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, rgba(204, 255, 0,${bloomStrength * 0.22}) 0%, transparent 70%)`,
           animationDelay: '-4s',
         }}
       />

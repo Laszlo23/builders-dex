@@ -283,6 +283,22 @@ export default function ProfileView({
         </div>
       )}
       
+      {!wallet.connected && (
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-ink/50 px-4 py-3 text-xs text-steel sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            You are Guest Researcher. Connect a wallet to mint Passport. You can still edit a local
+            profile on this device.
+          </p>
+          <button
+            type="button"
+            onClick={connectWallet}
+            className="shrink-0 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink"
+          >
+            Connect wallet
+          </button>
+        </div>
+      )}
+      
       {!PASSPORT_DEPLOYED && (
         <div className="mb-4 rounded-2xl border border-steel/25 bg-steel/5 px-4 py-3 text-sm text-white/85">
           <strong className="font-semibold">Local simulation.</strong> Passport program in repo, not yet deployed. Stats stay browser-local until on-chain mint.
@@ -442,12 +458,6 @@ export default function ProfileView({
           {mintError && (
             <div className="mt-4 rounded-2xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300">
               {mintError}
-            </div>
-          )}
-          
-          {!wallet.connected && (
-            <div className="mt-4 rounded-2xl border border-white/10 bg-ink/50 px-4 py-3 text-xs text-steel">
-              Connect your wallet to mint your Builder Passport
             </div>
           )}
           

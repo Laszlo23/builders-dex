@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Brain, Coins, Layers, Share2, HelpCircle, ChevronRight } from 'lucide-react';
 import { Project } from '../types';
 import ScoreBars, { CurationBadges } from './ScoreBars';
@@ -54,7 +54,10 @@ export default function ExploreView({
   tradeableMintSet,
   onShareReward,
 }: ExploreViewProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return (new URLSearchParams(window.location.search).get('q') || '').slice(0, 80);
+  });
   const [selectedCategory, setSelectedCategory] = useState<
     'All' | 'AI + Web3' | 'DeFi' | 'Infrastructure' | 'Creator Economy'
   >('All');
@@ -71,6 +74,16 @@ export default function ExploreView({
     remaining: 0,
     capped: false,
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (!searchTerm) url.searchParams.delete('q');
+    else url.searchParams.set('q', searchTerm);
+    const next = `${url.pathname}${url.search}`;
+    const current = `${window.location.pathname}${window.location.search}`;
+    if (next !== current) window.history.replaceState(null, '', next);
+  }, [searchTerm]);
 
   const scoreFor = (p: Project) =>
     liveScores[p.id]?.overall ?? p.builderScore.overall;
@@ -137,10 +150,8 @@ export default function ExploreView({
       <div className="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
       <div className="relative flex flex-col gap-4 border-b border-white/[0.08] pb-8 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-            Builder Stories
-          </p>
-              <h1 className="section-title font-display mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+          <p className="page-kicker">Builder Stories</p>
+              <h1 className="page-display mt-2 text-4xl font-extrabold sm:text-5xl">
                 Discover curated builders
               </h1>
           <p className="mt-2 max-w-xl text-sm text-steel">

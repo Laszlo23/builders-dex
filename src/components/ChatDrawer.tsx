@@ -165,7 +165,7 @@ Ask about Trade, Earn, Passport™, or listings. Say **live build** for live Bui
         aria-modal={open}
         aria-hidden={!open}
         aria-label="Builders DEX chat"
-        className={`fixed inset-y-0 right-0 z-[120] flex w-full max-w-md flex-col border-l border-white/10 bg-ink shadow-[-24px_0_60px_rgba(0,0,0,0.55)] transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 right-0 z-[120] flex w-full max-w-md flex-col border-l border-accent/20 bg-ink/95 shadow-[-24px_0_80px_rgba(0,0,0,0.7)] backdrop-blur-xl transition-transform duration-300 ease-out ${
           open ? 'translate-x-0' : 'pointer-events-none invisible translate-x-full'
         }`}
       >
@@ -249,7 +249,7 @@ Ask about Trade, Earn, Passport™, or listings. Say **live build** for live Bui
               )}
               <div ref={endRef} />
             </div>
-            <div className="border-t border-white/10 px-3 py-2">
+            <div className="border-t border-white/10 px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
               <div className="mb-2 flex flex-wrap gap-1.5">
                 <button
                   type="button"

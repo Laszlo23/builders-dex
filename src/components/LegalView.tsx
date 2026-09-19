@@ -44,6 +44,8 @@ export default function LegalView({ docId, setCurrentPath }: LegalViewProps) {
             ['manifesto', 'Manifest'],
             ['mission', 'Mission'],
             ['faq', 'FAQ'],
+            ['guide', 'Site guide'],
+            ['story', 'Story'],
             ['feedback', 'Feedback'],
             ['support', 'Support'],
             ['team', 'Team'],

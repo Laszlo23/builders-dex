@@ -31,6 +31,8 @@ export type CampaignAsset = {
   path: string;
   ratio: string;
   use: string;
+  /** Matching ready-to-post id when this creative should one-tap into X */
+  postId?: string;
 };
 
 export const CAMPAIGN_TAGLINE = 'The place where Web3 discovers who deserves to win.';
@@ -346,6 +348,7 @@ export const MEME_CAMPAIGN_ASSETS: CampaignAsset[] = [
     path: '/campaign/meme-banner-wide.webp',
     ratio: '16:9',
     use: 'X header · LinkedIn · Telegram',
+    postId: 'meme-banner-x',
   },
   {
     id: 'meme-unruggable',
@@ -353,6 +356,7 @@ export const MEME_CAMPAIGN_ASSETS: CampaignAsset[] = [
     path: '/campaign/meme-unruggable.webp',
     ratio: '1:1',
     use: 'Feed · quote meme',
+    postId: 'meme-unruggable',
   },
   {
     id: 'meme-zero',
@@ -360,6 +364,7 @@ export const MEME_CAMPAIGN_ASSETS: CampaignAsset[] = [
     path: '/campaign/meme-no-more-zero.webp',
     ratio: '1:1',
     use: 'X · Farcaster',
+    postId: 'meme-no-zero',
   },
   {
     id: 'meme-dyor',
@@ -367,6 +372,7 @@ export const MEME_CAMPAIGN_ASSETS: CampaignAsset[] = [
     path: '/campaign/meme-outsourced-dyor.webp',
     ratio: '1:1',
     use: 'Feed · Relatable',
+    postId: 'meme-outsourced',
   },
   {
     id: 'meme-rug-season',
@@ -374,6 +380,7 @@ export const MEME_CAMPAIGN_ASSETS: CampaignAsset[] = [
     path: '/campaign/meme-rug-season-over.webp',
     ratio: '9:16',
     use: 'Stories · Reels · Shorts',
+    postId: 'meme-rug-over',
   },
   {
     id: 'meme-touch-grass',
@@ -381,8 +388,26 @@ export const MEME_CAMPAIGN_ASSETS: CampaignAsset[] = [
     path: '/campaign/meme-touch-grass.webp',
     ratio: '1:1',
     use: 'X · IG · Farcaster',
+    postId: 'meme-touch-grass',
   },
 ];
+
+export function campaignPostById(id: string): CampaignPost | undefined {
+  return [...MEME_CAMPAIGN_POSTS, ...CAMPAIGN_POSTS].find((p) => p.id === id);
+}
+
+export function campaignPostForAsset(asset: CampaignAsset): CampaignPost | undefined {
+  if (asset.postId) return campaignPostById(asset.postId);
+  return [...MEME_CAMPAIGN_POSTS, ...CAMPAIGN_POSTS].find((p) => p.asset === asset.path);
+}
+
+export function campaignMemeByQuery(raw: string | null | undefined): CampaignAsset | undefined {
+  const slug = (raw || '').trim().toLowerCase();
+  if (!/^[a-z0-9-]{3,40}$/.test(slug)) return undefined;
+  return MEME_CAMPAIGN_ASSETS.find(
+    (a) => a.id === slug || a.path === `/campaign/${slug}.webp`,
+  );
+}
 
 export const MEME_CAMPAIGN_POSTS: CampaignPost[] = [
   {

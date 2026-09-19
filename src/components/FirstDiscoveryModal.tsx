@@ -88,12 +88,12 @@ export default function FirstDiscoveryModal({
         onDismiss={() => setShowStreakToast(false)}
       />
       <div
-        className="fixed inset-0 z-[120] flex items-end justify-center bg-black/80 p-3 backdrop-blur-md sm:items-center"
+        className="fixed inset-0 z-[120] flex items-end justify-center bg-black/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md sm:items-center"
         onClick={onClose}
         role="presentation"
       >
         <div
-          className="relative w-full max-w-lg overflow-hidden rounded-[1.75rem] border border-accent/35 bg-gradient-to-b from-[#1a2210] via-ink to-ink shadow-[0_40px_120px_-40px_rgba(200,232,104,0.35)]"
+          className="relative flex max-h-[min(88dvh,42rem)] w-full max-w-lg flex-col overflow-hidden rounded-[1.75rem] border border-accent/35 bg-gradient-to-b from-[#1a2210] via-ink to-ink shadow-[0_40px_120px_-40px_rgba(200,232,104,0.35)]"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -113,7 +113,7 @@ export default function FirstDiscoveryModal({
             <X className="h-4 w-4" />
           </button>
 
-          <div className="relative p-6 sm:p-8">
+          <div className="relative overflow-y-auto overscroll-contain p-6 sm:p-8">
             {/* Progress dots */}
             <div className="mb-6 flex gap-1.5">
               {(['welcome', 'pick', 'reward'] as Step[]).map((s) => (

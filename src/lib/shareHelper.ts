@@ -1,11 +1,12 @@
 /**
- * Share helper — one URL, UTM, native share without a doubled link, X intent.
+ * Share helper — one URL, UTM, scout referral, native share, X compose.
  */
 
-import { BUILDING_CULTURE_HANDLE, twitterIntentUrl as rawTwitterIntent } from '../data/tradeShare';
+import { BUILDING_CULTURE_HANDLE } from '../data/tradeShare';
 import { Project } from '../types';
 import { SITE_URL } from './seo';
 import { projectExplorePath } from './routes';
+import { getOrCreateScoutCode } from './referral';
 
 export type ShareMedium = 'native' | 'x' | 'copy';
 
@@ -13,6 +14,9 @@ export interface ShareData {
   text: string;
   url: string;
 }
+
+const BARE_SITE_LINE =
+  /(?:^|\n)(?:https?:\/\/(?:www\.)?)?dex\.buildingcultureid\.space\/?\s*$/gim;
 
 const SHARE_TEMPLATES = [
   'I just locked a discovery on Builders DEX: {name} · Builder Score™ {score}/100. Who deserves to win.',
@@ -30,6 +34,8 @@ export function withUtm(url: string, medium: ShareMedium): string {
   const parsed = new URL(url, SITE_URL);
   parsed.searchParams.set('utm_source', 'share');
   parsed.searchParams.set('utm_medium', medium);
+  const code = getOrCreateScoutCode();
+  if (code) parsed.searchParams.set('ref', code);
   return parsed.toString();
 }
 
@@ -48,8 +54,28 @@ export function generateShareText(project: Project): string {
   return template.replace('{name}', project.name).replace('{score}', score.toString());
 }
 
-export function campaignShareUrl(medium: ShareMedium = 'copy'): string {
-  return withUtm(absoluteSiteUrl('/campaign'), medium);
+export function campaignShareUrl(
+  medium: ShareMedium = 'copy',
+  opts?: { meme?: string },
+): string {
+  const path = opts?.meme
+    ? `/campaign?meme=${encodeURIComponent(opts.meme)}`
+    : '/campaign';
+  return withUtm(absoluteSiteUrl(path), medium);
+}
+
+/** Ready-to-post body: drop the bare site line so the scout URL is the only link. */
+export function composeShareBody(copy: string, hashtags = ''): string {
+  const text = copy.replace(BARE_SITE_LINE, '').trim();
+  const tags = hashtags.trim();
+  return tags ? `${text}\n\n${tags}` : text;
+}
+
+/** Insert the scout URL into the compose text so X shows it before they hit Post. */
+export function withShareLink(text: string, url: string): string {
+  const trimmed = text.trim();
+  if (!url || trimmed.includes(url)) return trimmed;
+  return `${trimmed}\n\n${url}`;
 }
 
 export function tradeShareUrl(medium: ShareMedium = 'copy'): string {
@@ -57,13 +83,14 @@ export function tradeShareUrl(medium: ShareMedium = 'copy'): string {
 }
 
 export function twitterIntentUrl(text: string, url?: string): string {
-  if (!url) return rawTwitterIntent(text);
   const parsed = new URL('https://twitter.com/intent/tweet');
   parsed.searchParams.set('text', text);
-  parsed.searchParams.set('url', url);
+  if (url) parsed.searchParams.set('url', url);
+  parsed.searchParams.set('via', BUILDING_CULTURE_HANDLE);
   return parsed.toString();
 }
 
+/** Opens X compose with copy + scout link already in the post. One tap to Post. */
 export function openXIntent(text: string, url: string): void {
   window.open(twitterIntentUrl(text, url), '_blank', 'noopener,noreferrer');
 }

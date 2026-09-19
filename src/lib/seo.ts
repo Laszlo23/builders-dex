@@ -1,6 +1,8 @@
 import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN, BRAND_SUPPORT, BRAND_TAGLINE, BRAND_SOCIALS } from '../data/brand';
 import { BLOG_POSTS, getPostBySlug, type BlogPost } from '../data/blog';
+import { LEGAL_DOCS } from '../data/legal';
 import { INITIAL_PROJECTS } from '../data/projects';
+import { campaignMemeByQuery } from '../data/campaign';
 import type { Project } from '../types';
 
 export const SITE_URL = 'https://dex.buildingcultureid.space';
@@ -9,6 +11,8 @@ export const DEFAULT_DESCRIPTION = `${BRAND_TAGLINE} ${BRAND_MULTICHAIN} ${BRAND
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const DEFAULT_OG_IMAGE = '/og-image.webp';
+export const OG_LOCALE = 'en_US';
+export const SITEMAP_LASTMOD = '2026-09-19';
 export const TWITTER_HANDLE =
   BRAND_SOCIALS.find((s) => s.id === 'x')?.href.replace(/^https?:\/\/(x|twitter)\.com\//, '') ||
   'buildingcultu3';
@@ -53,6 +57,7 @@ export type SeoRoute =
   | 'hoodstreet'
   | 'ccff00'
   | 'cubes'
+  | 'telegram-bot'
   | 'coming-soon';
 
 type SeoConfig = {
@@ -68,208 +73,220 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     path: '/',
   },
   swap: {
-    title: 'Trusted Trading — Builders DEX',
+    title: 'Curated Solana Swap | Builders DEX',
     description:
-      'Swap allowlisted Solana tokens after verified reputation history — trading is the final step.',
+      'Swap allowlisted Solana tokens after verified reputation history — trading is the final step, not the homepage.',
     path: '/swap',
   },
   terminal: {
-    title: 'Builder Terminal™ — War Room & Daily Intelligence',
+    title: 'Builder Terminal™ | Daily intelligence',
     description:
       'Builder Intelligence Daily™, War Room movers, Genesis Radar™, Scouts™ — the morning habit for who deserves to win.',
     path: '/terminal',
   },
   explore: {
-    title: 'Builder Stories — Builders DEX',
-    description: 'Startup profiles with Builder Score™, journey, and why they were selected.',
+    title: 'Explore Builder Stories | Builders DEX',
+    description:
+      'Search curated startup profiles with live Builder Score™ citations, journey, and why they were selected. Use /explore?q=',
     path: '/explore',
   },
   'project-detail': {
-    title: 'Builder Story — Builders DEX',
+    title: 'Builder Story | Builders DEX',
     description: 'Builder Score™, team transparency, roadmap, and Builder Intelligence™ research.',
     path: '/explore',
   },
   apply: {
-    title: 'Apply for Recognition — Builders DEX',
+    title: 'Apply for Recognition | Builders DEX',
     description: 'Hackathon-grade application — demo, deck, tracks, socials, Proof of Building™.',
     path: '/apply',
   },
   launch: {
-    title: 'Apply for Recognition — Builders DEX',
+    title: 'Apply for Recognition | Builders DEX',
     description: 'Hackathon-grade application — demo, deck, tracks, socials, Proof of Building™.',
     path: '/apply',
   },
   builders: {
-    title: 'The Builder 100 — Builders DEX',
-    description: 'The Wall of Builders — top 100 builders pushing Solana forward.',
+    title: 'The Builder 100 | Builders DEX',
+    description: 'The Wall of Builders — live GitHub-cited scores for people shipping in public.',
     path: '/builders',
   },
   dao: {
-    title: 'Governance — Builders DEX',
-    description: 'Protocol governance for the Builders DEX intelligence layer.',
+    title: 'Governance simulation | Builders DEX',
+    description:
+      'Preview of protocol governance. Stake and votes here are not on-chain until a live contract is named.',
     path: '/dao',
   },
   earn: {
-    title: 'Earn — Builders DEX',
+    title: 'Earn XP & preview vaults | Builders DEX',
     description:
-      'Provide liquidity, stake $BUILD for platform perks, and complete growth tasks that power the intelligence layer.',
+      'Growth tasks and daily spin are live on your profile. Stake and LP are still a simulation — not an on-chain vault.',
     path: '/earn',
   },
   launchpad: {
-    title: 'Builder Accelerator — Builders DEX',
+    title: 'Builder Accelerator | Builders DEX',
     description:
       'Inspection-gated share certificates. Public Aura mint is on Robinhood Chain — Proof of Building™ first.',
     path: '/launchpad',
   },
   raise: {
-    title: 'Aura Share — Builders DEX',
+    title: 'Aura Share | Builders DEX',
     description:
       'Inspected Aura share NFT on Robinhood Chain. Pay ETH on 4663 for a numbered certificate.',
     path: '/raise',
   },
   ai: {
-    title: 'Builder Intelligence™ — Builders DEX',
-    description: 'AI research agent for curated Solana builders — matches, scores, strengths, and risks.',
+    title: 'Builder Intelligence™ | Builders DEX',
+    description: 'AI research agent for curated builders — matches, scores, strengths, and risks.',
     path: '/ai',
   },
   profile: {
-    title: 'Builder Passport™ — Builders DEX',
-    description: 'Editable reputation passport — link X, Farcaster, and submit projects.',
+    title: 'Builder Passport™ | Builders DEX',
+    description: 'Editable reputation passport — link X, Farcaster, and submit projects. Wallet optional to start.',
     path: '/profile',
   },
   campaign: {
-    title: 'Share Campaign — Builders DEX',
-    description: 'Social assets and ready-to-post copy for Builders DEX — amplify the standard.',
+    title: 'Share kit — one-tap X | Builders DEX',
+    description:
+      'One-tap X posts with your scout referral already in compose — Unruggable meme kit and ready-to-post copy.',
     path: '/campaign',
   },
   blog: {
-    title: 'Blog — Builders DEX',
+    title: 'Builders DEX Blog — Proof of Building™ essays',
     description:
-      'Essays on reputation infrastructure, Proof of Building™, Scouts, and the pulse of Web3 builders.',
+      'Guides on Builder Score™, why trade is last, HoodStreet on chain 4663, Scouts, and reputation infrastructure.',
     path: '/blog',
   },
   team: {
-    title: 'Team — Builders DEX',
+    title: 'Team | Laszlo, Reinhard, Roman',
     description:
       'Laszlo Bihary, Reinhard Stix, and Roman Horvath — the team building Builders DEX with Building Culture.',
     path: '/team',
   },
   terms: {
-    title: 'Terms of Use — Builders DEX',
+    title: 'Terms of Use | Builders DEX',
     description: 'Terms governing use of Builders DEX reputation and trading interfaces.',
     path: '/terms',
   },
   privacy: {
-    title: 'Privacy Policy — Builders DEX',
-    description: 'How Builders DEX processes wallet, profile, and application data.',
+    title: 'Privacy Policy | Builders DEX',
+    description: 'How Builders DEX processes wallet, profile, referral, and application data.',
     path: '/privacy',
   },
   imprint: {
-    title: 'Imprint — Builders DEX',
+    title: 'Imprint | Builders DEX',
     description: 'Legal imprint — Vienna, Austria · Building Culture.',
     path: '/imprint',
   },
   contact: {
-    title: 'Contact — Builders DEX',
+    title: 'Contact | Builders DEX',
     description: 'Contact Builders DEX for listings, press, and support.',
     path: '/contact',
   },
   feedback: {
-    title: 'Feedback — Builders DEX',
+    title: 'Feedback | Builders DEX',
     description: 'Send product feedback, bug reports, and ideas to the Builders DEX team.',
     path: '/feedback',
   },
   support: {
-    title: 'Support — Builders DEX',
+    title: 'Support | Builders DEX',
     description: 'Chat with Support Agent for trade, Earn, Passport, and listing help.',
     path: '/support',
   },
   faq: {
-    title: 'FAQ — Builders DEX',
-    description: 'Why Builders DEX vs Jupiter, how listing works, and Passport™ explained.',
+    title: 'FAQ | First-time Builders DEX',
+    description:
+      'What to click first, Jupiter vs Builders DEX, wallets, Builder Score™, HoodStreet vs Trade, Earn simulations, referrals.',
     path: '/faq',
   },
   mission: {
-    title: 'Mission — Builders DEX',
+    title: 'Mission | Who deserves to win',
     description: BRAND_TAGLINE,
     path: '/mission',
   },
   vision: {
-    title: 'Vision — Builders DEX',
+    title: 'Vision | Filter scams, share the map',
     description:
       'Every scam hurts the whole crypto ecosystem. We filter with Talent Protocol and Neynar score, then repo and reputation — and we share that knowledge.',
     path: '/vision',
   },
   roadmap: {
-    title: 'Roadmap — Builders DEX',
+    title: 'Roadmap | From private filter to public standard',
     description:
       'From personal anti-scam filter to public standard: Talent Protocol, Farcaster/Neynar, repos, reputation, curated trading.',
     path: '/roadmap',
   },
   manifesto: {
-    title: 'Manifest — Builders DEX',
+    title: 'Manifest | Build > Hype',
     description:
       'Build > Hype. We start with ourselves, publish for everyone. Identity, Neynar score, repo, reputation — then listing.',
     path: '/manifesto',
   },
   story: {
-    title: 'Our story — Builders DEX',
-    description: 'From Building Culture to Builders DEX — proof-first products communities can use.',
+    title: 'Our story | Building Culture × DEX',
+    description: 'From Building Culture in Vienna to Builders DEX — proof-first products communities can use.',
     path: '/story',
   },
   guide: {
-    title: 'Site guide — Builders DEX',
-    description: 'Map of Trade, Terminal™, Launchpad, Passport™, Blog, and legal pages.',
+    title: 'Site guide | Every room on Builders DEX',
+    description:
+      'Map of Trade, Terminal™, HoodStreet, Passport™, Earn, Blog, Share kit, and legal — including what is live vs simulated.',
     path: '/guide',
   },
   investor: {
-    title: 'Investor Mode — Builders DEX',
-    description: 'Conviction, velocity, and Builder Score™ signals for capital allocators.',
+    title: 'Investor Mode | Thesis filters',
+    description:
+      'Filter the live catalog by category and GitHub-cited Builder Score™. Research desk — fund subscription rails are not live.',
     path: '/investor',
   },
   'builder-graph': {
-    title: 'Builder Graph™ — Builders DEX',
+    title: 'Builder Graph™ | Knowledge map',
     description:
       'Interactive knowledge graph — builders, projects, contributors, auditors, investors, open source.',
     path: '/graph',
   },
   'builder-stories': {
-    title: 'Builder Netflix — Builders DEX',
-    description: 'Two-minute founder stories — why they build, what almost made them quit.',
+    title: 'Builder Stories | Catalog founder briefs',
+    description:
+      'Founder story briefs from the live catalog — why they build. Recorded video episodes publish here when we film them.',
     path: '/stories',
   },
   aura: {
-    title: '$AURA Live — Builders DEX',
+    title: '$AURA Live on Base | Builders DEX',
     description:
       'Live Aura OS token board on Base: market cap, Uni v3 AURA/USDC liquidity, supply, and 24h flow.',
     path: '/aura',
   },
   hood: {
-    title: 'On Hood — Builders DEX',
+    title: 'On Hood | Honest hop to chain 4663',
     description: `${BRAND_MULTICHAIN} ${BRAND_HOOD_STANCE} Honest hop onto chain 4663. Gas-first. NFA. Not affiliated with Robinhood Markets.`,
     path: '/hood',
   },
   hoodstreet: {
-    title: 'HoodStreet — Builders DEX',
+    title: 'HoodStreet | Robinhood Chain neon',
     description:
       'HoodStreet on Robinhood Chain: CCFF00 founding Squares, My Neon wallets, Cubes ETH mint. Not affiliated with Robinhood Markets.',
     path: '/hoodstreet',
   },
   ccff00: {
-    title: 'CCFF00 Wallet — Builders DEX',
+    title: 'CCFF00 Wallet | Square ERC-6551',
     description:
       'Use your CCFF00 Square ERC-6551 wallet to buy Hood projects and trade as the NFT. Not affiliated with Robinhood Markets.',
     path: '/ccff00',
   },
   cubes: {
-    title: 'CCFF00 Live — Builders DEX',
+    title: 'Cubes Live | CCFF00 mint phases',
     description:
       'CCFF00 Cubes mint windows on Robinhood Chain from on-chain phases(). Outbound Square Apes mint only.',
     path: '/cubes',
   },
+  'telegram-bot': {
+    title: 'Telegram bots | Builders DEX',
+    description: 'Register buy-bot alerts and token profiles for Telegram — wallet not required to read the setup.',
+    path: '/telegram-bot',
+  },
   'coming-soon': {
-    title: "Still working on this — Builders DEX",
-    description: 'This footer destination is reserved. We are still building it.',
+    title: 'Still working on this | Builders DEX',
+    description: 'This destination is reserved. Live Builder Score™, catalog stories, and trade stay available.',
     path: '/coming-soon',
   },
 };
@@ -290,6 +307,19 @@ export function projectOgPath(projectId: string): string {
   return `/og/project/${encodeURIComponent(projectId)}`;
 }
 
+export function routeOgPath(route: SeoRoute): string {
+  if (route === 'landing') return DEFAULT_OG_IMAGE;
+  return `/og/route-${route}.webp`;
+}
+
+export function blogOgPath(slug: string): string {
+  return `/og/blog-${encodeURIComponent(slug)}.webp`;
+}
+
+export function memeOgPath(memeId: string): string {
+  return `/og/meme-${encodeURIComponent(memeId)}.webp`;
+}
+
 export type ResolvedSeo = {
   title: string;
   description: string;
@@ -299,6 +329,8 @@ export type ResolvedSeo = {
   type: 'website' | 'article';
   imageWidth: number;
   imageHeight: number;
+  robots: string;
+  publishedTime?: string;
   project?: Project;
   blog?: BlogPost;
 };
@@ -329,8 +361,11 @@ function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: strin
   if (segment === 'project-detail') return { route: 'project-detail', blogSlug: null };
   if (segment in PATH_ALIASES) return { route: PATH_ALIASES[segment], blogSlug: null };
   if (segment in ROUTE_SEO) return { route: segment as SeoRoute, blogSlug: null };
-  return { route: 'landing', blogSlug: null };
+  return { route: 'coming-soon', blogSlug: null };
 }
+
+const INDEXABLE: string = 'index,follow,max-image-preview:large';
+const NOINDEX: string = 'noindex,follow';
 
 export function resolveSeoForRequest(pathname: string, search = ''): ResolvedSeo {
   const { route, blogSlug } = routeFromPathname(pathname);
@@ -345,47 +380,211 @@ export function resolveSeoForRequest(pathname: string, search = ''): ResolvedSeo
 
   if (project) {
     return {
-      title: `${project.name} — Builders DEX`,
+      title: `${project.name} — Builder Story | Builders DEX`,
       description: project.tagline || project.description || base.description,
       path: `/explore?id=${encodeURIComponent(project.id)}`,
       image: projectOgPath(project.id),
       type: 'website',
       imageWidth: OG_WIDTH,
       imageHeight: OG_HEIGHT,
+      robots: INDEXABLE,
       project,
+    };
+  }
+
+  if (route === 'blog' && blogSlug && !post) {
+    return {
+      title: 'Post not found | Builders DEX Blog',
+      description: 'That essay is not in the catalog. Open the blog index for live Proof of Building™ posts.',
+      path: `/blog/${encodeURIComponent(blogSlug)}`,
+      image: DEFAULT_OG_IMAGE,
+      type: 'website',
+      imageWidth: OG_WIDTH,
+      imageHeight: OG_HEIGHT,
+      robots: NOINDEX,
     };
   }
 
   if (post) {
     return {
-      title: `${post.title} — Builders DEX Blog`,
+      title: `${post.title} | Builders DEX Blog`,
       description: post.excerpt || base.description,
       path: `/blog/${post.slug}`,
-      image: post.coverImage || DEFAULT_OG_IMAGE,
+      image: blogOgPath(post.slug),
       type: 'article',
       imageWidth: OG_WIDTH,
       imageHeight: OG_HEIGHT,
+      robots: INDEXABLE,
+      publishedTime: `${post.date}T08:00:00+02:00`,
       blog: post,
     };
   }
 
-  const specialized =
-    route === 'campaign' || route === 'raise' || route === 'blog'
-      ? DEFAULT_OG_IMAGE
-      : DEFAULT_OG_IMAGE;
+  if (route === 'campaign') {
+    const meme = campaignMemeByQuery(params.get('meme'));
+    return {
+      title: meme ? `${meme.label} | Builders DEX share kit` : base.title,
+      description: meme
+        ? `${meme.label} — one-tap X share from the Unruggable meme kit. Proof of Building™ before the trade.`
+        : base.description,
+      path: meme ? `/campaign?meme=${encodeURIComponent(meme.id)}` : base.path,
+      image: meme ? memeOgPath(meme.id) : routeOgPath('campaign'),
+      type: 'website',
+      imageWidth: OG_WIDTH,
+      imageHeight: OG_HEIGHT,
+      robots: INDEXABLE,
+    };
+  }
+
+  if (route === 'explore' && params.get('q')) {
+    const q = params.get('q')!.trim().slice(0, 80);
+    return {
+      title: q ? `Search “${q}” | Builder Stories` : base.title,
+      description: `Catalog search for ${q} — Builder Score™ cited profiles on Builders DEX.`,
+      path: `/explore?q=${encodeURIComponent(q)}`,
+      image: routeOgPath('explore'),
+      type: 'website',
+      imageWidth: OG_WIDTH,
+      imageHeight: OG_HEIGHT,
+      robots: INDEXABLE,
+    };
+  }
+
+  const canonicalPath =
+    route === 'coming-soon' && pathname.replace(/\/$/, '') && pathname !== '/coming-soon'
+      ? pathname.split('?')[0]
+      : base.path;
 
   return {
     title: base.title,
     description: base.description,
-    path: base.path,
-    image: specialized,
+    path: canonicalPath,
+    image: routeOgPath(route),
     type: 'website',
     imageWidth: OG_WIDTH,
     imageHeight: OG_HEIGHT,
+    robots: route === 'coming-soon' ? NOINDEX : INDEXABLE,
   };
 }
 
-export function sitemapEntries(): { loc: string; changefreq: string; priority: string }[] {
+export function jsonLdGraph(seo: ResolvedSeo): Record<string, unknown>[] {
+  const org: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/brand-mark.webp`,
+    description: DEFAULT_DESCRIPTION,
+    sameAs: ['https://x.com/buildingcultu3', 'https://github.com/Laszlo23/builders-dex'],
+  };
+
+  const website: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: DEFAULT_DESCRIPTION,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/explore?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  const nodes: Record<string, unknown>[] = [org, website];
+
+  if (seo.project) {
+    nodes.push({
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: seo.project.name,
+      url: absoluteUrl(seo.path),
+      image: absoluteUrl(seo.image),
+      description: seo.project.tagline || seo.project.description,
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'Web',
+      additionalProperty: {
+        '@type': 'PropertyValue',
+        name: 'Builder Score',
+        value: seo.project.builderScore.overall,
+      },
+    });
+  } else if (seo.blog) {
+    nodes.push({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: seo.blog.title,
+      datePublished: seo.blog.date,
+      author: { '@type': 'Person', name: seo.blog.author },
+      description: seo.blog.excerpt,
+      image: absoluteUrl(seo.image),
+      url: absoluteUrl(seo.path),
+      publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/brand-mark.webp` },
+      mainEntityOfPage: absoluteUrl(seo.path),
+    });
+  } else if (seo.path === '/blog') {
+    nodes.push({
+      '@context': 'https://schema.org',
+      '@type': 'Blog',
+      name: 'Builders DEX Blog',
+      url: `${SITE_URL}/blog`,
+      description: ROUTE_SEO.blog.description,
+      blogPost: BLOG_POSTS.map((p) => ({
+        '@type': 'BlogPosting',
+        headline: p.title,
+        url: `${SITE_URL}/blog/${p.slug}`,
+        datePublished: p.date,
+      })),
+    });
+  } else if (seo.path === '/faq') {
+    nodes.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: LEGAL_DOCS.faq.sections.map((s) => ({
+        '@type': 'Question',
+        name: s.heading,
+        acceptedAnswer: { '@type': 'Answer', text: s.paragraphs.join(' ') },
+      })),
+    });
+  } else {
+    nodes.push({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: SITE_NAME,
+      url: SITE_URL,
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'Web',
+      description: seo.description,
+      featureList: [
+        'Curated builder discovery',
+        'Live Builder Score™ citations',
+        'Allowlisted Solana swaps',
+        'HoodStreet on Robinhood Chain',
+      ],
+    });
+  }
+
+  nodes.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: SITE_NAME, item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: seo.title, item: absoluteUrl(seo.path) },
+    ],
+  });
+
+  return nodes;
+}
+
+export function sitemapEntries(): {
+  loc: string;
+  changefreq: string;
+  priority: string;
+  lastmod: string;
+}[] {
   const primary: Array<{ route: SeoRoute; changefreq: string; priority: string }> = [
     { route: 'landing', changefreq: 'weekly', priority: '1.0' },
     { route: 'swap', changefreq: 'daily', priority: '0.9' },
@@ -398,25 +597,26 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
     { route: 'profile', changefreq: 'weekly', priority: '0.6' },
     { route: 'ai', changefreq: 'weekly', priority: '0.6' },
     { route: 'earn', changefreq: 'weekly', priority: '0.6' },
-    { route: 'dao', changefreq: 'weekly', priority: '0.5' },
-    { route: 'campaign', changefreq: 'monthly', priority: '0.4' },
-    { route: 'blog', changefreq: 'weekly', priority: '0.5' },
+    { route: 'dao', changefreq: 'weekly', priority: '0.4' },
+    { route: 'campaign', changefreq: 'weekly', priority: '0.6' },
+    { route: 'blog', changefreq: 'weekly', priority: '0.8' },
     { route: 'team', changefreq: 'monthly', priority: '0.4' },
     { route: 'mission', changefreq: 'monthly', priority: '0.5' },
-    { route: 'faq', changefreq: 'monthly', priority: '0.5' },
+    { route: 'faq', changefreq: 'monthly', priority: '0.7' },
     { route: 'vision', changefreq: 'monthly', priority: '0.4' },
     { route: 'roadmap', changefreq: 'monthly', priority: '0.4' },
     { route: 'manifesto', changefreq: 'monthly', priority: '0.4' },
     { route: 'story', changefreq: 'monthly', priority: '0.4' },
-    { route: 'guide', changefreq: 'monthly', priority: '0.4' },
+    { route: 'guide', changefreq: 'weekly', priority: '0.6' },
     { route: 'investor', changefreq: 'monthly', priority: '0.5' },
     { route: 'builder-graph', changefreq: 'weekly', priority: '0.5' },
-    { route: 'builder-stories', changefreq: 'weekly', priority: '0.5' },
+    { route: 'builder-stories', changefreq: 'weekly', priority: '0.6' },
     { route: 'aura', changefreq: 'hourly', priority: '0.7' },
     { route: 'hood', changefreq: 'weekly', priority: '0.6' },
-    { route: 'hoodstreet', changefreq: 'daily', priority: '0.7' },
+    { route: 'hoodstreet', changefreq: 'daily', priority: '0.8' },
     { route: 'ccff00', changefreq: 'daily', priority: '0.7' },
     { route: 'cubes', changefreq: 'hourly', priority: '0.6' },
+    { route: 'telegram-bot', changefreq: 'monthly', priority: '0.3' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },
     { route: 'privacy', changefreq: 'yearly', priority: '0.2' },
     { route: 'imprint', changefreq: 'yearly', priority: '0.2' },
@@ -429,6 +629,7 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
     loc: absoluteUrl(ROUTE_SEO[route].path),
     changefreq,
     priority,
+    lastmod: SITEMAP_LASTMOD,
   }));
 
   for (const project of INITIAL_PROJECTS) {
@@ -436,6 +637,7 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
       loc: absoluteUrl(`/explore?id=${encodeURIComponent(project.id)}`),
       changefreq: 'weekly',
       priority: '0.8',
+      lastmod: SITEMAP_LASTMOD,
     });
   }
 
@@ -443,7 +645,8 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
     entries.push({
       loc: absoluteUrl(`/blog/${post.slug}`),
       changefreq: 'monthly',
-      priority: '0.6',
+      priority: '0.7',
+      lastmod: post.date,
     });
   }
 
@@ -455,6 +658,7 @@ export function buildSitemapXml(): string {
     .map(
       (u) => `  <url>
     <loc>${escapeXml(u.loc)}</loc>
+    <lastmod>${u.lastmod}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`,

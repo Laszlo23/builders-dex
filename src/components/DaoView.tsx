@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Vote, ShieldCheck, Award, TrendingUp, HelpCircle, ArrowUpRight, Flame, Layers, Lock, Sparkles } from 'lucide-react';
 import { Proposal, UserWallet } from '../types';
+import ComingSoonBanner from './ComingSoonBanner';
 
 interface DaoViewProps {
   wallet: UserWallet;
@@ -75,20 +76,20 @@ export default function DaoView({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 text-white space-y-10">
-      <div className="rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
-        <strong className="font-semibold">Parked (simulation).</strong> DAO stake/vote is not on-chain.
-        Core loop: Radar → Builders → Scout → Trade.
-      </div>
+      <ComingSoonBanner
+        title="Governance is a simulation"
+        detail="Stake and votes here are not on-chain. Core loop stays Radar → Builders → Scout → Trade until a live contract is named."
+      />
       
       {/* Title */}
       <div className="border-b border-white/[0.08] pb-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-sans">Builders DAO Station</h1>
-          <p className="text-slate-400 mt-1 text-sm">Empower community management. Stake $BUILD tokens to unlock high voting power, draft proposals, and allocate treasury funds.</p>
+          <h1 className="text-3xl font-bold tracking-tight font-sans">Builders DAO (preview)</h1>
+          <p className="text-slate-400 mt-1 text-sm">Practice staking and voting with simulated $BUILD. Nothing here moves a treasury.</p>
         </div>
-        <div className="flex items-center space-x-1.5 rounded-lg bg-accent/10 border border-accent/25 px-3.5 py-1.5 text-xs font-mono text-accent">
-          <Vote className="h-4 w-4 animate-bounce" />
-          <span>On-Chain Governance Station</span>
+        <div className="flex items-center space-x-1.5 rounded-lg bg-white/5 border border-white/15 px-3.5 py-1.5 text-xs font-mono text-steel">
+          <Vote className="h-4 w-4" />
+          <span>Not on-chain</span>
         </div>
       </div>
 
@@ -101,12 +102,12 @@ export default function DaoView({
           <div className="relative overflow-hidden rounded-3xl border border-accent/30 bg-accent/[0.05] p-6 backdrop-blur-xl shadow-[0_0_20px_rgba(200,232,104,0.08)]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
               <div className="space-y-3">
-                <span className="rounded-full bg-accent/10 border border-accent/25 px-2.5 py-1 text-[10px] font-mono font-bold text-accent uppercase tracking-wide">
-                  Staking Pool Live
+                <span className="rounded-full bg-white/10 border border-white/15 px-2.5 py-1 text-[10px] font-mono font-bold text-steel uppercase tracking-wide">
+                  Simulated pool
                 </span>
-                <h3 className="text-lg font-bold font-sans">Staking Governance Hub</h3>
+                <h3 className="text-lg font-bold font-sans">Staking preview</h3>
                 <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                  Lock your $BUILD tokens inside our governance pool to yield 12.4% APY rewards, receive a 1.5x Voting Weight multiplier, and increase your dynamic Builder Passport Level.
+                  This form only updates local demo balances. It does not lock tokens, pay APY, or change Passport on-chain.
                 </p>
                 <div className="flex space-x-6 text-xs font-mono pt-1">
                   <div>

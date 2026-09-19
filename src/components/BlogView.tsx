@@ -12,6 +12,25 @@ interface BlogViewProps {
 export default function BlogView({ setCurrentPath, blogSlug, setBlogSlug }: BlogViewProps) {
   const post = blogSlug ? getPostBySlug(blogSlug) : null;
 
+  if (blogSlug && !post) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 text-white sm:px-6">
+        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Blog</p>
+        <h1 className="font-display mt-2 text-3xl font-bold">That post is not in the catalog</h1>
+        <p className="mt-3 text-sm text-steel">
+          Unknown slugs should not dump you on a blank page. Open the live essays instead.
+        </p>
+        <button
+          type="button"
+          onClick={() => setBlogSlug(null)}
+          className="mt-8 rounded-full bg-accent px-5 py-2.5 text-xs font-bold text-ink"
+        >
+          All posts
+        </button>
+      </div>
+    );
+  }
+
   if (post) {
     return (
       <article className="mx-auto max-w-3xl px-4 py-10 text-white sm:px-6">
@@ -26,7 +45,9 @@ export default function BlogView({ setCurrentPath, blogSlug, setBlogSlug }: Blog
           <OptimizedImage
             src={post.coverImage}
             alt={`Cover image for ${post.title}`}
-            className="aspect-[16/9] w-full object-cover"
+            className="aspect-[1200/630] w-full object-cover"
+            width={1200}
+            height={630}
             sizes="(max-width: 768px) 100vw, 768px"
             priority
           />
@@ -59,16 +80,34 @@ export default function BlogView({ setCurrentPath, blogSlug, setBlogSlug }: Blog
             <p key={p.slice(0, 24)}>{p}</p>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setCurrentPath('terminal')}
-          className="mt-10 rounded-full bg-accent px-5 py-2.5 text-xs font-bold text-ink"
-        >
-          Open Terminal™
-        </button>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => setCurrentPath('terminal')}
+            className="rounded-full bg-accent px-5 py-2.5 text-xs font-bold text-ink"
+          >
+            Open Terminal™
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentPath('explore')}
+            className="rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold hover:border-accent/40"
+          >
+            Explore stories
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentPath('guide')}
+            className="rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold hover:border-accent/40"
+          >
+            Site guide
+          </button>
+        </div>
       </article>
     );
   }
+
+  const posts = [...BLOG_POSTS].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 text-white sm:px-6">
@@ -76,13 +115,13 @@ export default function BlogView({ setCurrentPath, blogSlug, setBlogSlug }: Blog
       <h1 className="section-title font-display mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
         On the pulse
       </h1>
-      <p className="mt-2 max-w-xl text-sm text-steel">
-        Essays on reputation infrastructure, Proof of Building™, and the builders shaping Web3 —
-        written for humans and search engines.
+      <p className="mt-2 max-w-2xl text-sm text-steel">
+        Essays on Builder Score™, Proof of Building™, why trade is last, and HoodStreet on
+        Robinhood Chain — written so first-time visitors and search engines get the same map.
       </p>
 
       <div className="mt-10 grid gap-5 md:grid-cols-2">
-        {BLOG_POSTS.map((p) => (
+        {posts.map((p) => (
           <button
             key={p.slug}
             type="button"
@@ -94,7 +133,9 @@ export default function BlogView({ setCurrentPath, blogSlug, setBlogSlug }: Blog
                 src={p.coverImage}
                 alt={`Cover image for ${p.title}`}
                 className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-                sizes="(max-width: 768px) 100vw, 33vw"
+                width={1200}
+                height={630}
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent" />
             </div>

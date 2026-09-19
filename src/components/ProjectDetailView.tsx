@@ -186,7 +186,7 @@ export default function ProjectDetailView({
   const reality = PROJECT_REALITY[project.id];
   const dualConviction = DUAL_CONVICTION[project.id];
   const milestones = milestonesFor(project.id);
-  const episodes = episodesFor(project.id);
+  const episodes = episodesFor(project.id, project);
   const eduReview = educationalReviewFor(project.id);
 
   const handleCommentSubmit = (e: React.FormEvent) => {

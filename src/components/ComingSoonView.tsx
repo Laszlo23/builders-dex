@@ -7,7 +7,13 @@ type Props = {
 };
 
 export default function ComingSoonView({ topic, setCurrentPath }: Props) {
-  const label = topic && topic !== 'coming-soon' ? topic.replace(/-/g, ' ') : 'this page';
+  const reserved =
+    topic && topic !== 'coming-soon'
+      ? topic.replace(/-/g, ' ')
+      : typeof sessionStorage !== 'undefined'
+        ? sessionStorage.getItem('bdx_coming_soon')?.replace(/-/g, ' ')
+        : null;
+  const label = reserved || 'this page';
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16 text-white sm:px-6">
@@ -19,9 +25,9 @@ export default function ComingSoonView({ topic, setCurrentPath }: Props) {
         We&apos;re still working on this
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-steel">
-        <span className="capitalize text-white/80">{label}</span> is reserved and will not dump you
-        on a dead click. Live Builder Score™, catalog stories, and trade stay available while we
-        finish this surface.
+        <span className="capitalize text-white/80">{label}</span> is reserved so a footer or typed
+        URL never dumps you on a dead click. Live Builder Score™, catalog stories, and trade stay
+        available while we finish this surface.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
         <button
@@ -30,6 +36,20 @@ export default function ComingSoonView({ topic, setCurrentPath }: Props) {
           className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold hover:border-accent/40"
         >
           Back home
+        </button>
+        <button
+          type="button"
+          onClick={() => setCurrentPath('guide')}
+          className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold hover:border-accent/40"
+        >
+          Site guide
+        </button>
+        <button
+          type="button"
+          onClick={() => setCurrentPath('blog')}
+          className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold hover:border-accent/40"
+        >
+          Blog
         </button>
         <button
           type="button"

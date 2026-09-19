@@ -50,11 +50,11 @@ export default function InvestorModeView({ projects, onOpenStory, setCurrentPath
     <div className="mx-auto max-w-5xl px-4 py-10 text-white sm:px-6">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Investor Mode</p>
       <h1 className="font-display mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
-        Don&apos;t miss what&apos;s happening here
+        Research desk — not a fund portal
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-steel">
-        Funds check Builders DEX every morning — filter by thesis, live Builder Score™, and proof.
-        Trading is optional; discovery is the product.
+        Filter the live catalog by thesis and GitHub-cited Builder Score™. Trading is optional.
+        Subscription rails for funds are not live yet.
       </p>
       <ComingSoonBanner
         title="We're still working on this"

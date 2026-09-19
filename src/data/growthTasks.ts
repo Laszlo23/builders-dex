@@ -54,7 +54,7 @@ export const INITIAL_GROWTH_TASKS: GrowthTask[] = [
   {
     id: 't_share_x',
     title: 'Amplify on X',
-    description: 'Open an X/Twitter campaign post from the Share kit (copy counts as amplify).',
+    description: 'Tap Post on X — the meme and your scout link open already filled in.',
     xp: 175,
     badge: 'Amplifier',
     category: 'social',

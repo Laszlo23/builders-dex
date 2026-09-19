@@ -61,10 +61,8 @@ export default function BuildersView({
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mb-8 border-b border-white/8 pb-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-          The Wall of Builders
-        </p>
-        <h1 className="font-display mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+        <p className="page-kicker">The Wall of Builders</p>
+        <h1 className="page-display mt-2 text-4xl font-extrabold sm:text-6xl">
           The Builder 100
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-steel">

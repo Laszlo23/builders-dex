@@ -12,6 +12,8 @@ import {
   saveWalletRoom,
   shortenWallet,
 } from '../lib/walletRoom';
+import { connectLabel, walletDeepLinks } from '../lib/walletHost';
+import { hostHint, useSmartWalletConnect } from '../hooks/useSmartWalletConnect';
 
 type Props = {
   open: boolean;
@@ -23,6 +25,7 @@ export default function WalletRoomModal({ open, onClose, setCurrentPath }: Props
   const { publicKey, connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
   const { network, setNetwork } = useNetwork();
+  const { host, connectNow, connecting } = useSmartWalletConnect();
   const [room, setRoom] = useState<ChainLaneId>(() => loadWalletRoom());
   const [evm, setEvm] = useState<string | null>(() => loadEvmAccount());
   const [busy, setBusy] = useState<ChainLaneId | null>(null);
@@ -37,6 +40,21 @@ export default function WalletRoomModal({ open, onClose, setCurrentPath }: Props
 
   if (!open) return null;
 
+  const links = host.inApp ? [] : walletDeepLinks();
+  const canOneTap = host.inApp || host.hasSolana || host.hasEvm;
+
+  const continueHere = async () => {
+    setError(null);
+    try {
+      const result = await connectNow('auto');
+      if (result === 'picker') return;
+      setCurrentPath(result === 'evm' ? (host.id === 'robinhood' ? 'ccff00' : 'aura') : 'swap');
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Connect failed');
+    }
+  };
+
   const go = async (id: ChainLaneId) => {
     setError(null);
     setBusy(id);
@@ -44,7 +62,10 @@ export default function WalletRoomModal({ open, onClose, setCurrentPath }: Props
       saveWalletRoom(id);
       setRoom(id);
       if (id === 'solana') {
-        if (!connected) setVisible(true);
+        if (!connected) {
+          const result = await connectNow('solana');
+          if (result === 'picker') setVisible(true);
+        }
         setCurrentPath('swap');
         onClose();
         return;
@@ -62,34 +83,65 @@ export default function WalletRoomModal({ open, onClose, setCurrentPath }: Props
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-3 sm:items-center">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center">
       <button type="button" className="absolute inset-0" aria-label="Close rooms" onClick={onClose} />
       <div
         role="dialog"
         aria-labelledby="wallet-room-title"
-        className="relative z-10 w-full max-w-lg rounded-3xl border border-white/12 bg-surface p-5 shadow-2xl sm:p-6"
+        className="relative z-10 max-h-[min(88dvh,40rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-white/12 bg-surface p-5 shadow-2xl scrollbar-none sm:p-6"
       >
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-steel">
-              Pick a room
+              {host.inApp ? `You're in ${host.name}` : 'Pick a room'}
             </p>
             <h2 id="wallet-room-title" className="font-display mt-1 text-2xl font-bold">
               Wallet and chain
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-steel">
-              Solana is Phantom. Base and Hood are EVM — MetaMask, Rabby, or Robinhood Wallet.
-              Do not mix them.
+              {hostHint(host)} Solana stays on Solana. Base and Hood stay EVM.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close wallet room"
             className="rounded-full border border-white/10 p-2 text-steel hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {canOneTap && (
+          <button
+            type="button"
+            disabled={connecting || busy !== null}
+            onClick={() => void continueHere()}
+            className="btn-sheen mt-5 flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-accent text-sm font-bold text-ink disabled:opacity-70"
+          >
+            {connecting ? 'Connecting…' : connectLabel(host, connected || Boolean(evm))}
+          </button>
+        )}
+
+        {links.length > 0 && (
+          <div className="mt-4">
+            <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-steel">
+              Open this app in a wallet
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {links.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.href}
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-[40px] items-center rounded-full border border-white/15 bg-white/[0.05] px-3 text-[11px] font-semibold text-white"
+                >
+                  {link.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-5 grid gap-2">
           {CHAIN_LANES.map((lane) => {
