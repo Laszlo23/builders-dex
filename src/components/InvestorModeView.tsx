@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Project } from '../types';
 import { DEFAULT_INVESTOR_FILTERS } from '../data/prideMovement';
+import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
+import ComingSoonBanner from './ComingSoonBanner';
 
 type Props = {
   projects: Project[];
@@ -20,12 +22,13 @@ export default function InvestorModeView({ projects, onOpenStory, setCurrentPath
   const [minScore, setMinScore] = useState(DEFAULT_INVESTOR_FILTERS.minBuilderScore);
   const [revenueGrowing, setRevenueGrowing] = useState(true);
   const [ossRequired, setOssRequired] = useState(true);
+  const liveMap = useLiveScoreMap(projects.map((p) => p.id));
 
   const matches = useMemo(() => {
     return projects
       .filter((p) => p.curation.status === 'curated')
       .filter((p) => category === 'All' || p.category === category)
-      .filter((p) => p.builderScore.overall >= minScore)
+      .filter((p) => (liveMap[p.id]?.overall ?? p.builderScore.overall) >= minScore)
       .filter((p) => {
         const cap = parseCapM(p.marketCapLabel);
         if (cap == null) return true;
@@ -36,8 +39,12 @@ export default function InvestorModeView({ projects, onOpenStory, setCurrentPath
         if (!revenueGrowing) return true;
         return (p.reputationDelta ?? 0) >= 0 && p.builderScore.productProgress >= 70;
       })
-      .sort((a, b) => b.builderScore.overall - a.builderScore.overall);
-  }, [projects, category, maxCap, minScore, revenueGrowing, ossRequired]);
+      .sort(
+        (a, b) =>
+          (liveMap[b.id]?.overall ?? b.builderScore.overall) -
+          (liveMap[a.id]?.overall ?? a.builderScore.overall),
+      );
+  }, [projects, category, maxCap, minScore, revenueGrowing, ossRequired, liveMap]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 text-white sm:px-6">
@@ -46,9 +53,13 @@ export default function InvestorModeView({ projects, onOpenStory, setCurrentPath
         Don&apos;t miss what&apos;s happening here
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-steel">
-        Funds check Builders DEX every morning — filter by thesis, score, and proof. Trading is
-        optional; discovery is the product.
+        Funds check Builders DEX every morning — filter by thesis, live Builder Score™, and proof.
+        Trading is optional; discovery is the product.
       </p>
+      <ComingSoonBanner
+        title="We're still working on this"
+        detail="Filters run on live GitHub-cited scores when the API is up. On-chain fund rails are not live yet."
+      />
 
       <div className="mt-8 grid gap-4 rounded-3xl border border-white/10 bg-surface/80 p-5 sm:grid-cols-2 lg:grid-cols-3">
         <label className="block text-xs">
@@ -129,7 +140,10 @@ export default function InvestorModeView({ projects, onOpenStory, setCurrentPath
                   {p.category} · {p.marketCapLabel || 'Early'} · {p.githubActivity} commits
                 </p>
               </div>
-              <p className="font-mono text-sm text-accent">{p.builderScore.overall} score</p>
+              <p className="font-mono text-sm text-accent">
+                {liveMap[p.id]?.overall ?? p.builderScore.overall} score
+                {liveMap[p.id]?.mode ? ` · ${liveMap[p.id].mode}` : ''}
+              </p>
             </button>
           </li>
         ))}

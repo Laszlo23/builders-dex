@@ -1,5 +1,6 @@
 import React from 'react';
 import { LEGAL_DOCS, LegalDoc } from '../data/legal';
+import ComingSoonView from './ComingSoonView';
 
 interface LegalViewProps {
   docId: LegalDoc['id'];
@@ -8,6 +9,9 @@ interface LegalViewProps {
 
 export default function LegalView({ docId, setCurrentPath }: LegalViewProps) {
   const doc = LEGAL_DOCS[docId];
+  if (!doc) {
+    return <ComingSoonView topic={docId} setCurrentPath={setCurrentPath} />;
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 text-white sm:px-6">

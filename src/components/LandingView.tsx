@@ -49,6 +49,14 @@ import { educationalReviewFor } from '../data/builderPlatform';
 import OptimizedImage from './OptimizedImage';
 import DailyScoutCard from './DailyScoutCard';
 import ChainLaneBar from './ChainLaneBar';
+import ProjectSignalButtons from './ProjectSignalButtons';
+import {
+  displayedVotes,
+  signalAllowance,
+  signalRemaining,
+  type SignalSide,
+  type SignalSnapshot,
+} from '../lib/projectSignal';
 import { getDailyProject, getCurrentRitualStreak, recordRitualCompletion } from '../lib/dailyScoutRitual';
 
 interface LandingViewProps {
@@ -62,6 +70,9 @@ interface LandingViewProps {
   tradeableTokens: CuratedToken[];
   onStartFirstDiscovery?: () => void;
   highlightWallet?: string | null;
+  onSignal: (id: string, side: SignalSide) => void;
+  signal: SignalSnapshot;
+  builderXp: number;
 }
 
 const HERO_PILLARS: { icon: LucideIcon; label: string }[] = [
@@ -124,6 +135,9 @@ export default function LandingView({
   tradeableTokens,
   onStartFirstDiscovery,
   highlightWallet,
+  onSignal,
+  signal,
+  builderXp,
 }: LandingViewProps) {
   const featured = GENESIS_PROJECT_IDS.map(
     (id) => projects.find((p) => p.id === id),
@@ -575,7 +589,16 @@ export default function LandingView({
                       </div>
                     </div>
                     {/* z-[60] > mobile nav (z-50) so Story/Trade stay clickable when cards sit over the bar */}
-                    <div className="relative z-[60] mt-4 flex gap-2">
+                    <div className="relative z-[60] mt-4">
+                      <ProjectSignalButtons
+                        compact
+                        {...displayedVotes(p.id, p.upvotes, signal)}
+                        remaining={signalRemaining(signal, builderXp)}
+                        allowance={signalAllowance(builderXp)}
+                        onVote={(side) => onSignal(p.id, side)}
+                      />
+                    </div>
+                    <div className="relative z-[60] mt-3 flex gap-2">
                       <button
                         type="button"
                         onClick={(e) => {

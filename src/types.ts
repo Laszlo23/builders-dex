@@ -59,6 +59,10 @@ export interface Builder {
   openSourceImpact: OpenSourceImpact;
   achievements: { id: string; name: string; icon: string; description: string; date: string }[];
   nftsEarned: { id: string; name: string; image: string; level: string }[];
+  /** live = GitHub-cited Builder Score™; seed = catalog placeholder */
+  scoreMode?: 'live' | 'partial' | 'provisional' | 'seed';
+  githubRepo?: string;
+  scoreComputedAt?: string;
 }
 
 export interface ProjectTeamMember {

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Seo from './components/Seo';
 import SiteFooter from './components/SiteFooter';
 import FirstDiscoveryModal from './components/FirstDiscoveryModal';
+import WalletRoomModal from './components/WalletRoomModal';
 import ChatDrawer, { ChatFab } from './components/ChatDrawer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useWalletDisplayName } from './hooks/useWalletDisplayName';
@@ -41,8 +42,10 @@ const CubesLiveView = lazyWithRetry(() => import('./components/CubesLiveView'));
 const HoodStreetView = lazyWithRetry(() => import('./components/HoodStreetView'));
 const Ccff00WalletView = lazyWithRetry(() => import('./components/Ccff00WalletView'));
 const HoodShareView = lazyWithRetry(() => import('./components/HoodShareView'));
+const ComingSoonView = lazyWithRetry(() => import('./components/ComingSoonView'));
 
-import { INITIAL_PROJECTS, INITIAL_BUILDERS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
+import { INITIAL_PROJECTS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
+import { useLiveBuilders } from './hooks/useLiveBuilders';
 import { LIVE_AURA_RAISE_SEED, isLiveAuraRaiseId } from './data/liveShareRaise';
 import { HOOD_SHARE_ID, HOOD_SHARE_PROJECT_ID, isHoodShareId } from './data/hoodShare';
 import { GrowthTask, PendingUnstake, createUnstakeRequest } from './data/earn';
@@ -68,7 +71,6 @@ import type { ShareActionResult } from './components/ShareCampaignView';
 import bs58 from 'bs58';
 import {
   Project,
-  Builder,
   Proposal,
   Quest,
   SwapTransaction,
@@ -78,6 +80,16 @@ import {
   UserProfile,
 } from './types';
 import { getPassportLevel } from './lib/builderScore';
+import {
+  applySignalVote,
+  loadSignal,
+  saveSignal,
+  signalAllowance,
+  signalOwnerKey,
+  signalRemaining,
+  type SignalSide,
+} from './lib/projectSignal';
+import { loadEvmAccount, loadWalletRoom, shortenWallet } from './lib/walletRoom';
 import { useTradeableTokens, isMintTradeable } from './hooks/useTradeableTokens';
 import {
   safeNavigate,
@@ -216,7 +228,8 @@ export default function App() {
   };
 
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [builders] = useState<Builder[]>(INITIAL_BUILDERS);
+  const liveBuilders = useLiveBuilders();
+  const builders = liveBuilders.builders;
   const [proposals, setProposals] = useState<Proposal[]>(INITIAL_PROPOSALS);
   const [quests, setQuests] = useState<Quest[]>(() =>
     applyCompletedQuests(ALL_QUESTS, boot.completedQuestIds),
@@ -235,6 +248,10 @@ export default function App() {
     () => boot.startedTaskIds,
   );
   const [builderXp, setBuilderXp] = useState<number>(() => boot.builderXp);
+  const [walletRoomOpen, setWalletRoomOpen] = useState(false);
+  const [walletRoom, setWalletRoom] = useState(() => loadWalletRoom());
+  const [evmAccount, setEvmAccount] = useState(() => loadEvmAccount());
+  const [signal, setSignal] = useState(() => loadSignal(signalOwnerKey(null)));
   const [contributionsCount, setContributionsCount] = useState<number>(
     () => boot.contributionsCount,
   );
@@ -437,6 +454,19 @@ export default function App() {
   ]);
 
   useEffect(() => {
+    setSignal(loadSignal(signalOwnerKey(walletKey)));
+  }, [walletKey]);
+
+  useEffect(() => {
+    const sync = () => {
+      setWalletRoom(loadWalletRoom());
+      setEvmAccount(loadEvmAccount());
+    };
+    window.addEventListener('bdx-wallet-room', sync);
+    return () => window.removeEventListener('bdx-wallet-room', sync);
+  }, []);
+
+  useEffect(() => {
     if (hasCompletedFirstDiscovery) return;
     if (currentPath !== 'landing') {
       setFirstDiscoveryOpen(false);
@@ -631,24 +661,26 @@ export default function App() {
     };
   };
 
-  const handleUpvoteProject = (projectId: string) => {
-    let didUpvote = false;
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id !== projectId) return p;
-        didUpvote = true;
-        return { ...p, upvotes: p.upvotes + 1 };
-      }),
-    );
-    if (!didUpvote) return;
-    handleAddXp(50);
-    setPassport((pass) => ({
-      ...pass,
-      communitiesSupported: pass.communitiesSupported + 1,
-    }));
-    handleCompleteQuest('g_q3');
-    handleCompleteGrowthTask('t_upvote');
-    if (walletKey && signMessage) {
+  const handleSignalVote = (projectId: string, side: SignalSide) => {
+    const owner = signalOwnerKey(walletKey);
+    const current = loadSignal(owner);
+    const result = applySignalVote(current, projectId, side, builderXp);
+    if (!result.ok) {
+      window.alert(result.reason);
+      return;
+    }
+    saveSignal(owner, result.next);
+    setSignal(result.next);
+    handleAddXp(result.flipped ? 4 : 10);
+    if (side === 'up' && !result.flipped) {
+      setPassport((pass) => ({
+        ...pass,
+        communitiesSupported: pass.communitiesSupported + 1,
+      }));
+      handleCompleteQuest('g_q3');
+      handleCompleteGrowthTask('t_upvote');
+    }
+    if (side === 'up' && walletKey && signMessage) {
       void (async () => {
         try {
           const updatedAt = Date.now();
@@ -668,7 +700,7 @@ export default function App() {
             }),
           });
         } catch {
-          /* local upvote still counts; ledger requires signature */
+          /* local signal still counts; ledger requires signature */
         }
       })();
     }
@@ -926,13 +958,18 @@ export default function App() {
             tradeableTokens={tradeableTokens}
             onStartFirstDiscovery={() => setFirstDiscoveryOpen(true)}
             highlightWallet={walletKey}
+            onSignal={handleSignalVote}
+            signal={signal}
+            builderXp={builderXp}
           />
         );
       case 'explore':
         return (
           <ExploreView
             projects={projects}
-            onUpvote={handleUpvoteProject}
+            onSignal={handleSignalVote}
+            signal={signal}
+            builderXp={builderXp}
             setSelectedProjectId={setSelectedProjectId}
             setCurrentPath={setCurrentPath}
             onTrade={navigateToTrade}
@@ -965,6 +1002,9 @@ export default function App() {
             builders={builders}
             setCurrentPath={setCurrentPath}
             onShareReward={handleCampaignShare}
+            onSignal={handleSignalVote}
+            signal={signal}
+            builderXp={builderXp}
           />
         );
       }
@@ -1085,6 +1125,10 @@ export default function App() {
         return (
           <BuildersView
             builders={builders}
+            talent={liveBuilders.talent}
+            talentSource={liveBuilders.talentSource}
+            liveLoading={liveBuilders.loading}
+            liveError={liveBuilders.error}
             projects={projects}
             quests={quests}
             onCompleteQuest={handleCompleteQuest}
@@ -1096,6 +1140,17 @@ export default function App() {
               }));
             }}
             setSelectedProjectId={setSelectedProjectId}
+            setCurrentPath={setCurrentPath}
+          />
+        );
+      case 'coming-soon':
+        return (
+          <ComingSoonView
+            topic={
+              (typeof sessionStorage !== 'undefined' &&
+                sessionStorage.getItem('bdx_coming_soon')) ||
+              'coming-soon'
+            }
             setCurrentPath={setCurrentPath}
           />
         );
@@ -1267,20 +1322,7 @@ export default function App() {
       case 'cubes':
         return <CubesLiveView setCurrentPath={setCurrentPath} />;
       default:
-        return (
-          <LandingView
-            setCurrentPath={setCurrentPath}
-            projects={projects}
-            builders={builders}
-            setSelectedProjectId={setSelectedProjectId}
-            onTrade={navigateToTrade}
-            onOpenStory={navigateToStory}
-            tradeableMintSet={tradeableMintSet}
-            tradeableTokens={tradeableTokens}
-            onStartFirstDiscovery={() => setFirstDiscoveryOpen(true)}
-            highlightWallet={walletKey}
-          />
-        );
+        return <ComingSoonView topic={currentPath} setCurrentPath={setCurrentPath} />;
     }
   };
 
@@ -1339,6 +1381,11 @@ export default function App() {
           builderLevelName={builderLevelName}
           walletLabel={connected ? walletDisplay.label : undefined}
           walletDomain={walletDisplay.domain}
+          evmLabel={evmAccount ? shortenWallet(evmAccount) : null}
+          room={walletRoom}
+          signalLeft={signalRemaining(signal, builderXp)}
+          signalMax={signalAllowance(builderXp)}
+          onOpenWalletRoom={() => setWalletRoomOpen(true)}
         />
         <main className="pt-2 pb-28 lg:pb-16">
           <ErrorBoundary>
@@ -1360,6 +1407,16 @@ export default function App() {
         open={chatOpen}
         onClose={() => setChatOpen(false)}
         displayName={connected ? walletDisplay.label : 'Guest'}
+      />
+
+      <WalletRoomModal
+        open={walletRoomOpen}
+        onClose={() => {
+          setWalletRoomOpen(false);
+          setWalletRoom(loadWalletRoom());
+          setEvmAccount(loadEvmAccount());
+        }}
+        setCurrentPath={setCurrentPath}
       />
 
       <FirstDiscoveryModal

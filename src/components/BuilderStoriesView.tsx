@@ -1,6 +1,7 @@
 import React from 'react';
 import { FOUNDER_EPISODES } from '../data/builderPlatform';
 import BuilderNetflixCard from './BuilderNetflixCard';
+import ComingSoonBanner from './ComingSoonBanner';
 import { Clapperboard } from 'lucide-react';
 
 type Props = {
@@ -23,12 +24,13 @@ export default function BuilderStoriesView({ onOpenProject }: Props) {
           mistake, what&apos;s next.
         </p>
       </header>
-      <BuilderNetflixCard episodes={FOUNDER_EPISODES} onOpenProject={onOpenProject} />
       {FOUNDER_EPISODES.length === 0 && (
-        <p className="mt-8 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-sm text-steel">
-          No founder episodes published yet. We only ship recorded stories — not placeholder cards.
-        </p>
+        <ComingSoonBanner
+          title="We're still working on this"
+          detail="Founder episodes stay empty until we publish a recorded story. No fake Netflix cards."
+        />
       )}
+      <BuilderNetflixCard episodes={FOUNDER_EPISODES} onOpenProject={onOpenProject} />
     </div>
   );
 }

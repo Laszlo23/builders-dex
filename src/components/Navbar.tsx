@@ -10,7 +10,6 @@ import {
   Sparkles,
   Share2,
   Coins,
-  Trophy,
   MoreHorizontal,
   Activity,
   Rocket,
@@ -25,57 +24,82 @@ import {
   Zap,
 } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useNetwork } from '../providers/NetworkProvider';
-import { HOOD_LANE_ROUTES } from '../data/chainLanes';
+import { HOOD_LANE_ROUTES, type ChainLaneId } from '../data/chainLanes';
 
 interface NavbarProps {
   currentPath: string;
   setCurrentPath: (path: string) => void;
   builderXp: number;
   builderLevelName: string;
-  /** Readable name: Passport / .sol / short address */
   walletLabel?: string;
   walletDomain?: string | null;
+  evmLabel?: string | null;
+  room: ChainLaneId;
+  signalLeft: number;
+  signalMax: number;
+  onOpenWalletRoom: () => void;
 }
 
 const DESKTOP_NAV = [
   { id: 'terminal', label: 'Radar', icon: Activity },
   { id: 'builders', label: 'Builders', icon: Layers },
-  { id: 'ai', label: 'Analyst', icon: Sparkles },
   { id: 'swap', label: 'Trade', icon: ArrowLeftRight },
+  { id: 'hoodstreet', label: 'Hood', icon: Zap },
 ] as const;
 
-const MORE_LINKS = [
-  { id: 'landing', label: 'Home', icon: Home },
-  { id: 'earn', label: 'Earn (sim)', icon: Coins },
-  { id: 'dao', label: 'DAO (sim)', icon: Users },
-  { id: 'launchpad', label: 'Accelerator', icon: Rocket },
-  { id: 'aura', label: '$AURA Live', icon: Zap },
-  { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
-  { id: 'hoodstreet', label: 'HoodStreet', icon: Layers },
-  { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
-  { id: 'blog', label: 'Blog', icon: BookOpen },
-  { id: 'team', label: 'Team', icon: Users },
-  { id: 'explore', label: 'Stories', icon: Layers },
-  { id: 'investor', label: 'Investor Mode', icon: Sparkles },
-  { id: 'profile', label: 'Passport™', icon: User },
-  { id: 'apply', label: 'Apply', icon: FilePlus2 },
-  { id: 'campaign', label: 'Share kit', icon: Share2 },
-  { id: 'vision', label: 'Vision', icon: Eye },
-  { id: 'roadmap', label: 'Roadmap', icon: Map },
-  { id: 'manifesto', label: 'Manifest', icon: ScrollText },
-  { id: 'telegram-bot', label: 'Telegram bot', icon: Bot },
-  { id: 'support', label: 'Support', icon: Headphones },
-  { id: 'feedback', label: 'Feedback', icon: MessageSquareHeart },
+const MORE_GROUPS = [
+  {
+    title: 'Rooms',
+    items: [
+      { id: 'aura', label: '$AURA · Base', icon: Zap },
+      { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
+      { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
+      { id: 'launchpad', label: 'Accelerator', icon: Rocket },
+    ],
+  },
+  {
+    title: 'Build',
+    items: [
+      { id: 'explore', label: 'Stories', icon: Layers },
+      { id: 'ai', label: 'Analyst', icon: Sparkles },
+      { id: 'profile', label: 'Passport™', icon: User },
+      { id: 'apply', label: 'Apply', icon: FilePlus2 },
+      { id: 'investor', label: 'Investor', icon: Sparkles },
+    ],
+  },
+  {
+    title: 'Site',
+    items: [
+      { id: 'landing', label: 'Home', icon: Home },
+      { id: 'blog', label: 'Blog', icon: BookOpen },
+      { id: 'team', label: 'Team', icon: Users },
+      { id: 'vision', label: 'Vision', icon: Eye },
+      { id: 'support', label: 'Support', icon: Headphones },
+    ],
+  },
+  {
+    title: 'Labs',
+    items: [
+      { id: 'earn', label: 'Earn (sim)', icon: Coins },
+      { id: 'dao', label: 'DAO (sim)', icon: Users },
+      { id: 'campaign', label: 'Share kit', icon: Share2 },
+      { id: 'telegram-bot', label: 'Telegram', icon: Bot },
+      { id: 'feedback', label: 'Feedback', icon: MessageSquareHeart },
+      { id: 'roadmap', label: 'Roadmap', icon: Map },
+      { id: 'manifesto', label: 'Manifest', icon: ScrollText },
+    ],
+  },
 ] as const;
+
+const MORE_IDS = new Set(MORE_GROUPS.flatMap((g) => g.items.map((i) => i.id)));
 
 const MOBILE_NAV = [
   { id: 'landing', label: 'Home', icon: Home },
   { id: 'terminal', label: 'Radar', icon: Activity },
   { id: 'builders', label: 'Builders', icon: Layers },
   { id: 'swap', label: 'Trade', icon: ArrowLeftRight },
-  { id: 'profile', label: 'Passport', icon: User },
+  { id: 'hoodstreet', label: 'Hood', icon: Zap },
 ] as const;
 
 function truncateAddress(address: string): string {
@@ -89,10 +113,14 @@ export default function Navbar({
   builderLevelName,
   walletLabel,
   walletDomain,
+  evmLabel,
+  room,
+  signalLeft,
+  signalMax,
+  onOpenWalletRoom,
 }: NavbarProps) {
   const { publicKey, connected, connecting, disconnect } = useWallet();
-  const { setVisible } = useWalletModal();
-  const { network, setNetwork } = useNetwork();
+  const { network } = useNetwork();
   const [walletOpen, setWalletOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const walletRef = useRef<HTMLDivElement>(null);
@@ -104,19 +132,17 @@ export default function Navbar({
   const activeDesktop =
     currentPath === 'project-detail' || currentPath === 'explore'
       ? 'builders'
-      : DESKTOP_NAV.some((n) => n.id === currentPath)
-        ? currentPath
-        : null;
+      : HOOD_LANE_ROUTES.has(currentPath)
+        ? 'hoodstreet'
+        : DESKTOP_NAV.some((n) => n.id === currentPath)
+          ? currentPath
+          : null;
 
   const mobileActiveId =
     currentPath === 'project-detail' || currentPath === 'explore'
       ? 'builders'
-      : currentPath === 'ai' ||
-          currentPath === 'apply' ||
-          currentPath === 'launch' ||
-          currentPath === 'campaign' ||
-          currentPath === 'dao'
-        ? 'profile'
+      : HOOD_LANE_ROUTES.has(currentPath)
+        ? 'hoodstreet'
         : currentPath;
 
   useEffect(() => {
@@ -184,7 +210,7 @@ export default function Navbar({
                 type="button"
                 onClick={() => setMoreOpen((v) => !v)}
                 className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-[13px] font-medium transition ${
-                  moreOpen || MORE_LINKS.some((l) => l.id === currentPath)
+                  moreOpen || MORE_IDS.has(currentPath)
                     ? 'bg-accent/10 text-accent'
                     : 'text-steel hover:bg-white/[0.04] hover:text-white'
                 }`}
@@ -194,55 +220,58 @@ export default function Navbar({
                 <ChevronDown className={`h-3.5 w-3.5 transition ${moreOpen ? 'rotate-180' : ''}`} />
               </button>
               {moreOpen && (
-                <div className="absolute left-1/2 top-full z-50 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-xl border border-white/10 bg-surface/95 py-1 shadow-2xl backdrop-blur-xl">
-                  {MORE_LINKS.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setCurrentPath(item.id);
-                          setMoreOpen(false);
-                        }}
-                        className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs transition hover:bg-white/[0.04] ${
-                          currentPath === item.id ? 'text-accent' : 'text-white/85'
-                        }`}
-                      >
-                        <Icon className="h-3.5 w-3.5 text-steel" />
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                  <div className="mt-1 border-t border-white/8 px-3 py-2 font-mono text-[10px] text-steel">
-                    {builderLevelName} · {builderXp} XP
+                <div className="absolute left-1/2 top-full z-50 mt-2 max-h-[min(70vh,28rem)] w-60 -translate-x-1/2 overflow-y-auto rounded-xl border border-white/10 bg-surface/95 py-1 shadow-2xl backdrop-blur-xl">
+                  {MORE_GROUPS.map((group) => (
+                    <div key={group.title} className="border-b border-white/8 py-1 last:border-b-0">
+                      <p className="px-3 pt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-steel">
+                        {group.title}
+                      </p>
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setCurrentPath(item.id);
+                              setMoreOpen(false);
+                            }}
+                            className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs transition hover:bg-white/[0.04] ${
+                              currentPath === item.id ? 'text-accent' : 'text-white/85'
+                            }`}
+                          >
+                            <Icon className="h-3.5 w-3.5 text-steel" />
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                  <div className="px-3 py-2 font-mono text-[10px] text-steel">
+                    {builderLevelName} · {builderXp} XP · {signalLeft}/{signalMax} signal
                   </div>
                 </div>
               )}
             </div>
           </nav>
 
-          {/* Network toggle + Wallet — right */}
           <div className="relative z-10 flex shrink-0 items-center gap-2">
-            {/* Network mode chip */}
+            <span className="hidden font-mono text-[10px] uppercase tracking-widest text-steel sm:inline">
+              {signalLeft}/{signalMax}
+            </span>
             <button
               type="button"
-              onClick={() => setNetwork(network === 'mainnet' ? 'devnet' : 'mainnet')}
-              className={`hidden items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition sm:flex ${
-                network === 'devnet'
-                  ? 'border-amber-400/40 bg-amber-400/10 text-amber-300 hover:border-amber-400/60'
-                  : 'border-white/10 bg-white/[0.04] text-steel hover:border-white/20 hover:text-white'
+              onClick={onOpenWalletRoom}
+              className={`hidden items-center rounded-lg border px-2 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest sm:inline-flex ${
+                room === 'hood'
+                  ? 'border-[#CCFF00]/40 bg-[#CCFF00]/10 text-[#CCFF00]'
+                  : room === 'base'
+                    ? 'border-sky-400/40 bg-sky-400/10 text-sky-200'
+                    : 'border-white/10 bg-white/[0.04] text-steel'
               }`}
-              title={`Switch Solana to ${network === 'mainnet' ? 'Devnet' : 'Mainnet'}`}
             >
-              <Zap className="h-3 w-3 shrink-0" />
-              <span>Solana {network === 'mainnet' ? 'mainnet' : 'devnet'}</span>
+              {room === 'hood' ? 'Hood 4663' : room === 'base' ? 'Base' : `Sol ${network === 'mainnet' ? 'main' : 'dev'}`}
             </button>
-            {HOOD_LANE_ROUTES.has(currentPath) && (
-              <span className="inline-flex items-center rounded-lg border border-[#CCFF00]/40 bg-[#CCFF00]/10 px-2 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#CCFF00]">
-                Hood 4663
-              </span>
-            )}
 
             {connected && publicKey ? (
               <div className="relative" ref={walletRef}>
@@ -260,31 +289,28 @@ export default function Navbar({
                 </button>
                 {walletOpen && (
                   <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-white/10 bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
-                    {/* Network indicator in dropdown */}
                     <div className="mb-1 flex items-center justify-between border-b border-white/8 px-2 pb-2">
-                      <span className="font-mono text-[10px] uppercase text-steel">Network</span>
+                      <span className="font-mono text-[10px] uppercase text-steel">Wallets</span>
                       <button
                         type="button"
                         onClick={() => {
-                          setNetwork(network === 'mainnet' ? 'devnet' : 'mainnet');
                           setWalletOpen(false);
+                          onOpenWalletRoom();
                         }}
-                        className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold ${
-                          network === 'devnet'
-                            ? 'bg-amber-400/15 text-amber-300'
-                            : 'bg-white/5 text-steel'
-                        }`}
+                        className="rounded px-2 py-0.5 font-mono text-[10px] font-semibold text-accent"
                       >
-                        <Zap className="h-2.5 w-2.5" />
-                        Solana {network === 'mainnet' ? 'mainnet' : 'devnet'}
+                        Switch room
                       </button>
                     </div>
                     {walletDomain && (
                       <p className="px-2 py-1 font-mono text-[10px] text-accent">{walletDomain}</p>
                     )}
                     <p className="break-all px-2 py-1.5 font-mono text-[10px] text-steel">
-                      {publicKey.toBase58()}
+                      Sol {publicKey.toBase58()}
                     </p>
+                    {evmLabel && (
+                      <p className="px-2 py-1 font-mono text-[10px] text-[#CCFF00]">EVM {evmLabel}</p>
+                    )}
                     <button
                       type="button"
                       onClick={() => {
@@ -303,7 +329,7 @@ export default function Navbar({
                       }}
                       className="w-full rounded-lg px-2 py-2 text-left text-xs text-steel hover:bg-white/[0.05]"
                     >
-                      Disconnect
+                      Disconnect Solana
                     </button>
                   </div>
                 )}
@@ -312,11 +338,11 @@ export default function Navbar({
               <button
                 type="button"
                 disabled={connecting}
-                onClick={() => setVisible(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright disabled:opacity-70 min-h-[44px] lg:min-h-0 lg:py-1.5"
+                onClick={onOpenWalletRoom}
+                className="flex min-h-[44px] items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-ink hover:bg-accent-bright disabled:opacity-70 lg:min-h-0 lg:py-1.5"
               >
                 <Wallet className="h-4 w-4 lg:h-3.5 lg:w-3.5" />
-                {connecting ? 'Connecting…' : 'Connect'}
+                {connecting ? 'Connecting…' : evmLabel ? evmLabel : 'Connect'}
               </button>
             )}
           </div>

@@ -19,6 +19,14 @@ import ConfettiEffect from './ConfettiEffect';
 import DiscoveryStreakToast from './DiscoveryStreakToast';
 import ShareSuccessToast from './ShareSuccessToast';
 import type { ShareActionResult } from './ShareCampaignView';
+import ProjectSignalButtons from './ProjectSignalButtons';
+import {
+  displayedVotes,
+  signalAllowance,
+  signalRemaining,
+  type SignalSide,
+  type SignalSnapshot,
+} from '../lib/projectSignal';
 import { Project, UserWallet, Builder } from '../types';
 import ScoreBars, { BuilderScoreBadge, CurationBadges } from './ScoreBars';
 import BuilderDnaCard from './BuilderDnaCard';
@@ -86,6 +94,9 @@ interface ProjectDetailViewProps {
   builders: Builder[];
   setCurrentPath: (path: string, state?: { buy?: string | null }) => void;
   onShareReward?: (channel?: string) => ShareActionResult | void;
+  onSignal: (id: string, side: SignalSide) => void;
+  signal: SignalSnapshot;
+  builderXp: number;
 }
 
 export default function ProjectDetailView({
@@ -99,6 +110,9 @@ export default function ProjectDetailView({
   builders,
   setCurrentPath,
   onShareReward,
+  onSignal,
+  signal,
+  builderXp,
 }: ProjectDetailViewProps) {
   const [commentText, setCommentText] = useState('');
   const [aiSummary, setAiSummary] = useState(project.aiAnalysis);
@@ -310,6 +324,12 @@ export default function ProjectDetailView({
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 px-6 py-4 sm:px-8">
+          <ProjectSignalButtons
+            {...displayedVotes(project.id, project.upvotes, signal)}
+            remaining={signalRemaining(signal, builderXp)}
+            allowance={signalAllowance(builderXp)}
+            onVote={(side) => onSignal(project.id, side)}
+          />
           <div className="flex flex-wrap items-center gap-2">
             <CurationBadges
               status={project.curation.status}

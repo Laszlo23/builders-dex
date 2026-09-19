@@ -41,6 +41,7 @@ export const APP_ROUTES = [
   'hoodstreet',
   'ccff00',
   'cubes',
+  'coming-soon',
 ] as const;
 
 export type AppRoute = (typeof APP_ROUTES)[number];
@@ -94,9 +95,14 @@ export function safeNavigate(
     syncUrlToPath(path, state);
     return;
   }
-  console.warn(`[nav] unknown route "${path}" → ${fallback}`);
-  setCurrentPath(fallback);
-  syncUrlToPath(fallback, state);
+  console.warn(`[nav] unknown route "${path}" → coming-soon`);
+  try {
+    sessionStorage.setItem('bdx_coming_soon', path);
+  } catch {
+    /* ignore */
+  }
+  setCurrentPath('coming-soon');
+  syncUrlToPath('coming-soon', state);
 }
 
 function readSearchParams(): URLSearchParams {

@@ -52,7 +52,8 @@ export type SeoRoute =
   | 'hood'
   | 'hoodstreet'
   | 'ccff00'
-  | 'cubes';
+  | 'cubes'
+  | 'coming-soon';
 
 type SeoConfig = {
   title: string;
@@ -265,6 +266,11 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     description:
       'CCFF00 Cubes mint windows on Robinhood Chain from on-chain phases(). Outbound Square Apes mint only.',
     path: '/cubes',
+  },
+  'coming-soon': {
+    title: "Still working on this — Builders DEX",
+    description: 'This footer destination is reserved. We are still building it.',
+    path: '/coming-soon',
   },
 };
 

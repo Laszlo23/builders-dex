@@ -18,10 +18,20 @@ import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
 import { shareProject } from '../lib/shareHelper';
 import ShareSuccessToast from './ShareSuccessToast';
 import type { ShareActionResult } from './ShareCampaignView';
+import ProjectSignalButtons from './ProjectSignalButtons';
+import {
+  displayedVotes,
+  signalAllowance,
+  signalRemaining,
+  type SignalSide,
+  type SignalSnapshot,
+} from '../lib/projectSignal';
 
 interface ExploreViewProps {
   projects: Project[];
-  onUpvote: (id: string) => void;
+  onSignal: (id: string, side: SignalSide) => void;
+  signal: SignalSnapshot;
+  builderXp: number;
   setSelectedProjectId: (id: string) => void;
   setCurrentPath: (path: string) => void;
   onTrade: (mint?: string) => void;
@@ -33,7 +43,9 @@ interface ExploreViewProps {
 
 export default function ExploreView({
   projects,
-  onUpvote,
+  onSignal,
+  signal,
+  builderXp,
   setSelectedProjectId,
   setCurrentPath,
   onTrade,
@@ -133,7 +145,11 @@ export default function ExploreView({
               </h1>
           <p className="mt-2 max-w-xl text-sm text-steel">
             Startup profiles with journey, selection rationale, and live Builder Score™
-            (GitHub-cited) — not hype cards.
+            (GitHub-cited) — not hype cards. Spend daily signal to upvote or downvote.
+          </p>
+          <p className="mt-2 font-mono text-[11px] text-accent">
+            {signalRemaining(signal, builderXp)}/{signalAllowance(builderXp)} signal left today ·
+            resets 00:00 UTC
           </p>
         </div>
         <div className="relative w-full md:w-80">
@@ -455,15 +471,13 @@ export default function ExploreView({
                 {/* Above mobile bottom nav (z-50) so CTAs remain clickable */}
                 <div className="relative z-[60] mt-5 flex items-center justify-between gap-2 border-t border-white/8 pt-4">
                   {!isRejected && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpvote(p.id);
-                      }}
-className="min-h-[44px] rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-xs text-steel transition hover:border-accent/30 hover:text-accent active:scale-95"                    >
-                      ▲ {p.upvotes}
-                    </button>
+                    <ProjectSignalButtons
+                      compact
+                      {...displayedVotes(p.id, p.upvotes, signal)}
+                      remaining={signalRemaining(signal, builderXp)}
+                      allowance={signalAllowance(builderXp)}
+                      onVote={(side) => onSignal(p.id, side)}
+                    />
                   )}
                   {!isRejected && (
                     <button
