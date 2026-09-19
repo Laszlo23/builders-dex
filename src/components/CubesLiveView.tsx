@@ -13,6 +13,7 @@ import {
 import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN } from '../data/brand';
 import { shortenHex } from '../data/crossChainRegistry';
 import type { CubesLiveSnapshot, CubesPhaseSnapshot } from '../lib/hoodLive';
+import ChainLaneBar from './ChainLaneBar';
 
 type Props = {
   setCurrentPath: (path: string) => void;
@@ -104,8 +105,9 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
   const fill = max > 0 ? Math.min(1, minted / max) : 0;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="hood-lane-page mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
+      <ChainLaneBar active="hood" setCurrentPath={setCurrentPath} />
+      <div className="relative mt-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#CCFF00]">
             {BRAND_MULTICHAIN} · HoodStreet · chain {HOOD_CHAIN_ID}
@@ -182,6 +184,13 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
               className="rounded-full border border-[#CCFF00]/40 px-4 py-2 text-xs font-semibold text-[#CCFF00]"
             >
               HoodStreet
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPath('ccff00')}
+              className="rounded-full border border-[#CCFF00]/40 px-4 py-2 text-xs font-semibold text-[#CCFF00]"
+            >
+              CCFF00 Wallet
             </button>
             <button
               type="button"

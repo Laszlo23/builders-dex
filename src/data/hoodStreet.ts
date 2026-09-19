@@ -45,6 +45,7 @@ export const HOODSTREET_LAYERS: HoodStreetLayer[] = [
     href: HOODSTREET_NEON_URL,
     blurb:
       'The wallet interface for assets inside your Square. Built for human control now, agent control later.',
+    internal: 'ccff00',
   },
   {
     id: 'cubes',
@@ -61,6 +62,7 @@ export const HOODSTREET_FACTS = [
   'Every Square is the same immutable #CCFF00. No rarity theater.',
   'SVG and metadata live in the contract. No IPFS.',
   'The NFT owns an ERC-6551 account. Transfer the Square, the wallet moves with it.',
+  'That account can buy inspected Hood projects and hold the receipts — the Square is the trading identity.',
   '$CCFF00 transfers stay off until the 9,750 public Squares mint out.',
   '10,000 NFTs × 10,000 tokens = 1,000,000,000 $CCFF00. Fixed.',
 ] as const;

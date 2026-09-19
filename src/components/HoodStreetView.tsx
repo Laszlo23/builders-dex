@@ -24,6 +24,7 @@ import {
   hoodStreetExplorerToken,
 } from '../data/hoodStreet';
 import type { CubesLiveSnapshot } from '../lib/hoodLive';
+import ChainLaneBar from './ChainLaneBar';
 
 type Props = {
   setCurrentPath: (path: string) => void;
@@ -60,8 +61,9 @@ export default function HoodStreetView({ setCurrentPath, setSelectedProjectId }:
   const fill = max > 0 ? Math.min(100, Math.round((minted / max) * 100)) : 0;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
-      <div className="overflow-hidden rounded-[2rem] border border-[#CCFF00]/35 bg-ink">
+    <div className="hood-lane-page mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
+      <ChainLaneBar active="hood" setCurrentPath={setCurrentPath} />
+      <div className="relative mt-6 overflow-hidden rounded-[2rem] border border-[#CCFF00]/35 bg-ink">
         <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#CCFF00]">
@@ -93,6 +95,13 @@ export default function HoodStreetView({ setCurrentPath, setSelectedProjectId }:
               >
                 Proof of Neon
               </a>
+              <button
+                type="button"
+                onClick={() => setCurrentPath('ccff00')}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[#CCFF00]/40 px-5 py-2.5 text-xs font-semibold text-[#CCFF00]"
+              >
+                CCFF00 Wallet <ArrowRight className="h-3.5 w-3.5" />
+              </button>
               <button
                 type="button"
                 onClick={() => setCurrentPath('cubes')}
@@ -172,14 +181,25 @@ export default function HoodStreetView({ setCurrentPath, setSelectedProjectId }:
               </span>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-steel">{layer.blurb}</p>
-            <a
-              href={layer.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#CCFF00]"
-            >
-              Open {layer.name} <ExternalLink className="h-3 w-3" />
-            </a>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {layer.internal && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentPath(layer.internal!)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#CCFF00]"
+                >
+                  Use on DEX <ArrowRight className="h-3 w-3" />
+                </button>
+              )}
+              <a
+                href={layer.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#CCFF00]"
+              >
+                Open {layer.name} <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </article>
         ))}
       </section>

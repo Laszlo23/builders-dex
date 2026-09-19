@@ -84,7 +84,7 @@ interface ProjectDetailViewProps {
   onAskIntelligence?: (prompt: string) => void;
   tradeableMintSet: Set<string>;
   builders: Builder[];
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: { buy?: string | null }) => void;
   onShareReward?: (channel?: string) => ShareActionResult | void;
 }
 
@@ -776,6 +776,13 @@ export default function ProjectDetailView({
                   className="mt-2 w-full rounded-xl border border-[#CCFF00]/40 py-2.5 text-xs font-semibold text-[#CCFF00]"
                 >
                   HoodStreet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPath('ccff00', { buy: 'p5' })}
+                  className="mt-2 w-full rounded-xl border border-[#CCFF00]/40 py-2.5 text-xs font-semibold text-[#CCFF00]"
+                >
+                  Buy as Square
                 </button>
                 <button
                   type="button"

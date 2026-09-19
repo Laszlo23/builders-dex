@@ -122,6 +122,7 @@ import {
 } from './src/data/hoodChain';
 import { loadAuraLiveSnapshot } from './src/lib/auraLive';
 import { loadCubesLiveSnapshot, loadHoodFounderStatus, loadHoodShareOnchain } from './src/lib/hoodLive';
+import { loadCcff00Wallet } from './src/lib/ccff00Wallet';
 import {
   HOOD_SHARE_ADDRESS,
   HOOD_SHARE_HOLDER_POOL_BPS,
@@ -786,6 +787,26 @@ app.get('/api/hood/share/:id', rateLimit(120, 60_000, 'hood-share-meta'), (req, 
       { trait_type: 'Inspection score', value: 92 },
     ],
   });
+});
+
+app.get('/api/ccff00/wallet', rateLimit(30, 60_000, 'ccff00-wallet'), async (req, res) => {
+  try {
+    const owner = String(req.query.owner || '').trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(owner)) {
+      return res.status(400).json({ error: 'owner must be an EVM address' });
+    }
+    const payload = await loadCcff00Wallet(owner);
+    res.json({
+      ...payload,
+      squares: payload.squares.map((square) => ({
+        ...square,
+        eth: Number(BigInt(square.ethWei)) / 1e18,
+        ccff00: Number(BigInt(square.ccff00Wei)) / 1e18,
+      })),
+    });
+  } catch (err) {
+    res.status(502).json({ error: safeErrorMessage(err, 'ccff00 wallet failed') });
+  }
 });
 
 app.get('/api/cubes/live', rateLimit(60, 60_000, 'cubes-live'), async (_req, res) => {
@@ -2775,4 +2796,24 @@ async function startServer() {
   process.on('SIGTERM', shutdown);
 }
 
-startServer();
+function isDirectEntrypoint(): boolean {
+  const entry = process.argv[1] || '';
+  if (/(?:^|[\\/])(server\.ts|server\.js|server\.cjs)$/.test(entry)) return true;
+  // PM2 / process managers may wrap argv[1]; production must still listen.
+  return process.env.NODE_ENV === 'production' && process.env.BUILDERS_API_ONLY !== '1';
+}
+
+/** API-only listen — used when Vite is the frontend (`npx vite`) so /api still works. */
+function startApiOnly() {
+  app.listen(PORT, '127.0.0.1', () => {
+    console.log(`[Builders DEX API] http://127.0.0.1:${PORT}`);
+  });
+}
+
+export { app, startServer, startApiOnly };
+
+if (process.env.BUILDERS_API_ONLY === '1') {
+  startApiOnly();
+} else if (isDirectEntrypoint()) {
+  void startServer();
+}

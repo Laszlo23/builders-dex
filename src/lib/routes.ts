@@ -39,6 +39,7 @@ export const APP_ROUTES = [
   'aura',
   'hood',
   'hoodstreet',
+  'ccff00',
   'cubes',
 ] as const;
 
@@ -51,6 +52,7 @@ export type NavState = {
   projectId?: string | null;
   blogSlug?: string | null;
   raiseId?: string | null;
+  buy?: string | null;
 };
 
 /** Legacy route aliases that map to current routes */
@@ -65,6 +67,9 @@ const ROUTE_ALIASES: Record<string, AppRoute> = {
   'cubes-live': 'cubes',
   'hood-street': 'hoodstreet',
   hoodstreet: 'hoodstreet',
+  neon: 'ccff00',
+  'my-neon': 'ccff00',
+  myneon: 'ccff00',
 };
 
 export function isAppRoute(path: string): path is AppRoute {
@@ -144,6 +149,7 @@ export function syncUrlToPath(path: AppRoute, state?: NavState): void {
     projectId: state?.projectId ?? (path === 'project-detail' ? getProjectIdFromUrl() : null),
     blogSlug: state?.blogSlug ?? (path === 'blog' ? getBlogSlugFromUrl() : null),
     raiseId: state?.raiseId ?? (path === 'raise' ? getRaiseIdFromUrl() : null),
+    buy: state?.buy ?? (path === 'ccff00' ? new URLSearchParams(window.location.search).get('buy') : null),
   });
 
   const current = `${window.location.pathname}${window.location.search}`;
@@ -167,6 +173,9 @@ export function hrefForRoute(path: AppRoute, state?: NavState): string {
   }
   if (path === 'builder-graph') return '/graph';
   if (path === 'builder-stories') return '/stories';
+  if (path === 'ccff00' && state?.buy) {
+    return `/ccff00?buy=${encodeURIComponent(state.buy)}`;
+  }
   return `/${path}`;
 }
 

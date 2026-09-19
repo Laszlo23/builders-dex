@@ -19,12 +19,13 @@ import {
   hoodShareTxExplorer,
 } from '../data/hoodShare';
 import { HOOD_CHAIN_ID, HOOD_DISCLAIMER, addHoodToWallet } from '../data/hoodChain';
+import ChainLaneBar from './ChainLaneBar';
 import { LIVE_AURA_RAISE_SEED } from '../data/liveShareRaise';
 
 type Props = {
   project: Project | undefined;
   onBack: () => void;
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: { buy?: string | null }) => void;
 };
 
 const EMPTY_SCORE: BuilderScore = {
@@ -104,11 +105,12 @@ export default function HoodShareView({ project, onBack, setCurrentPath }: Props
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
+    <div className="hood-lane-page mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
+      <ChainLaneBar active="hood" setCurrentPath={setCurrentPath} />
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-xs text-steel hover:text-white"
+        className="relative mt-6 inline-flex items-center gap-1.5 text-xs text-steel hover:text-white"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Accelerator
       </button>
@@ -186,7 +188,15 @@ export default function HoodShareView({ project, onBack, setCurrentPath }: Props
             )}
             <p className="mt-2 text-xs text-steel">
               Need ETH on Hood for gas + price. Add chain 4663, then approve one wallet prompt.
+              Or buy from a CCFF00 Square so the certificate sits in the NFT wallet.
             </p>
+            <button
+              type="button"
+              onClick={() => setCurrentPath('ccff00', { buy: 'p5' })}
+              className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-[#CCFF00]/40 py-3 text-sm font-bold text-[#CCFF00]"
+            >
+              Mint as Square wallet
+            </button>
             {!deployed && (
               <p className="mt-2 text-xs text-amber-200/90">
                 Contract address is not on chain 4663 yet. Refresh after deploy.

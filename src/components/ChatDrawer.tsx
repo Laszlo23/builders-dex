@@ -14,7 +14,21 @@ import { SUPPORT_PRESETS } from '../data/support';
 
 type Tab = 'chat' | 'stream' | 'news';
 
-type ChatMessage = { role: 'user' | 'model'; content: string };
+type ToolUsed = { tool: string; label: string; detail: string };
+
+type ChatMessage = { role: 'user' | 'model'; content: string; toolsUsed?: ToolUsed[] };
+
+const LIVE_BUILD_PRESET = {
+  title: 'Live build',
+  prompt:
+    'Live build: list catalog builders and pull live Builder Score™ with GitHub citations for the top matches. Brief overall, top citation, curation status, and main risk.',
+};
+
+function wantsLiveBuild(text: string): boolean {
+  return /live\s*(build|score|builder)|builder\s*score|radar|catalog|genesis|scout ledger|telegram trend|llama\.?cpp|wormhole|metaplex|aave|get_builder_score|list_catalog|github citation/i.test(
+    text,
+  );
+}
 
 type Props = {
   open: boolean;
@@ -29,7 +43,7 @@ export default function ChatDrawer({ open, onClose, displayName }: Props) {
       role: 'model',
       content: `Hey${displayName && displayName !== 'Guest' ? ` **${displayName}**` : ''} — Support Agent here.
 
-Ask about Trade, Earn, Passport™, or listings. Flip to **Stream** for live pulse or **News** for headlines.`,
+Ask about Trade, Earn, Passport™, or listings. Say **live build** for live Builder Score™ citations. Flip to **Stream** for pulse or **News** for headlines.`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -86,29 +100,45 @@ Ask about Trade, Earn, Passport™, or listings. Flip to **Stream** for live pul
 
   async function send(text: string) {
     if (!text.trim() || loading) return;
+    const live = wantsLiveBuild(text);
     const next = [...messages, { role: 'user' as const, content: text.trim() }];
     setMessages(next);
     setInput('');
     setLoading(true);
     try {
-      const res = await fetch('/api/support/chat', {
+      const controller = new AbortController();
+      const timeoutMs = live ? 90_000 : 45_000;
+      const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+      const res = await fetch(live ? '/api/ai/chat' : '/api/support/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: next,
+          messages: next.map((m) => ({ role: m.role, content: m.content })),
           displayName: displayName !== 'Guest' ? displayName : undefined,
         }),
+        signal: controller.signal,
       });
+      window.clearTimeout(timeoutId);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Chat unavailable');
-      setMessages([...next, { role: 'model', content: String(data.text || '') }]);
-    } catch {
+      const toolsUsed = Array.isArray(data.toolsUsed) ? (data.toolsUsed as ToolUsed[]) : [];
       setMessages([
         ...next,
         {
           role: 'model',
-          content:
-            'Couldn’t reach Support Agent. Try again shortly — or open **Feedback** / email contact@buildingcultureid.space.',
+          content: String(data.text || ''),
+          toolsUsed: live ? toolsUsed : undefined,
+        },
+      ]);
+    } catch (err: unknown) {
+      const timedOut = err instanceof Error && err.name === 'AbortError';
+      setMessages([
+        ...next,
+        {
+          role: 'model',
+          content: timedOut
+            ? 'Live build timed out. Try **live build** again in a moment.'
+            : 'Couldn’t reach the agent. Try again shortly — or open **Feedback** / email contact@buildingcultureid.space.',
         },
       ]);
     } finally {
@@ -187,26 +217,48 @@ Ask about Trade, Earn, Passport™, or listings. Flip to **Stream** for live pul
               {messages.map((m, i) => (
                 <div
                   key={`${m.role}-${i}`}
-                  className={`max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                  className={`max-w-[92%] space-y-2 rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
                     m.role === 'user'
                       ? 'ml-auto bg-accent/20 text-white'
                       : 'mr-auto border border-white/10 bg-white/[0.03] text-white/85'
                   }`}
                 >
                   <ChatMarkdown text={m.content} />
+                  {m.toolsUsed && m.toolsUsed.length > 0 && (
+                    <ul className="space-y-1 border-t border-white/8 pt-2">
+                      {m.toolsUsed.map((t, ti) => (
+                        <li
+                          key={`${t.tool}-${ti}`}
+                          className="font-mono text-[10px] text-accent/90"
+                        >
+                          {t.label}
+                          <span className="text-steel"> · {t.detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               ))}
               {loading && (
                 <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-steel">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
-                  Agent typing…
+                  {wantsLiveBuild(messages.at(-1)?.content || '')
+                    ? 'Calling live tools…'
+                    : 'Agent typing…'}
                 </div>
               )}
               <div ref={endRef} />
             </div>
             <div className="border-t border-white/10 px-3 py-2">
               <div className="mb-2 flex flex-wrap gap-1.5">
-                {SUPPORT_PRESETS.slice(0, 3).map((p) => (
+                <button
+                  type="button"
+                  onClick={() => send(LIVE_BUILD_PRESET.prompt)}
+                  className="rounded-full border border-accent/35 bg-accent/10 px-2.5 py-1 font-mono text-[9px] text-accent hover:bg-accent/20"
+                >
+                  {LIVE_BUILD_PRESET.title}
+                </button>
+                {SUPPORT_PRESETS.slice(0, 2).map((p) => (
                   <button
                     key={p.title}
                     type="button"
@@ -227,7 +279,7 @@ Ask about Trade, Earn, Passport™, or listings. Flip to **Stream** for live pul
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask Support Agent…"
+                  placeholder="Ask live build or Support Agent…"
                   className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-accent/40 focus:outline-none"
                 />
                 <button

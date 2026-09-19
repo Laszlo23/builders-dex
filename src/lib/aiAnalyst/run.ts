@@ -35,7 +35,28 @@ function extractProjectIds(text: string): string[] {
 }
 
 function wantsRadar(q: string): boolean {
-  return /radar|today|mover|pulse|morning|digest/i.test(q);
+  return /\bradar\b|score mover|sector pulse|morning brief|daily digest/i.test(q);
+}
+
+function wantsLiveScores(q: string): boolean {
+  return /live\s*(build|score|builder)|builder\s*score|get_builder_score|github citation/i.test(
+    q,
+  );
+}
+
+function catalogSearchQuery(q: string, category: string): string {
+  if (category) return '';
+  const trimmed = q.trim();
+  if (
+    trimmed.length > 48 ||
+    /[?]/.test(trimmed) ||
+    /\b(what|who|how|why|use|list|pull|call|show|get|live|tell|please|summarize|brief|ask)\b/i.test(
+      trimmed,
+    )
+  ) {
+    return '';
+  }
+  return trimmed.slice(0, 40);
 }
 
 function wantsScout(q: string): boolean {
@@ -98,11 +119,11 @@ export async function runToolUsingAnalyst(input: {
   await run('list_catalog', {
     category,
     status,
-    query: category ? '' : lastUser.slice(0, 80),
+    query: catalogSearchQuery(lastUser, category),
   });
 
   const projectIds = extractProjectIds(lastUser);
-  // If AI asked without ids, score top AI/catalog matches from first tool
+  // If the user asked without ids, score top catalog matches from the first tool
   const catalog = toolPayloads[0]?.data as
     | { projects?: { projectId: string }[] }
     | undefined;
@@ -113,11 +134,18 @@ export async function runToolUsingAnalyst(input: {
     .filter((v, i, a) => a.indexOf(v) === i)
     .slice(0, 4);
 
-  for (const projectId of scoreIds) {
-    await run('get_builder_score', { projectId });
+  if (scoreIds.length) {
+    await Promise.all(scoreIds.map((projectId) => run('get_builder_score', { projectId })));
+  } else if (wantsLiveScores(lastUser)) {
+    await run('list_catalog', { category: '', status: 'any', query: '' });
+    const fallback = toolPayloads.at(-1)?.data as
+      | { projects?: { projectId: string }[] }
+      | undefined;
+    const liveIds = (fallback?.projects || []).map((p) => p.projectId).slice(0, 4);
+    await Promise.all(liveIds.map((projectId) => run('get_builder_score', { projectId })));
   }
 
-  if (wantsRadar(lastUser) || scoreIds.length === 0) {
+  if (wantsRadar(lastUser)) {
     await run('get_daily_radar', {});
   }
   if (wantsScout(lastUser)) {

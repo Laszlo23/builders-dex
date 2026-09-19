@@ -27,6 +27,7 @@ import {
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useNetwork } from '../providers/NetworkProvider';
+import { HOOD_LANE_ROUTES } from '../data/chainLanes';
 
 interface NavbarProps {
   currentPath: string;
@@ -53,6 +54,7 @@ const MORE_LINKS = [
   { id: 'aura', label: '$AURA Live', icon: Zap },
   { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
   { id: 'hoodstreet', label: 'HoodStreet', icon: Layers },
+  { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
   { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'team', label: 'Team', icon: Users },
   { id: 'explore', label: 'Stories', icon: Layers },
@@ -231,11 +233,16 @@ export default function Navbar({
                   ? 'border-amber-400/40 bg-amber-400/10 text-amber-300 hover:border-amber-400/60'
                   : 'border-white/10 bg-white/[0.04] text-steel hover:border-white/20 hover:text-white'
               }`}
-              title={`Switch to ${network === 'mainnet' ? 'Devnet' : 'Mainnet'}`}
+              title={`Switch Solana to ${network === 'mainnet' ? 'Devnet' : 'Mainnet'}`}
             >
               <Zap className="h-3 w-3 shrink-0" />
-              <span>{network === 'mainnet' ? 'Mainnet' : 'Devnet'}</span>
+              <span>Solana {network === 'mainnet' ? 'mainnet' : 'devnet'}</span>
             </button>
+            {HOOD_LANE_ROUTES.has(currentPath) && (
+              <span className="inline-flex items-center rounded-lg border border-[#CCFF00]/40 bg-[#CCFF00]/10 px-2 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#CCFF00]">
+                Hood 4663
+              </span>
+            )}
 
             {connected && publicKey ? (
               <div className="relative" ref={walletRef}>
@@ -269,7 +276,7 @@ export default function Navbar({
                         }`}
                       >
                         <Zap className="h-2.5 w-2.5" />
-                        {network === 'mainnet' ? 'Mainnet' : 'Devnet'}
+                        Solana {network === 'mainnet' ? 'mainnet' : 'devnet'}
                       </button>
                     </div>
                     {walletDomain && (

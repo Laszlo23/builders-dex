@@ -24,6 +24,7 @@ import {
   Eye,
   Map,
   ExternalLink,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react';
 import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN, BRAND_SOCIALS, BRAND_SUPPORT, BRAND_TAGLINE, CULTURE_NODE_X_POST } from '../data/brand';
@@ -41,6 +42,7 @@ const PRODUCT: FooterLink[] = [
   { id: 'aura', label: '$AURA Live', icon: Activity },
   { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
   { id: 'hoodstreet', label: 'HoodStreet', icon: Layers },
+  { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
   { id: 'apply', label: 'Apply', icon: Rocket },
   { id: 'earn', label: 'Earn', icon: Coins },
   { id: 'profile', label: 'Passport™', icon: User },

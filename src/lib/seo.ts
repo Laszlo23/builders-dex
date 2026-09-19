@@ -51,6 +51,7 @@ export type SeoRoute =
   | 'aura'
   | 'hood'
   | 'hoodstreet'
+  | 'ccff00'
   | 'cubes';
 
 type SeoConfig = {
@@ -253,6 +254,12 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
       'HoodStreet on Robinhood Chain: CCFF00 founding Squares, My Neon wallets, Cubes ETH mint. Not affiliated with Robinhood Markets.',
     path: '/hoodstreet',
   },
+  ccff00: {
+    title: 'CCFF00 Wallet — Builders DEX',
+    description:
+      'Use your CCFF00 Square ERC-6551 wallet to buy Hood projects and trade as the NFT. Not affiliated with Robinhood Markets.',
+    path: '/ccff00',
+  },
   cubes: {
     title: 'CCFF00 Live — Builders DEX',
     description:
@@ -300,6 +307,9 @@ const PATH_ALIASES: Record<string, SeoRoute> = {
   bridge: 'hood',
   'cubes-live': 'cubes',
   'hood-street': 'hoodstreet',
+  neon: 'ccff00',
+  'my-neon': 'ccff00',
+  myneon: 'ccff00',
 };
 
 function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: string | null } {
@@ -399,6 +409,7 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
     { route: 'aura', changefreq: 'hourly', priority: '0.7' },
     { route: 'hood', changefreq: 'weekly', priority: '0.6' },
     { route: 'hoodstreet', changefreq: 'daily', priority: '0.7' },
+    { route: 'ccff00', changefreq: 'daily', priority: '0.7' },
     { route: 'cubes', changefreq: 'hourly', priority: '0.6' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },
     { route: 'privacy', changefreq: 'yearly', priority: '0.2' },

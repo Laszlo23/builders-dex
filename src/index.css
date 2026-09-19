@@ -477,6 +477,90 @@ body {
   mix-blend-mode: screen;
 }
 
+/* —— Hood neon lane (distinct from Solana champagne) —— */
+.hood-lane-page {
+  position: relative;
+}
+
+.hood-lane-page::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: -1rem -0.5rem auto;
+  height: 18rem;
+  background:
+    radial-gradient(60% 80% at 90% 0%, rgba(204, 255, 0, 0.14), transparent 55%),
+    radial-gradient(40% 60% at 10% 20%, rgba(204, 255, 0, 0.06), transparent 50%);
+}
+
+.neon-square {
+  background: #ccff00;
+  box-shadow:
+    0 0 0 1px rgba(204, 255, 0, 0.35),
+    0 20px 60px rgba(204, 255, 0, 0.18);
+}
+
+.flow-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .flow-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.flow-step {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(7, 8, 10, 0.55);
+  border-radius: 1rem;
+  padding: 0.7rem 0.8rem;
+  min-height: 4.25rem;
+}
+
+.flow-step.is-now {
+  border-color: rgba(204, 255, 0, 0.45);
+  background: rgba(204, 255, 0, 0.08);
+}
+
+.flow-step.is-done {
+  border-color: rgba(204, 255, 0, 0.22);
+}
+
+.chain-lane-bar {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(16, 18, 20, 0.72);
+  border-radius: 1.25rem;
+  padding: 0.85rem;
+}
+
+.chain-lane-chip {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 8, 10, 0.5);
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  min-height: 4.75rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chain-lane-chip--solana.is-active {
+  border-color: rgba(200, 232, 104, 0.45);
+  background: rgba(200, 232, 104, 0.08);
+}
+
+.chain-lane-chip--base.is-active {
+  border-color: rgba(0, 82, 255, 0.45);
+  background: rgba(0, 82, 255, 0.1);
+}
+
+.chain-lane-chip--hood.is-active {
+  border-color: rgba(204, 255, 0, 0.5);
+  background: rgba(204, 255, 0, 0.08);
+}
+
 .dev-ribbon span {
   pointer-events: none;
   position: absolute;
