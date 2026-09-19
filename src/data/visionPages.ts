@@ -59,7 +59,7 @@ export const VISION = {
       heading: 'All-in on multichain — including Hood',
       body: [
         'We love how Robinhood Chain moves: one 0x on every L2, partner hops instead of a fake one-click bridge, gas first. That is how people actually live across networks.',
-        'Solana stays Passport and share mint. Base stays canonical AURA. We are doing everything we can to participate on Hood — Cubes in the catalog, live phases, Apply on chain 4663, EVM bind on Passport — without pretending we are Robinhood or inventing a wrap.',
+        'Solana stays Passport and share mint. Base stays canonical AURA. We are doing everything we can to participate on Hood — HoodStreet (CCFF00, My Neon, Cubes mint), live phases, Apply on chain 4663, EVM bind on Passport — without pretending we are Robinhood or inventing a wrap.',
       ],
     },
   ],
@@ -78,7 +78,7 @@ export const ROADMAP = {
         'Talent Protocol + Neynar / Farcaster as first listing criteria',
         'Repo & shipping review before any curated mint',
         'Builder Score™, Passport™, and curated Solana swaps',
-        'Robinhood Chain: Cubes Live, Hood hop, same-0x wallet link — we participate in this network',
+        'Robinhood Chain: HoodStreet, CCFF00 mint windows, Hood hop, same-0x wallet link — we participate in this network',
         'Feedback + Support Agent so the standard stays honest',
       ],
     },

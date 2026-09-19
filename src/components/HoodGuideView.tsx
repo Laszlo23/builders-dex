@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, Wallet, AlertTriangle, ArrowRight } from 'lucide-react';
 import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN } from '../data/brand';
+import { HOODSTREET_SITE } from '../data/hoodStreet';
 import {
   CUBES_MINT_URL,
   DEBRIDGE_APP_URL,
@@ -76,9 +77,9 @@ export default function HoodGuideView({ setCurrentPath }: Props) {
         We love how Hood moves
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-steel">
-        {BRAND_HOOD_STANCE} Cubes is in the catalog. Apply lists Hood. Passport binds the same 0x
-        you use on Base. This page is the honest hop so you can actually join — there is no
-        canonical Solana → Robinhood Chain bridge. Arrive with{' '}
+        {BRAND_HOOD_STANCE} HoodStreet is in the catalog — CCFF00, My Neon, Cubes mint. Apply lists
+        Hood. Passport binds the same 0x you use on Base. This page is the honest hop so you can
+        actually join — there is no canonical Solana → Robinhood Chain bridge. Arrive with{' '}
         <span className="text-white">{HOOD_NATIVE_SYMBOL} for gas first</span>.
       </p>
 
@@ -125,10 +126,17 @@ export default function HoodGuideView({ setCurrentPath }: Props) {
         </button>
         <button
           type="button"
+          onClick={() => setCurrentPath('hoodstreet')}
+          className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[#CCFF00]/40 px-4 py-2.5 text-xs font-semibold text-[#CCFF00]"
+        >
+          HoodStreet <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
           onClick={() => setCurrentPath('cubes')}
           className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-xs font-semibold text-white"
         >
-          Cubes live <ArrowRight className="h-3.5 w-3.5" />
+          Live phases <ArrowRight className="h-3.5 w-3.5" />
         </button>
         <button
           type="button"
@@ -183,10 +191,11 @@ export default function HoodGuideView({ setCurrentPath }: Props) {
           <h2 className="font-display mt-1 text-xl font-bold">Same 0x on Base and Hood</h2>
           <p className="mt-2 text-sm text-steel">
             Your EVM address does not change when you hop L2s. Once that wallet is funded with ETH
-            on 4663, Cubes mint and other Hood apps can charge gas. Bind it to your Solana Passport
+            on 4663, HoodStreet / Cubes mint and other Hood apps can charge gas. Bind it to your Solana Passport
             on Profile — we are not a custodial bridge.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
+            <OfficialLink href={HOODSTREET_SITE} label="HoodStreet" />
             <OfficialLink href={CUBES_MINT_URL} label="Cubes mint" />
             <OfficialLink href={HOOD_EXPLORER_URL} label="Hood explorer" />
           </div>

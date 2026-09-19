@@ -38,6 +38,7 @@ export const APP_ROUTES = [
   'review',
   'aura',
   'hood',
+  'hoodstreet',
   'cubes',
 ] as const;
 
@@ -62,6 +63,8 @@ const ROUTE_ALIASES: Record<string, AppRoute> = {
   'aura-live': 'aura',
   bridge: 'hood',
   'cubes-live': 'cubes',
+  'hood-street': 'hoodstreet',
+  hoodstreet: 'hoodstreet',
 };
 
 export function isAppRoute(path: string): path is AppRoute {

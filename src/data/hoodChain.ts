@@ -43,13 +43,13 @@ export const HOOD_ASSETS: HoodAsset[] = [
   {
     id: 'ccff00-cubes',
     projectId: CUBES_PROJECT_ID,
-    symbol: 'CUBES',
-    name: 'CCFF00 Cubes',
+    symbol: 'CCFF00',
+    name: 'HoodStreet CCFF00',
     kind: 'nft',
     address: CUBES_CONTRACT,
     mintUrl: CUBES_MINT_URL,
     notes:
-      'Confirmed Hood NFT. Trade/mint on the Square Apes mint page — not Jupiter. Swap tab stays Solana curated.',
+      'HoodStreet founding membership. Cubes ETH mint on Square Apes — not Jupiter. Swap tab stays Solana curated.',
   },
 ];
 

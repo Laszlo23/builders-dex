@@ -52,7 +52,7 @@ const MORE_LINKS = [
   { id: 'launchpad', label: 'Accelerator', icon: Rocket },
   { id: 'aura', label: '$AURA Live', icon: Zap },
   { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
-  { id: 'cubes', label: 'Cubes Live', icon: Layers },
+  { id: 'hoodstreet', label: 'HoodStreet', icon: Layers },
   { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'team', label: 'Team', icon: Users },
   { id: 'explore', label: 'Stories', icon: Layers },

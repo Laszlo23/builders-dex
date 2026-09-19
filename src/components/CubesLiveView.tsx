@@ -107,15 +107,15 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
     <div className="mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-            {BRAND_MULTICHAIN} · Cubes on Hood {HOOD_CHAIN_ID}
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#CCFF00]">
+            {BRAND_MULTICHAIN} · HoodStreet · chain {HOOD_CHAIN_ID}
           </p>
           <h1 className="font-display mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
-            Cubes Live
+            CCFF00 mint windows
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-steel">
-            {BRAND_HOOD_STANCE} This board is how we participate today — on-chain phases, outbound
-            mint, not a Solana wrap.
+            {BRAND_HOOD_STANCE} HoodStreet&apos;s Cubes phases on-chain. Outbound Square Apes mint
+            — not a Solana wrap.
           </p>
         </div>
         <p className="font-mono text-[10px] text-steel">on-chain phases() · every 30s · NFA</p>
@@ -143,7 +143,7 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
                 <span className="text-2xl text-steel"> / {max.toLocaleString()}</span>
               </p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full bg-accent" style={{ width: `${Math.round(fill * 100)}%` }} />
+                <div className="h-full bg-[#CCFF00]" style={{ width: `${Math.round(fill * 100)}%` }} />
               </div>
             </div>
             <div>
@@ -178,10 +178,17 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
             </a>
             <button
               type="button"
+              onClick={() => setCurrentPath('hoodstreet')}
+              className="rounded-full border border-[#CCFF00]/40 px-4 py-2 text-xs font-semibold text-[#CCFF00]"
+            >
+              HoodStreet
+            </button>
+            <button
+              type="button"
               onClick={() => setCurrentPath('hood')}
               className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white"
             >
-              On Hood
+              Honest hop
             </button>
             <button
               type="button"
@@ -280,11 +287,11 @@ export default function CubesLiveView({ setCurrentPath }: Props) {
               <button
                 type="button"
                 onClick={() => {
-                  window.location.assign(`/explore?id=p6`);
+                  window.location.assign('/hoodstreet');
                 }}
                 className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs"
               >
-                Cubes story
+                HoodStreet story
               </button>
             </div>
           </section>

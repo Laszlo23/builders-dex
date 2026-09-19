@@ -50,6 +50,7 @@ export type SeoRoute =
   | 'builder-stories'
   | 'aura'
   | 'hood'
+  | 'hoodstreet'
   | 'cubes';
 
 type SeoConfig = {
@@ -246,10 +247,16 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     description: `${BRAND_MULTICHAIN} ${BRAND_HOOD_STANCE} Honest hop onto chain 4663. Gas-first. NFA. Not affiliated with Robinhood Markets.`,
     path: '/hood',
   },
-  cubes: {
-    title: 'Cubes Live — Builders DEX',
+  hoodstreet: {
+    title: 'HoodStreet — Builders DEX',
     description:
-      'CCFF00 Cubes mint windows on Robinhood Chain from on-chain phases(). Outbound mint and explorer only.',
+      'HoodStreet on Robinhood Chain: CCFF00 founding Squares, My Neon wallets, Cubes ETH mint. Not affiliated with Robinhood Markets.',
+    path: '/hoodstreet',
+  },
+  cubes: {
+    title: 'CCFF00 Live — Builders DEX',
+    description:
+      'CCFF00 Cubes mint windows on Robinhood Chain from on-chain phases(). Outbound Square Apes mint only.',
     path: '/cubes',
   },
 };
@@ -292,6 +299,7 @@ const PATH_ALIASES: Record<string, SeoRoute> = {
   'aura-live': 'aura',
   bridge: 'hood',
   'cubes-live': 'cubes',
+  'hood-street': 'hoodstreet',
 };
 
 function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: string | null } {
@@ -390,6 +398,7 @@ export function sitemapEntries(): { loc: string; changefreq: string; priority: s
     { route: 'builder-stories', changefreq: 'weekly', priority: '0.5' },
     { route: 'aura', changefreq: 'hourly', priority: '0.7' },
     { route: 'hood', changefreq: 'weekly', priority: '0.6' },
+    { route: 'hoodstreet', changefreq: 'daily', priority: '0.7' },
     { route: 'cubes', changefreq: 'hourly', priority: '0.6' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },
     { route: 'privacy', changefreq: 'yearly', priority: '0.2' },

@@ -263,33 +263,40 @@ export default function LandingView({
 
       {/* 3b — Multichain / Robinhood Chain */}
       <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-12">
-        <div className="mx-auto max-w-3xl overflow-hidden rounded-[1.75rem] border border-accent/30 bg-gradient-to-br from-accent/[0.12] via-ink to-surface p-6 sm:p-10">
-          <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-accent">
-            {BRAND_MULTICHAIN}
+        <div className="mx-auto max-w-3xl overflow-hidden rounded-[1.75rem] border border-[#CCFF00]/35 bg-gradient-to-br from-[#CCFF00]/[0.14] via-ink to-surface p-6 sm:p-10">
+          <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#CCFF00]">
+            {BRAND_MULTICHAIN} · HoodStreet
           </p>
           <h2 className="font-display mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            We love how Robinhood Chain moves.
+            Wall Street reimagined onchain.
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80">
-            {BRAND_HOOD_STANCE} Solana keeps Passport and share mint. Base keeps canonical AURA.
-            Hood is in the catalog, Apply, Cubes Live, and Passport EVM bind — we are here to
-            participate in this network, not watch it from Solana.
+            {BRAND_HOOD_STANCE} HoodStreet is the Hood project we actually participate in — CCFF00
+            Squares, My Neon wallets, Cubes ETH mint. Solana keeps Passport. Base keeps canonical
+            AURA. We are here on 4663, not watching from Solana.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setCurrentPath('hood')}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-xs font-bold text-ink"
+              onClick={() => setCurrentPath('hoodstreet')}
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#CCFF00] px-5 py-2.5 text-xs font-bold text-ink"
             >
-              On Hood
+              HoodStreet
               <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPath('hood')}
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold text-white"
+            >
+              Honest hop
             </button>
             <button
               type="button"
               onClick={() => setCurrentPath('cubes')}
               className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold text-white"
             >
-              Cubes Live
+              Live phases
             </button>
           </div>
         </div>

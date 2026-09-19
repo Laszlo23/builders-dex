@@ -151,7 +151,7 @@ export interface Project {
   mint?: string;
   /** Canonical Base ERC-20 when chain is Base (Aura OS AURA, etc.) */
   baseTokenAddress?: string;
-  /** Confirmed Hood contract when chain is Robinhood (Cubes NFT, etc.) */
+  /** Confirmed Hood contract when chain is Robinhood (HoodStreet / Cubes NFT, etc.) */
   hoodTokenAddress?: string;
   rating: number;
   upvotes: number;

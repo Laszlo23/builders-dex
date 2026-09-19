@@ -223,8 +223,8 @@ export default function WalletLinkCard() {
       </div>
       {addError && <p className="mt-2 text-xs text-amber-200/90">{addError}</p>}
       <p className="mt-3 text-[11px] text-steel">
-        Linked wallets can hold Aura OS AURA on Base and mint Cubes on Hood after you fund ETH for
-        gas. Passport and share certificates stay on Solana.
+        Linked wallets can hold Aura OS AURA on Base and mint HoodStreet / CCFF00 on Hood after you
+        fund ETH for gas. Passport and share certificates stay on Solana.
       </p>
       <div className="mt-2 flex flex-wrap gap-3">
         <a

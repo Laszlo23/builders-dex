@@ -10,6 +10,7 @@ import {
 import { makeBuilderScore } from '../lib/builderScore';
 import { AURA_BASE_ADDRESS } from './crossChainRegistry';
 import { CUBES_CONTRACT, CUBES_MINT_URL } from './hoodChain';
+import { HOODSTREET_SITE } from './hoodStreet';
 
 /** Builders Index™ — live Genesis Index first */
 export const BUILDERS_INDEX: BuildersIndex = {
@@ -557,20 +558,20 @@ export const INITIAL_PROJECTS: Project[] = [
   },
   {
     id: 'p6',
-    name: 'Cubes',
-    ticker: 'CUBES',
-    tagline: 'CCFF00 Cubes NFT on Robinhood Chain — mint with Hood ETH, not Jupiter.',
+    name: 'HoodStreet',
+    ticker: 'CCFF00',
+    tagline: 'Wall Street reimagined onchain — CCFF00 Squares, My Neon wallets, Cubes mint.',
     description:
-      'CCFF00 Cubes is an ERC-721 collection on Robinhood Chain (4663). Mint is payable ETH on the Square Apes mint page. Builders DEX lists the confirmed contract and live phases() windows; we are not the minter and we do not wrap this collection onto Solana.',
+      'HoodStreet is an onchain market ecosystem on Robinhood Chain for humans and AI agents. CCFF00 is the founding membership: 10,000 identical #CCFF00 Squares, each an ERC-6551 wallet loaded with 10,000 $CCFF00. Cubes is the ETH mint we list (Square Apes). We are not the minter and we do not wrap this onto Solana.',
     problem:
-      'Founders on Solana have no canonical bridge onto Hood. A token-only arrival leaves you unable to mint. Cubes needs ETH on 4663 first.',
+      'Agents and founders need a persistent onchain identity with a wallet that moves with the NFT — not a username and an API key. Arrival from Solana still needs ETH on 4663 first.',
     builderStory:
-      'Reviewed on-chain (Sourcify match) at 0x5b9e105b28e6313222ee6572a90374c91a296639 before listing. Payout is immutable. Merkle allowlists are configured per phase. Config and metadata were unfrozen at review time — DYOR before you mint.',
+      'CCFF00 is Proof of Neon: one color, fully onchain SVG, token-bound account. Cubes contract reviewed on-chain (Sourcify) at 0x5b9e105b28e6313222ee6572a90374c91a296639. My Neon is the wallet UI for what the Square holds. DYOR — config/metadata freeze and merkle details are on-chain, not our promises.',
     foundedYear: 2026,
-    journey: 'Mint live on Hood',
+    journey: 'HoodStreet live on Hood',
     whySelected:
-      'First confirmed Hood asset in the catalog. Outbound mint/explorer only until a Hood DEX is wired the same way Uniswap is for Base AURA.',
-    marketCapLabel: 'NFT mint on Hood · ETH gas',
+      'The Hood project we can actually participate in today: official site, founding membership, live mint phases, same 0x as Base. Catalog lists the ecosystem — not a Cubes-only footnote.',
+    marketCapLabel: 'CCFF00 membership · Hood ETH',
     logoUrl: 'Layers',
     category: 'Creator Economy',
     chain: 'Robinhood',
@@ -580,11 +581,14 @@ export const INITIAL_PROJECTS: Project[] = [
     githubRepo: '—',
     githubActivity: 0,
     roadmap: [
-      { phase: 'Phase 0', title: 'Allowlist window', description: 'On-chain phases() with merkle gate.', date: 'Sep 2026', status: 'in-progress' },
-      { phase: 'Phase 1', title: 'Paid waves', description: 'Later windows price in ETH on 4663.', date: 'Sep 2026', status: 'in-progress' },
-      { phase: 'Phase 2', title: 'DEX listing', description: 'No Hood Jupiter. Trade URL stays the mint page until a Hood DEX is confirmed.', date: 'TBD', status: 'upcoming' },
+      { phase: 'Phase 0', title: 'CCFF00 + My Neon', description: 'Founding Squares and the token-bound wallet UI are live on hoodstreet.capital.', date: '2026', status: 'completed' },
+      { phase: 'Phase 1', title: 'Cubes mint windows', description: 'ETH mint on Square Apes with on-chain phases() and merkle gates.', date: 'Sep 2026', status: 'in-progress' },
+      { phase: 'Phase 2', title: 'Member street', description: 'HoodStreet lists planned launch access, fees, and agent tools. Subject to their disclosures.', date: 'TBD', status: 'upcoming' },
     ],
-    team: [{ name: 'Square Apes', role: 'Minter', avatarUrl: '/og-image.webp' }],
+    team: [
+      { name: 'HoodStreet', role: 'Ecosystem', avatarUrl: '/og-image.webp' },
+      { name: 'Square Apes', role: 'Cubes minter', avatarUrl: '/og-image.webp' },
+    ],
     raised: 0,
     goal: 0,
     tokenPrice: 0,
@@ -620,8 +624,8 @@ export const INITIAL_PROJECTS: Project[] = [
       },
       {
         id: 'q_p6_2',
-        name: 'Open Cubes Live',
-        description: 'Check on-chain mint windows on /cubes before using the Square Apes mint.',
+        name: 'Open HoodStreet',
+        description: 'Read /hoodstreet — CCFF00, My Neon, then check Cubes phases before minting.',
         xp: 200,
         category: 'community',
         completed: false,
@@ -630,13 +634,13 @@ export const INITIAL_PROJECTS: Project[] = [
     ],
     socials: {
       twitter: '',
-      website: CUBES_MINT_URL,
+      website: HOODSTREET_SITE,
       discord: '',
     },
     launchpadActive: false,
     liquidityLocked: false,
     reputationDelta: 0,
-    communityMilestones: ['Robinhood Chain 4663', 'Sourcify-verified Cubes', 'ETH gas first'],
+    communityMilestones: ['HoodStreet on 4663', 'CCFF00 Proof of Neon', 'Sourcify Cubes mint', 'ETH gas first'],
   },
 ];
 

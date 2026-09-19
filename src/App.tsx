@@ -38,6 +38,7 @@ const ReviewDeskView = lazyWithRetry(() => import('./components/ReviewDeskView')
 const AuraLiveView = lazyWithRetry(() => import('./components/AuraLiveView'));
 const HoodGuideView = lazyWithRetry(() => import('./components/HoodGuideView'));
 const CubesLiveView = lazyWithRetry(() => import('./components/CubesLiveView'));
+const HoodStreetView = lazyWithRetry(() => import('./components/HoodStreetView'));
 const HoodShareView = lazyWithRetry(() => import('./components/HoodShareView'));
 
 import { INITIAL_PROJECTS, INITIAL_BUILDERS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
@@ -1249,6 +1250,13 @@ export default function App() {
         return <AuraLiveView setCurrentPath={setCurrentPath} />;
       case 'hood':
         return <HoodGuideView setCurrentPath={setCurrentPath} />;
+      case 'hoodstreet':
+        return (
+          <HoodStreetView
+            setCurrentPath={setCurrentPath}
+            setSelectedProjectId={setSelectedProjectId}
+          />
+        );
       case 'cubes':
         return <CubesLiveView setCurrentPath={setCurrentPath} />;
       default:

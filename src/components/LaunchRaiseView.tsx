@@ -237,13 +237,22 @@ export default function LaunchRaiseView({
             </a>
           )}
           {hood && (
-            <button
-              type="button"
-              onClick={() => setCurrentPath('cubes')}
-              className="rounded-xl border border-white/12 py-2.5 text-xs font-semibold"
-            >
-              Cubes Live
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setCurrentPath('hoodstreet')}
+                className="rounded-xl border border-[#CCFF00]/40 py-2.5 text-xs font-semibold text-[#CCFF00]"
+              >
+                HoodStreet
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPath('cubes')}
+                className="rounded-xl border border-white/12 py-2.5 text-xs font-semibold"
+              >
+                Live phases
+              </button>
+            </>
           )}
           {project && (
             <button
