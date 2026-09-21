@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { INITIAL_BUILDERS } from '../data/projects';
-import { TALENT_TOP7_FALLBACK, type TalentBuilder } from '../data/talentFarcaster';
+import type { TalentBuilder } from '../data/talentFarcaster';
 import type { LiveBuilderScoreResult } from '../lib/builderScore';
 import { mergeCatalogWithLiveScores } from '../lib/liveBuilders';
 import type { Builder } from '../types';
@@ -8,15 +8,15 @@ import type { Builder } from '../types';
 export type LiveBuildersState = {
   builders: Builder[];
   talent: TalentBuilder[];
-  talentSource: 'live' | 'curated';
+  talentSource: 'live' | 'unavailable';
   loading: boolean;
   error: string | null;
 };
 
 export function useLiveBuilders(): LiveBuildersState {
   const [builders, setBuilders] = useState<Builder[]>(INITIAL_BUILDERS);
-  const [talent, setTalent] = useState<TalentBuilder[]>(TALENT_TOP7_FALLBACK);
-  const [talentSource, setTalentSource] = useState<'live' | 'curated'>('curated');
+  const [talent, setTalent] = useState<TalentBuilder[]>([]);
+  const [talentSource, setTalentSource] = useState<'live' | 'unavailable'>('unavailable');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,19 +34,22 @@ export function useLiveBuilders(): LiveBuildersState {
           if (!res.ok) throw new Error(`Talent API ${res.status}`);
           return res.json() as Promise<{
             builders?: TalentBuilder[];
-            source?: 'live' | 'curated';
+            source?: 'live' | 'curated' | 'unavailable';
           }>;
         })
-        .catch(() => ({ builders: TALENT_TOP7_FALLBACK, source: 'curated' as const })),
+        .catch(() => ({ builders: [] as TalentBuilder[], source: 'unavailable' as const })),
     ])
       .then(([scoreData, talentData]) => {
         if (cancelled) return;
         if (Array.isArray(scoreData.scores) && scoreData.scores.length) {
           setBuilders(mergeCatalogWithLiveScores(scoreData.scores));
         }
-        if (Array.isArray(talentData.builders) && talentData.builders.length) {
+        if (talentData.source === 'live' && Array.isArray(talentData.builders) && talentData.builders.length) {
           setTalent(talentData.builders);
-          setTalentSource(talentData.source === 'live' ? 'live' : 'curated');
+          setTalentSource('live');
+        } else {
+          setTalent([]);
+          setTalentSource('unavailable');
         }
         setError(null);
       })

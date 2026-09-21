@@ -208,6 +208,7 @@ export default function ProjectSubmitForm({
             <option value="Base">Base</option>
             <option value="Polygon">Polygon</option>
             <option value="Ethereum">Ethereum</option>
+            <option value="Off-chain">Off-chain / OSS</option>
             <option value="Robinhood">Robinhood Chain</option>
           </select>
           <input className={field} placeholder="GitHub org/repo" value={githubRepo} onChange={(e) => setGithubRepo(e.target.value)} />

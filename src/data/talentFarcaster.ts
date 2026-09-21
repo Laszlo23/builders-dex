@@ -17,74 +17,10 @@ export function talentProfileUrl(builder: Pick<TalentBuilder, 'talentPath'>): st
 }
 
 /**
- * Seed Top 7 — real Talent.app profiles (avatars via unavatar).
- * Replaced by /api/talent/top-builders when TALENT_API_KEY is set.
+ * Empty until /api/talent/top-builders returns live Talent Protocol rows.
+ * Celebrity names are not our ranking.
  */
-export const TALENT_TOP7_FALLBACK: TalentBuilder[] = [
-  {
-    id: 'tp1',
-    displayName: 'Jesse Pollak',
-    handle: 'jessepollak',
-    talentPath: 'jessepollak',
-    avatarUrl: 'https://unavatar.io/twitter/jessepollak',
-    rank: 1,
-    tagline: 'Base · onchain builder',
-  },
-  {
-    id: 'tp2',
-    displayName: 'Dan Romero',
-    handle: 'dwr',
-    talentPath: 'dwr',
-    avatarUrl: 'https://unavatar.io/twitter/dwr',
-    rank: 2,
-    tagline: 'Farcaster',
-  },
-  {
-    id: 'tp3',
-    displayName: 'Vitalik Buterin',
-    handle: 'vitalik',
-    talentPath: 'vitalik',
-    avatarUrl: 'https://unavatar.io/twitter/VitalikButerin',
-    rank: 3,
-    tagline: 'Ethereum',
-  },
-  {
-    id: 'tp4',
-    displayName: 'Linda Xie',
-    handle: 'linda',
-    talentPath: 'linda',
-    avatarUrl: 'https://unavatar.io/twitter/lindajxie',
-    rank: 4,
-    tagline: 'Builder · investor',
-  },
-  {
-    id: 'tp5',
-    displayName: 'Varun Srinivasan',
-    handle: 'v',
-    talentPath: 'v',
-    avatarUrl: 'https://unavatar.io/twitter/varunsrin',
-    rank: 5,
-    tagline: 'Farcaster',
-  },
-  {
-    id: 'tp6',
-    displayName: 'Brian Armstrong',
-    handle: 'brian',
-    talentPath: 'brian_armstrong',
-    avatarUrl: 'https://unavatar.io/twitter/brian_armstrong',
-    rank: 6,
-    tagline: 'Coinbase',
-  },
-  {
-    id: 'tp7',
-    displayName: 'Balaji',
-    handle: 'balajis',
-    talentPath: 'balajis',
-    avatarUrl: 'https://unavatar.io/twitter/balajis',
-    rank: 7,
-    tagline: 'Network state · builder',
-  },
-];
+export const TALENT_TOP7_FALLBACK: TalentBuilder[] = [];
 
 /** Apps / games / tools first spotted on Farcaster — useful ≠ boring */
 export type FarcasterApp = {

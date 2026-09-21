@@ -21,13 +21,13 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Project, Builder } from '../types';
-import { BUILDERS_INDEX, getBuilder100 } from '../data/projects';
+import { BUILDERS_INDEX, THE_STANDARD, getBuilder100 } from '../data/projects';
 import { GENESIS_INDEX_COPY, GENESIS_PROJECT_IDS } from '../data/genesisBuilders';
 import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
 import { CuratedToken, getCuratedToken, resolveTradeMint } from '../data/curatedTokens';
 import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
 import VideoBackground from './VideoBackground';
-import ScoreBars, { BuilderScoreBadge, CurationBadges } from './ScoreBars';
+import { BuilderScoreBadge, CurationBadges } from './ScoreBars';
 import DepthCard from './DepthCard';
 import ParallaxBand from './ParallaxBand';
 import ProjectSocialLinks from './ProjectSocialLinks';
@@ -507,8 +507,8 @@ export default function LandingView({
             {[
               {
                 icon: Activity,
-                n: BUILDERS_INDEX.health.toFixed(1),
-                label: 'Market health',
+                n: String(THE_STANDARD.approvedForTrading),
+                label: 'Tradeable now',
               },
               {
                 icon: Layers,
@@ -626,18 +626,21 @@ export default function LandingView({
                     </p>
                     <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/8 pt-4">
                       <BuilderScoreBadge
-                        overall={liveScores[p.id]?.overall ?? p.builderScore.overall}
+                        overall={liveScores[p.id]?.overall ?? null}
                         mode={
                           (liveScores[p.id]?.mode as
                             | 'live'
                             | 'partial'
                             | 'provisional'
+                            | 'seed'
                             | undefined) || 'seed'
                         }
                       />
-                      <div className="min-w-0 flex-1">
-                        <ScoreBars score={p.builderScore} mode="top3" compact />
-                      </div>
+                      <p className="min-w-0 flex-1 text-xs text-steel">
+                        {liveScores[p.id]
+                          ? 'Live GitHub citations on the story'
+                          : 'Score appears after live GitHub — not a catalog placeholder'}
+                      </p>
                     </div>
                     {/* z-[60] > mobile nav (z-50) so Story/Trade stay clickable when cards sit over the bar */}
                     <div className="relative z-[60] mt-4">
@@ -787,7 +790,9 @@ export default function LandingView({
                     {entry.founder} · {entry.level}
                   </p>
                 </div>
-                <span className="font-mono text-sm font-bold text-white">{entry.score}</span>
+                <span className="font-mono text-sm font-bold text-white">
+                  {entry.score > 0 ? entry.score : '—'}
+                </span>
               </button>
             ))}
           </div>
@@ -802,7 +807,7 @@ export default function LandingView({
               Rejection becomes motivation
             </h2>
             <p className="mt-2 max-w-xl text-sm text-steel">
-              Score, what to improve, and when to re-apply — not a dead end.
+              Score, what to improve, and when to re-apply — not a dead end. We do not invent a review score.
             </p>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               {rejected.map((p) => (

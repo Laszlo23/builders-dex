@@ -69,6 +69,11 @@ export function ConvictionsCard({
       </p>
       <h2 className="font-display mt-1 text-xl font-bold">Think like a builder</h2>
       <p className="mt-1 text-xs text-steel">Not a watchlist — conviction with a reason.</p>
+      {convictions.length === 0 ? (
+        <p className="mt-5 rounded-xl border border-dashed border-white/12 px-4 py-8 text-center text-sm text-steel">
+          No convictions yet — write your own. We do not seed a watchlist for you.
+        </p>
+      ) : (
       <ul className="mt-5 space-y-4">
         {convictions.map((c) => (
           <li key={c.id} className="rounded-2xl border border-white/8 bg-ink/40 p-4">
@@ -91,6 +96,7 @@ export function ConvictionsCard({
           </li>
         ))}
       </ul>
+      )}
     </section>
   );
 }
@@ -102,6 +108,7 @@ export function BuilderSeasonCard({
   season?: BuilderSeason;
   onOpenWinner?: (projectId: string) => void;
 }) {
+  const live = season.status === 'live' && Boolean(season.winnerName);
   return (
     <section className="overflow-hidden rounded-[1.75rem] border border-accent/30 bg-gradient-to-br from-accent/[0.12] via-ink to-surface p-5 sm:p-6">
       <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-accent">
@@ -109,34 +116,39 @@ export function BuilderSeasonCard({
       </p>
       <h2 className="font-display mt-2 text-2xl font-bold tracking-tight">{season.name}</h2>
       <p className="mt-1 text-sm text-white/85">{season.theme}</p>
-
-      <dl className="mt-5 grid grid-cols-2 gap-3 font-mono text-xs">
-        <div className="rounded-xl border border-white/10 bg-ink/50 px-3 py-2.5">
-          <dt className="text-steel">Applications</dt>
-          <dd className="mt-1 text-lg text-white">{season.applications.toLocaleString()}</dd>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-ink/50 px-3 py-2.5">
-          <dt className="text-steel">Accepted</dt>
-          <dd className="mt-1 text-lg text-white">{season.accepted}</dd>
-        </div>
-      </dl>
-
-      <div className="mt-5 rounded-2xl border border-accent/25 bg-accent/10 p-4">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-accent">Winner</p>
-        <button
-          type="button"
-          onClick={() => onOpenWinner?.(season.winnerProjectId)}
-          className="mt-1 text-left font-display text-xl font-bold text-white hover:text-accent"
-        >
-          {season.winnerName}
-        </button>
-        <p className="mt-0.5 text-xs text-steel">Builder of the Season</p>
-      </div>
-
-      <p className="mt-5 font-mono text-sm text-white/80">
-        Season closes in{' '}
-        <span className="text-accent">{season.closesInDays} Days</span>
-      </p>
+      {!live ? (
+        <p className="mt-5 rounded-xl border border-dashed border-white/15 px-4 py-8 text-center text-sm text-steel">
+          No public season is running. We will not name a winner until a vote actually closes.
+        </p>
+      ) : (
+        <>
+          <dl className="mt-5 grid grid-cols-2 gap-3 font-mono text-xs">
+            <div className="rounded-xl border border-white/10 bg-ink/50 px-3 py-2.5">
+              <dt className="text-steel">Applications</dt>
+              <dd className="mt-1 text-lg text-white">{season.applications.toLocaleString()}</dd>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-ink/50 px-3 py-2.5">
+              <dt className="text-steel">Accepted</dt>
+              <dd className="mt-1 text-lg text-white">{season.accepted}</dd>
+            </div>
+          </dl>
+          <div className="mt-5 rounded-2xl border border-accent/25 bg-accent/10 p-4">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-accent">Winner</p>
+            <button
+              type="button"
+              onClick={() => onOpenWinner?.(season.winnerProjectId)}
+              className="mt-1 text-left font-display text-xl font-bold text-white hover:text-accent"
+            >
+              {season.winnerName}
+            </button>
+            <p className="mt-0.5 text-xs text-steel">Builder of the Season</p>
+          </div>
+          <p className="mt-5 font-mono text-sm text-white/80">
+            Season closes in{' '}
+            <span className="text-accent">{season.closesInDays} Days</span>
+          </p>
+        </>
+      )}
     </section>
   );
 }

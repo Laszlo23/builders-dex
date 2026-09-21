@@ -15,7 +15,7 @@ import { scoreFromAiAnalysis } from './builderScore';
 const SEED_IDS = new Set(INITIAL_PROJECTS.map((p) => p.id));
 
 const CATEGORIES = ['AI + Web3', 'DeFi', 'Infrastructure', 'Creator Economy'] as const;
-const CHAINS = ['Polygon', 'Base', 'Solana', 'Ethereum', 'Robinhood'] as const;
+const CHAINS = ['Polygon', 'Base', 'Solana', 'Ethereum', 'Robinhood', 'Off-chain'] as const;
 
 type Category = (typeof CATEGORIES)[number];
 type Chain = (typeof CHAINS)[number];
@@ -94,11 +94,11 @@ function slugId(ticker: string, applicationId: string): string {
 
 function pendingAnalysis(): ProjectAIAnalysis {
   return {
-    quality: 50,
-    market: 50,
-    risk: 50,
-    innovation: 50,
-    summary: 'Application received. Builder Score™ stays a placeholder until Proof of Building™ review.',
+    quality: 0,
+    market: 0,
+    risk: 0,
+    innovation: 0,
+    summary: 'Application received. Builder Score™ stays blank until Proof of Building™ review.',
   };
 }
 
@@ -163,8 +163,7 @@ export function projectFromApplication(
       {
         name: payload.name,
         role: 'Founder',
-        avatarUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+        avatarUrl: `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(payload.name)}`,
       },
     ],
     raised: 0,

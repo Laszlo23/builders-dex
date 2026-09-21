@@ -31,14 +31,20 @@ import {
   type Ccff00Square,
   type Ccff00WalletSnapshot,
 } from '../lib/ccff00Wallet';
+import SquareLoopPanel from './SquareLoopPanel';
 
 type Props = {
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: { buy?: string | null; stall?: string | null }) => void;
 };
 
 function buyFromSearch(): string | null {
   if (typeof window === 'undefined') return null;
   return new URLSearchParams(window.location.search).get('buy');
+}
+
+function stallFromSearch(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('stall') === '1';
 }
 
 export default function Ccff00WalletView({ setCurrentPath }: Props) {
@@ -144,10 +150,13 @@ export default function Ccff00WalletView({ setCurrentPath }: Props) {
 
   useEffect(() => {
     const want = buyFromSearch();
-    if (!want) return;
-    setBuyId(want);
+    const stall = stallFromSearch();
+    if (!want && !stall) return;
+    if (want) setBuyId(want);
     const timer = window.setTimeout(() => {
-      document.getElementById('square-desk')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document
+        .getElementById(stall ? 'square-loop' : 'square-desk')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
     return () => window.clearTimeout(timer);
   }, []);
@@ -360,12 +369,19 @@ export default function Ccff00WalletView({ setCurrentPath }: Props) {
         </section>
       )}
 
+      {selected && (
+        <div id="square-loop" className="mt-8">
+          <SquareLoopPanel tokenId={selected.tokenId} setCurrentPath={setCurrentPath} compact />
+        </div>
+      )}
+
       <section id="square-desk" className="mt-10 scroll-mt-24">
         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#CCFF00]">4 · Buy as this Square</p>
         <h2 className="font-display mt-2 text-2xl font-bold sm:text-3xl">Projects settle into the NFT.</h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-steel">
-          Solana swap cannot pay this. Base AURA cannot pay this. The Square on Hood can. $CCFF00
-          spot stays locked until HoodStreet enables trading.
+          Solana swap cannot pay this. Base AURA cannot pay this. The Square on Hood can. Activate
+          and park first if you want the Aura stall. $CCFF00 spot stays locked until HoodStreet
+          enables trading.
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {CCFF00_DESK.map((item) => (
@@ -424,6 +440,9 @@ export default function Ccff00WalletView({ setCurrentPath }: Props) {
       )}
 
       <div className="mt-8 flex flex-wrap gap-2">
+        <button type="button" onClick={() => setCurrentPath('build')} className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold">
+          $BUILD
+        </button>
         <button type="button" onClick={() => setCurrentPath('hoodstreet')} className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold">
           HoodStreet
         </button>

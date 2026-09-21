@@ -80,7 +80,6 @@ import {
 } from './src/lib/indexPipeline/repo';
 import { TODAY_BRIEF } from './src/data/dailyIntelligence';
 import { runToolUsingAnalyst } from './src/lib/aiAnalyst/run';
-import { TALENT_TOP7_FALLBACK } from './src/data/talentFarcaster';
 import {
   securityHeaders,
   rateLimit,
@@ -132,6 +131,7 @@ import {
   HOOD_SHARE_PROJECT_ID,
   HOOD_SHARE_SUPPLY,
 } from './src/data/hoodShare';
+import { buildPublicStatus } from './src/data/buildToken';
 import { logHoodDeployerBoot } from './src/lib/hoodDeployer';
 import {
   canOpenRaise,
@@ -404,6 +404,7 @@ app.get('/api/health', (req, res) => {
     tradeable: tradeable.map((t) => t.symbol),
     catalogSize: TOKEN_CATALOG.length,
     avantisSidecar: AVANTIS_SIDECAR,
+    buildToken: buildPublicStatus().token.status,
   });
 });
 
@@ -762,6 +763,10 @@ app.get('/api/hood/status', rateLimit(60, 60_000, 'hood-status'), async (_req, r
   } catch (err) {
     res.status(502).json({ error: safeErrorMessage(err, 'hood status failed') });
   }
+});
+
+app.get('/api/build/status', rateLimit(60, 60_000, 'build-status'), (_req, res) => {
+  res.json(buildPublicStatus('0'));
 });
 
 app.get('/api/hood/share/:id', rateLimit(120, 60_000, 'hood-share-meta'), (req, res) => {
@@ -1536,7 +1541,7 @@ app.post('/api/scout/submit', rateLimit(20, 60_000, 'scout-submit'), async (req,
 app.get('/api/talent/top-builders', rateLimit(30, 60_000, 'talent'), async (_req, res) => {
   const apiKey = process.env.TALENT_API_KEY;
   if (!apiKey) {
-    return res.json({ builders: TALENT_TOP7_FALLBACK, source: 'curated' });
+    return res.json({ builders: [], source: 'unavailable' });
   }
 
   try {
@@ -1558,7 +1563,7 @@ app.get('/api/talent/top-builders', rateLimit(30, 60_000, 'talent'), async (_req
 
     if (!upstream.ok) {
       console.warn('[talent] upstream', upstream.status);
-      return res.json({ builders: TALENT_TOP7_FALLBACK, source: 'curated' });
+      return res.json({ builders: [], source: 'unavailable' });
     }
 
     const data = (await upstream.json()) as {
@@ -1576,7 +1581,7 @@ app.get('/api/talent/top-builders', rateLimit(30, 60_000, 'talent'), async (_req
 
     const profiles = Array.isArray(data.profiles) ? data.profiles : [];
     if (profiles.length < 3) {
-      return res.json({ builders: TALENT_TOP7_FALLBACK, source: 'curated' });
+      return res.json({ builders: [], source: 'unavailable' });
     }
 
     const builders = profiles.slice(0, 7).map((p, i) => {
@@ -1605,7 +1610,7 @@ app.get('/api/talent/top-builders', rateLimit(30, 60_000, 'talent'), async (_req
     res.json({ builders, source: 'live' });
   } catch (error) {
     console.warn('[talent]', error);
-    res.json({ builders: TALENT_TOP7_FALLBACK, source: 'curated' });
+    res.json({ builders: [], source: 'unavailable' });
   }
 });
 

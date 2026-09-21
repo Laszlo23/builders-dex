@@ -29,7 +29,9 @@ export default function CrystalBallCard({
           Spot builders before they become popular
         </h2>
         <p className="mt-1 max-w-lg text-xs text-steel sm:text-sm">
-          People won&apos;t visit for trading — they&apos;ll visit to discover tomorrow&apos;s winners.
+          {featured.probability > 0
+            ? "People won't visit for trading — they'll visit to discover tomorrow's winners."
+            : 'Genesis Index names with public repos — not a predicted return.'}
         </p>
 
         <motion.div
@@ -42,11 +44,22 @@ export default function CrystalBallCard({
           </p>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-sm text-steel">Probability of becoming a Top 100 project</p>
-              <p className="font-display mt-1 text-3xl font-bold text-white sm:text-4xl">
-                {featured.probability}
-                <span className="text-xl text-accent">%</span>
-              </p>
+              {featured.probability > 0 ? (
+                <>
+                  <p className="text-sm text-steel">Probability of becoming a Top 100 project</p>
+                  <p className="font-display mt-1 text-3xl font-bold text-white sm:text-4xl">
+                    {featured.probability}
+                    <span className="text-xl text-accent">%</span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-steel">Forecast model</p>
+                  <p className="font-display mt-1 text-2xl font-bold text-white sm:text-3xl">
+                    Not live
+                  </p>
+                </>
+              )}
             </div>
             <div className="rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-center">
               <p className="font-mono text-[9px] uppercase text-accent">Confidence</p>
@@ -85,7 +98,9 @@ export default function CrystalBallCard({
                   className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5 text-left hover:border-accent/30"
                 >
                   <span className="text-sm font-semibold">{a.projectName}</span>
-                  <span className="font-mono text-xs text-accent">{a.probability}% · {a.confidence}</span>
+                  <span className="font-mono text-xs text-accent">
+                    {a.probability > 0 ? `${a.probability}% · ${a.confidence}` : a.confidence}
+                  </span>
                 </button>
               </li>
             ))}

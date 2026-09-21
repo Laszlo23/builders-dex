@@ -25,7 +25,7 @@ import { LIVE_AURA_RAISE_SEED } from '../data/liveShareRaise';
 type Props = {
   project: Project | undefined;
   onBack: () => void;
-  setCurrentPath: (path: string, state?: { buy?: string | null }) => void;
+  setCurrentPath: (path: string, state?: { buy?: string | null; stall?: string | null }) => void;
 };
 
 const EMPTY_SCORE: BuilderScore = {
@@ -196,6 +196,13 @@ export default function HoodShareView({ project, onBack, setCurrentPath }: Props
               className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-[#CCFF00]/40 py-3 text-sm font-bold text-[#CCFF00]"
             >
               Mint as Square wallet
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPath('ccff00', { buy: 'p5', stall: '1' })}
+              className="mt-2 inline-flex w-full items-center justify-center rounded-2xl border border-[#CCFF00]/40 py-3 text-sm font-bold text-[#CCFF00]"
+            >
+              Take Square stall · then mint
             </button>
             {!deployed && (
               <p className="mt-2 text-xs text-amber-200/90">

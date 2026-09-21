@@ -27,7 +27,13 @@ export interface BuilderScore {
 
 export type CurationStatus = 'pending' | 'reviewed' | 'curated' | 'rejected';
 
-export type ProjectChain = 'Polygon' | 'Base' | 'Solana' | 'Ethereum' | 'Robinhood';
+export type ProjectChain =
+  | 'Polygon'
+  | 'Base'
+  | 'Solana'
+  | 'Ethereum'
+  | 'Robinhood'
+  | 'Off-chain';
 
 export type OpenSourceImpact = 'Low' | 'Medium' | 'High' | 'Exceptional';
 

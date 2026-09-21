@@ -45,5 +45,5 @@ export const TODAY_BRIEF: DailyIntelligenceBrief = {
     { sector: 'Infrastructure', changePct: 0 },
     { sector: 'DeFi', changePct: 0 },
   ],
-  defaultWatchlistUpdates: 3,
+  defaultWatchlistUpdates: 0,
 };

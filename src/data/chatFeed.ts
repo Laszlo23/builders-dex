@@ -26,7 +26,7 @@ export const STREAM_TICKS: Omit<FeedItem, 'id' | 'at'>[] = [
   {
     kind: 'market',
     title: 'Sector pulse',
-    body: TODAY_BRIEF.marketPulse.map((p) => `${p.sector} ${p.changePct >= 0 ? '+' : ''}${p.changePct}%`).join(' · '),
+    body: 'No sector % until live radar posts a real Δ.',
   },
   {
     kind: 'social',
@@ -42,7 +42,7 @@ export const STREAM_TICKS: Omit<FeedItem, 'id' | 'at'>[] = [
   {
     kind: 'pulse',
     title: 'Talent Top 7',
-    body: 'Avatar slider refreshed — identity before ticker.',
+    body: 'Talent Top 7 appears only from the live Talent Protocol API.',
   },
   {
     kind: 'builder',

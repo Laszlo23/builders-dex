@@ -14,29 +14,12 @@ export {
   GROWTH_TASK_EXTERNAL,
 } from './growthTasks';
 
-export type LpPool = {
-  id: string;
-  name: string;
-  pair: string;
-  apr: number;
-  tvl: number;
-  risk: 'Low' | 'Medium' | 'High';
-  curated: boolean;
-};
-
-export const LP_POOLS: LpPool[] = [
-  { id: 'lp_sol_usdc', name: 'SOL–USDC', pair: 'SOL / USDC', apr: 18.4, tvl: 2_450_000, risk: 'Low', curated: true },
-  { id: 'lp_sent_usdc', name: 'SENT–USDC', pair: 'SENT / USDC', apr: 42.1, tvl: 380_000, risk: 'Medium', curated: true },
-  { id: 'lp_sphere_sol', name: 'SPHERE–SOL', pair: 'SPHERE / SOL', apr: 55.0, tvl: 210_000, risk: 'High', curated: true },
-  { id: 'lp_link_usdc', name: 'LINK–USDC', pair: 'LINK / USDC', apr: 31.2, tvl: 520_000, risk: 'Medium', curated: true },
-];
-
 export const STAKER_PERKS = [
-  { title: 'Fee rebate', body: 'Up to 25% lower spot fees on curated swaps.' },
-  { title: 'Early access', body: 'See Builder Stories 24h before public Explore.' },
-  { title: 'Passport boost', body: '+15% XP on Discovery Quests and research tasks.' },
-  { title: 'Governance weight', body: '1.5× voting power in protocol proposals.' },
-  { title: 'Intel priority', body: 'Higher rate limits on Builder Intelligence™.' },
+  { title: 'Fee dust', body: 'Parked Square TBAs share real fees when $BUILD and the splitter are live. Zero volume = zero fees.' },
+  { title: 'Stall rights', body: 'Take a stall on inspected catalog launches. First stall is Aura Share.' },
+  { title: 'Passport boost', body: '+15% XP on Discovery Quests and research tasks once a Square is parked.' },
+  { title: 'Governance weight', body: 'DAO votes stay simulated until a live lock contract is named.' },
+  { title: 'Intel priority', body: 'Higher rate limits on Builder Intelligence™ for parked Squares.' },
 ];
 
 /** Unstake cooldown — 5–7 days; we use 7 days on-chain style lock */

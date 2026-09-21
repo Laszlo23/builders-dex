@@ -62,11 +62,11 @@ export const BUILDER_ARCHIVE: ArchiveEntry[] = [
 
 /** Prestige — Genesis Index honesty (not a fake funnel) */
 export const RECOGNITION_RATE = {
-  applications: 4,
-  accepted: 3,
-  ratePct: 75,
-  comparison: 'Genesis Index — live-scored, not mass listing.',
-  line: 'Four case-study projects in the catalog. Three cleared Genesis with live Builder Score™ citations. Trading stays empty until Proof clears.',
+  applications: 6,
+  accepted: 5,
+  ratePct: 0,
+  comparison: 'Catalog count — not a prestige funnel percentage.',
+  line: 'Six named projects in the catalog. Five are curated. Zero are tradeable here until Proof of Building™ clears.',
 };
 
 export type HumanFounder = {
@@ -145,27 +145,7 @@ export type CollabNeed = {
 };
 
 /** Open roles only — no invented recommended people. */
-export const COLLAB_NEEDS: Record<string, CollabNeed[]> = {
-  p1: [
-    { role: 'Senior Rust Engineer', status: 'open' },
-    { role: 'UI Designer', status: 'open' },
-    { role: 'Growth Partner', status: 'open' },
-  ],
-  p3: [
-    { role: 'Protocol Engineer', status: 'open' },
-    { role: 'Researcher', status: 'open' },
-    { role: 'Mentor', status: 'open' },
-  ],
-  p4: [
-    { role: 'Community Lead', status: 'open' },
-    { role: 'UI Designer', status: 'open' },
-    { role: 'Growth Partner', status: 'open' },
-  ],
-  p2: [
-    { role: 'Smart Contract Auditor', status: 'open' },
-    { role: 'Researcher', status: 'open' },
-  ],
-};
+export const COLLAB_NEEDS: Record<string, CollabNeed[]> = {};
 
 export type VelocityBars = {
   commits: number;

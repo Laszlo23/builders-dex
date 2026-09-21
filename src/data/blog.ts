@@ -12,6 +12,25 @@ export type BlogPost = {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: 'ccff00-square-loop',
+    title: 'Activate, park, stall: the CCFF00 Square loop (and why it is not an APR farm)',
+    excerpt:
+      '$BUILD on Robinhood Chain is not live until an address and LP lock are published. Until then the Square loop is a preview: lights on, park on the street, take a stall on Aura Share — fee dust, not promised yield.',
+    date: '2026-09-20',
+    author: 'Builders DEX',
+    tags: ['CCFF00', 'Robinhood Chain', '$BUILD', 'Earn'],
+    readingMinutes: 6,
+    coverImage: '/og/blog-ccff00-square-loop.webp',
+    body: [
+      'Builders DEX will launch a token on Robinhood Chain. That token is $BUILD, not HoodStreet’s $CCFF00. $CCFF00 stays inside identical Squares until HoodStreet enables trading. We do not wrap the NFT and we do not invent a mint address.',
+      'The game piece is the Square you already have. Dormant is unlit. Activate turns the lights on — identity, not a token-buy gate. Park puts the Square on the street. From there you either hold a BUILD/USDG LP NFT in the token-bound account when $BUILD is live, or you take a stall on an inspected catalog launch.',
+      'Classic liquidity mining with fat APRs does not survive. Mercenary LPs farm, dump, and leave. Safe LM is the boring kind: a locked Uniswap v4 position whose only return is swap fees, sitting in the Square wallet. If volume is zero, fees this week are zero. That is the product, not a bug.',
+      'The first stall is Aura Share on Hood — the inspected raise you can already buy as the Square. Park, take the stall, then the TBA pays ETH and holds the certificate. Allocation and the share NFT live in the NFT. Transfer the Square, the stall receipts move with it.',
+      'Launch door, when we actually launch: Pools.trade Crowd Launch so LP locks on Uniswap v4, pair BUILD/USDG (or WETH if the pad forces ETH). Clanker is the backup if we want the creator-fee remainder piped into parked Squares. We will not use a 900-deploys-an-hour mill, a bundler, or a volume bot.',
+      'Until the activation registry, stall vault, fee splitter, and $BUILD address are published on /build, Earn and HoodStreet show the loop as a preview. DAO $BUILD stake stays a labeled simulation. Do not treat localStorage as on-chain assets.',
+    ],
+  },
+  {
     slug: 'how-to-read-builder-score',
     title: 'How to read Builder Score™ without treating it like a vibe',
     excerpt:

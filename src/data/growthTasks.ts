@@ -145,8 +145,8 @@ export const INITIAL_GROWTH_TASKS: GrowthTask[] = [
   },
   {
     id: 't_lp',
-    title: 'Provide liquidity',
-    description: 'Deposit into a curated LP pool on Earn.',
+    title: 'Park a Square',
+    description: 'Activate a CCFF00 Square, then park it on Earn. No fake APR.',
     xp: 300,
     badge: 'Liquidity Provider',
     category: 'liquidity',
@@ -154,8 +154,8 @@ export const INITIAL_GROWTH_TASKS: GrowthTask[] = [
   },
   {
     id: 't_stake',
-    title: 'Stake $BUILD',
-    description: 'Stake platform token to unlock staker perks.',
+    title: 'Activate a Square',
+    description: 'Turn on a CCFF00 Square in the Square loop. $BUILD is not a buy-gate.',
     xp: 350,
     badge: 'Genesis Staker',
     category: 'staking',

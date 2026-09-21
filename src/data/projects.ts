@@ -12,22 +12,22 @@ import { AURA_BASE_ADDRESS } from './crossChainRegistry';
 import { CUBES_CONTRACT, CUBES_MINT_URL } from './hoodChain';
 import { HOODSTREET_SITE } from './hoodStreet';
 
-/** Builders Index™ — live Genesis Index first */
+/** Builders Index™ — catalog counts only (health is not a live index number). */
 export const BUILDERS_INDEX: BuildersIndex = {
   title: 'Builders Index™',
-  market: 'Genesis Index · live scores',
-  health: 88.0,
-  projectsTracked: 4,
-  projectsApproved: 3,
-  qualityThreshold: 'Genesis Top 3',
+  market: 'Genesis Index · live GitHub scores on stories',
+  health: 0,
+  projectsTracked: 6,
+  projectsApproved: 5,
+  qualityThreshold: 'Live GitHub citations',
   deltaLabel: 'Live GitHub citations',
 };
 
 /** THE STANDARD — exclusivity funnel (Genesis ship) */
 export const THE_STANDARD: TheStandard = {
-  projectsAnalyzed: 4,
-  earnedRecognition: 4,
-  enteredNetwork: 3,
+  projectsAnalyzed: 6,
+  earnedRecognition: 6,
+  enteredNetwork: 5,
   approvedForTrading: 0,
 };
 
@@ -38,16 +38,17 @@ export const CURATED_MARKET_STATS = {
   qualityStandard: 1,
 };
 
+/** walletAddress values are GitHub handles (`github:…`), not chain wallets. */
 export const INITIAL_BUILDERS: Builder[] = [
   {
     id: 'b1',
     name: 'Georgi Gerganov',
     walletAddress: 'github:ggerganov',
     avatarUrl: 'https://unavatar.io/github/ggerganov',
-    reputationLevel: 'Genesis Builder',
-    level: 5,
+    reputationLevel: 'Rookie Builder',
+    level: 1,
     xp: 0,
-    builderScore: 98,
+    builderScore: 0,
     codeContribution: 0,
     communityImpact: 0,
     securityReputation: 0,
@@ -55,7 +56,7 @@ export const INITIAL_BUILDERS: Builder[] = [
     projectsCreated: ['p1'],
     contributionsCount: 0,
     communityTrust: 0,
-    openSourceImpact: 'Exceptional',
+    openSourceImpact: 'Low',
     achievements: [],
     nftsEarned: [],
   },
@@ -64,10 +65,10 @@ export const INITIAL_BUILDERS: Builder[] = [
     name: 'Aave Labs',
     walletAddress: 'github:aave',
     avatarUrl: 'https://unavatar.io/twitter/aave',
-    reputationLevel: 'Visionary',
-    level: 4,
+    reputationLevel: 'Rookie Builder',
+    level: 1,
     xp: 0,
-    builderScore: 89,
+    builderScore: 0,
     codeContribution: 0,
     communityImpact: 0,
     securityReputation: 0,
@@ -75,7 +76,7 @@ export const INITIAL_BUILDERS: Builder[] = [
     projectsCreated: ['p2'],
     contributionsCount: 0,
     communityTrust: 0,
-    openSourceImpact: 'High',
+    openSourceImpact: 'Low',
     achievements: [],
     nftsEarned: [],
   },
@@ -84,10 +85,10 @@ export const INITIAL_BUILDERS: Builder[] = [
     name: 'Wormhole Foundation',
     walletAddress: 'github:wormhole-foundation',
     avatarUrl: 'https://unavatar.io/twitter/wormhole',
-    reputationLevel: 'Core Builder',
-    level: 3,
+    reputationLevel: 'Rookie Builder',
+    level: 1,
     xp: 0,
-    builderScore: 94,
+    builderScore: 0,
     codeContribution: 0,
     communityImpact: 0,
     securityReputation: 0,
@@ -95,7 +96,7 @@ export const INITIAL_BUILDERS: Builder[] = [
     projectsCreated: ['p3'],
     contributionsCount: 0,
     communityTrust: 0,
-    openSourceImpact: 'High',
+    openSourceImpact: 'Low',
     achievements: [],
     nftsEarned: [],
   },
@@ -104,10 +105,10 @@ export const INITIAL_BUILDERS: Builder[] = [
     name: 'Metaplex Foundation',
     walletAddress: 'github:metaplex-foundation',
     avatarUrl: 'https://unavatar.io/twitter/metaplex',
-    reputationLevel: 'Visionary',
-    level: 4,
+    reputationLevel: 'Rookie Builder',
+    level: 1,
     xp: 0,
-    builderScore: 91,
+    builderScore: 0,
     codeContribution: 0,
     communityImpact: 0,
     securityReputation: 0,
@@ -115,7 +116,7 @@ export const INITIAL_BUILDERS: Builder[] = [
     projectsCreated: ['p4'],
     contributionsCount: 0,
     communityTrust: 0,
-    openSourceImpact: 'High',
+    openSourceImpact: 'Low',
     achievements: [],
     nftsEarned: [],
   },
@@ -124,10 +125,10 @@ export const INITIAL_BUILDERS: Builder[] = [
     name: 'Laszlo Bihary / Building Culture',
     walletAddress: 'github:Laszlo23',
     avatarUrl: 'https://unavatar.io/github/Laszlo23',
-    reputationLevel: 'Core Builder',
-    level: 3,
+    reputationLevel: 'Rookie Builder',
+    level: 1,
     xp: 0,
-    builderScore: 82,
+    builderScore: 0,
     codeContribution: 0,
     communityImpact: 0,
     securityReputation: 0,
@@ -135,7 +136,7 @@ export const INITIAL_BUILDERS: Builder[] = [
     projectsCreated: ['p5'],
     contributionsCount: 0,
     communityTrust: 0,
-    openSourceImpact: 'Medium',
+    openSourceImpact: 'Low',
     achievements: [],
     nftsEarned: [],
   },
@@ -188,18 +189,18 @@ export const INITIAL_PROJECTS: Project[] = [
     builderStory:
       'Georgi Gerganov and contributors turned a research-shaped idea into the default open inference engine — public commits, public releases, no theater.',
     foundedYear: 2023,
-    journey: 'Prototype → Mainnet → Scale',
+    journey: 'Public repo → Continuous release',
     whySelected:
-      'Genesis #1 by live Builder Score™ — verified public GitHub (ggml-org/llama.cpp), extreme shipping velocity, and unmatched open-source adoption.',
+      'Genesis catalog: public GitHub (ggml-org/llama.cpp). Live Builder Score™ comes from that repo — not from a number we typed in.',
     marketCapLabel: 'Open source · no token required',
     logoUrl: 'Brain',
     coverImage: '/projects/sentient.webp',
     category: 'AI + Web3',
-    chain: 'Solana',
-    rating: 4.9,
+    chain: 'Off-chain',
+    rating: 0,
     upvotes: 0,
-    githubRepo: 'ggerganov/llama.cpp',
-    githubActivity: 12000,
+    githubRepo: 'ggml-org/llama.cpp',
+    githubActivity: 0,
     roadmap: [
       { phase: 'Phase 1', title: 'Core inference', description: 'CPU/GPU backends for major LLM families.', date: '2023', status: 'completed' },
       { phase: 'Phase 2', title: 'Ecosystem forks', description: 'Bindings, servers, and app embeddings worldwide.', date: '2024', status: 'completed' },
@@ -249,8 +250,8 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: false,
-    reputationDelta: 4,
-    communityMilestones: ['100k+ GitHub stars', 'Default local LLM runtime', 'Genesis Index #1'],
+    reputationDelta: 0,
+    communityMilestones: ['Public ggml-org/llama.cpp'],
   },
   {
     id: 'p2',
@@ -271,11 +272,11 @@ export const INITIAL_PROJECTS: Project[] = [
     logoUrl: 'Coins',
     coverImage: '/projects/aerolend.webp',
     category: 'DeFi',
-    chain: 'Solana',
-    rating: 4.7,
+    chain: 'Ethereum',
+    rating: 0,
     upvotes: 0,
     githubRepo: 'aave/aave-v3-core',
-    githubActivity: 32,
+    githubActivity: 0,
     roadmap: [
       { phase: 'Phase 1', title: 'v3 core', description: 'Isolated pools and risk managers.', date: '2022', status: 'completed' },
       { phase: 'Phase 2', title: 'Multi-chain', description: 'Deployments across major L2s.', date: '2023', status: 'completed' },
@@ -317,8 +318,8 @@ export const INITIAL_PROJECTS: Project[] = [
     ],
     socials: { twitter: 'https://x.com/aave', website: 'https://aave.com' },
     launchpadActive: false,
-    liquidityLocked: true,
-    reputationDelta: -1,
+    liquidityLocked: false,
+    reputationDelta: 0,
     communityMilestones: ['Multi-chain liquidity', 'Public audits'],
   },
   {
@@ -341,10 +342,10 @@ export const INITIAL_PROJECTS: Project[] = [
     coverImage: '/projects/hypersphere.webp',
     category: 'Infrastructure',
     chain: 'Solana',
-    rating: 4.6,
+    rating: 0,
     upvotes: 0,
     githubRepo: 'wormhole-foundation/wormhole',
-    githubActivity: 8000,
+    githubActivity: 0,
     roadmap: [
       { phase: 'Phase 1', title: 'Core messaging', description: 'Guardian-verified VAAs across chains.', date: '2021', status: 'completed' },
       { phase: 'Phase 2', title: 'Ecosystem apps', description: 'Token bridge + native integrations.', date: '2023', status: 'completed' },
@@ -391,8 +392,8 @@ export const INITIAL_PROJECTS: Project[] = [
       discord: 'https://discord.gg/wormholecrypto',
     },
     launchpadActive: false,
-    liquidityLocked: true,
-    reputationDelta: 3,
+    liquidityLocked: false,
+    reputationDelta: 0,
     communityMilestones: ['Multi-chain mainnet', 'Public monorepo', 'Genesis Index #2'],
   },
   {
@@ -415,10 +416,10 @@ export const INITIAL_PROJECTS: Project[] = [
     coverImage: '/projects/creatorlink.webp',
     category: 'Creator Economy',
     chain: 'Solana',
-    rating: 4.8,
+    rating: 0,
     upvotes: 0,
     githubRepo: 'metaplex-foundation/mpl-token-metadata',
-    githubActivity: 2000,
+    githubActivity: 0,
     roadmap: [
       { phase: 'Phase 1', title: 'Token Metadata', description: 'Standard NFT metadata programs.', date: '2021', status: 'completed' },
       { phase: 'Phase 2', title: 'Core / Bubblegum', description: 'Compressed and flexible asset primitives.', date: '2023', status: 'completed' },
@@ -466,7 +467,7 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     launchpadActive: false,
     liquidityLocked: false,
-    reputationDelta: 2,
+    reputationDelta: 0,
     communityMilestones: ['Solana NFT standard', 'Public programs', 'Genesis Index #3'],
   },
   {
@@ -481,19 +482,19 @@ export const INITIAL_PROJECTS: Project[] = [
     builderStory:
       'Started with a Vienna shop, a dying homepage, and a cousin who said you do the internet thing. Built a review machine that tracks real visits (no star shop scams), then extended to AI employees that handle follow-ups, reviews, repeat visits. One Melange, one economy — AURA token on Base with locked Uni v4 AURA/USDC.',
     foundedYear: 2024,
-    journey: 'Prototype → Mainnet → Scale',
+    journey: 'Prototype → Base token',
     whySelected:
-      'Featured partner with Building Culture ecosystem. Fair launch on Base (T-0: Sunday 13 Sep 2026, 11:11 Vienna). Founders-first, no VC dump, transparent tokenomics. Real local business proof (1,000 businesses, 23 districts in Vienna).',
+      'Featured partner with Building Culture. Base AURA address is cited on-chain. Vienna business counts are founder-cited until we can independently verify them.',
     marketCapLabel: 'Fair launch on Base · $29/mo or $299/yr',
     logoUrl: 'Building',
     coverImage: '/projects/hypersphere.webp',
     category: 'AI + Web3',
     chain: 'Base',
     baseTokenAddress: AURA_BASE_ADDRESS,
-    rating: 4.8,
+    rating: 0,
     upvotes: 0,
     githubRepo: 'Laszlo23/auraos',
-    githubActivity: 45,
+    githubActivity: 0,
     roadmap: [
       { phase: 'Phase 1', title: 'Vienna launch', description: 'Local guest check-in, follow-ups, reviews for 1,000 businesses.', date: '2024', status: 'completed' },
       { phase: 'Phase 2', title: 'AURA token', description: 'Fair launch on Base, locked Uni v4 AURA/USDC, fixed supply 777,777,777.', date: 'Sep 13, 2026', status: 'in-progress' },
@@ -552,9 +553,9 @@ export const INITIAL_PROJECTS: Project[] = [
       discord: '',
     },
     launchpadActive: true,
-    liquidityLocked: true,
+    liquidityLocked: false,
     reputationDelta: 0,
-    communityMilestones: ['1,000 Vienna businesses', 'Fair launch on Base', 'AI company OS', 'Building Culture partner'],
+    communityMilestones: ['Founder-cited Vienna launch', 'Base AURA address cited', 'Building Culture partner'],
   },
   {
     id: 'p6',
@@ -577,7 +578,7 @@ export const INITIAL_PROJECTS: Project[] = [
     category: 'Creator Economy',
     chain: 'Robinhood',
     hoodTokenAddress: CUBES_CONTRACT,
-    rating: 4.2,
+    rating: 0,
     upvotes: 0,
     githubRepo: '—',
     githubActivity: 0,
@@ -645,7 +646,21 @@ export const INITIAL_PROJECTS: Project[] = [
   },
 ];
 
-/** DAO proposals — empty until real governance is live (no fake vote theater). */
+/** Client overlay: seed copy wins for catalog ids so a stale API cannot reintroduce fake stats. */
+export function preferPublishedCatalog(remote: Project[]): Project[] {
+  const seedIds = new Set(INITIAL_PROJECTS.map((p) => p.id));
+  const extras = remote.filter((p) => !seedIds.has(p.id));
+  const seeds = INITIAL_PROJECTS.map((seed) => {
+    const live = remote.find((p) => p.id === seed.id);
+    if (!live) return seed;
+    return {
+      ...seed,
+      upvotes: live.upvotes,
+      comments: live.comments,
+    };
+  });
+  return [...seeds, ...extras];
+}
 export const INITIAL_PROPOSALS: Proposal[] = [];
 
 export const ALL_QUESTS: Quest[] = [

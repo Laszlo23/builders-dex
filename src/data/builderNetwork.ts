@@ -135,41 +135,8 @@ export const CRYSTAL_BALL_ALERTS: CrystalBallAlert[] = [
 /** Live pulse — empty until wired to GitHub / Discord APIs (no invented heartbeats). */
 export const BUILDER_PULSE: Record<string, BuilderPulse> = {};
 
-/** Who each project is looking for — living ecosystem */
-export const PROJECT_NEEDS: Record<string, { roles: ProjectNeed[]; matchScore: number }> = {
-  p1: {
-    matchScore: 97,
-    roles: [
-      { role: 'Smart contract auditor', urgent: true },
-      { role: 'UI designer' },
-      { role: 'Growth partner', urgent: true },
-    ],
-  },
-  p2: {
-    matchScore: 89,
-    roles: [
-      { role: 'Researcher' },
-      { role: 'Smart contract auditor', urgent: true },
-      { role: 'Growth partner' },
-    ],
-  },
-  p3: {
-    matchScore: 91,
-    roles: [
-      { role: 'Protocol engineer', urgent: true },
-      { role: 'Researcher' },
-      { role: 'Mentor' },
-    ],
-  },
-  p4: {
-    matchScore: 88,
-    roles: [
-      { role: 'Community lead' },
-      { role: 'UI designer', urgent: true },
-      { role: 'Investor liaison' },
-    ],
-  },
-};
+/** Open roles only when a team actually lists them here. */
+export const PROJECT_NEEDS: Record<string, { roles: ProjectNeed[]; matchScore: number }> = {};
 
 /** On-chain resumes — empty until verified career data exists (no invented inspired counts). */
 export const LEGACY_PASSPORTS: Record<string, LegacyPassport> = {};

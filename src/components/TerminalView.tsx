@@ -4,7 +4,6 @@ import { Project, ScoutMission, ScoutProfile } from '../types';
 import {
   ARENA_MATCH,
   GENESIS_RADAR,
-  SCOUT_LEADERBOARD,
   TRUST_FLOW,
   progressBar,
 } from '../data/reputation';
@@ -178,7 +177,7 @@ export default function TerminalView({
         currentLabel: 'Not yet approved',
         status: 'Under Review' as const,
         signal: 'Private until verification complete',
-        progress: Math.min(92, Math.max(40, p.builderScore.overall - 8)),
+        progress: 0,
         projectId: p.id,
       }));
     return [...fromProjects, ...GENESIS_RADAR].slice(0, 8);
@@ -394,13 +393,10 @@ export default function TerminalView({
                     className="flex items-center justify-between rounded-xl border border-white/8 bg-ink/40 px-4 py-3"
                   >
                     <span className="text-sm font-medium">{s.sector}</span>
-                    <span
-                      className={`font-mono text-sm font-semibold ${
-                        s.changePct >= 0 ? 'text-accent' : 'text-steel'
-                      }`}
-                    >
-                      {s.changePct >= 0 ? '+' : ''}
-                      {s.changePct}%
+                    <span className="font-mono text-sm font-semibold text-steel">
+                      {s.changePct === 0
+                        ? 'No Δ'
+                        : `${s.changePct > 0 ? '+' : ''}${s.changePct}%`}
                     </span>
                   </div>
                 ))}
@@ -467,7 +463,13 @@ export default function TerminalView({
                     {g.status}
                   </span>
                 </div>
-                <ProgressVisual pct={g.progress} />
+                {g.progress > 0 ? (
+                  <ProgressVisual pct={g.progress} />
+                ) : (
+                  <p className="mt-3 font-mono text-[10px] text-steel">
+                    No public review % — queue only
+                  </p>
+                )}
                 <p className="mt-3 text-xs leading-relaxed text-steel">{g.signal}</p>
                 {'projectId' in g && g.projectId && (
                   <button
@@ -559,33 +561,7 @@ export default function TerminalView({
                 Live Scout leaderboard
               </p>
               <ul className="space-y-2">
-                {scoutBoard.length === 0 &&
-                  SCOUT_LEADERBOARD.map((s, i) => (
-                    <li
-                      key={s.id}
-                      className="flex items-center gap-3 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5"
-                    >
-                      <span className="w-6 font-mono text-xs text-steel">#{i + 1}</span>
-                      {s.avatarUrl ? (
-                        <img
-                          src={s.avatarUrl}
-                          alt=""
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 font-mono text-[10px]">
-                          {s.name.slice(0, 2)}
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">{s.name}</p>
-                        <p className="font-mono text-[10px] text-steel">
-                          {s.title} · {s.projectsDiscovered} discovered · rep {s.scoutReputation}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                {scoutBoard.length === 0 && SCOUT_LEADERBOARD.length === 0 && (
+                {scoutBoard.length === 0 && (
                   <li className="rounded-xl border border-white/8 bg-ink/40 px-3 py-3 text-xs text-steel">
                     No on-ledger Scout calls yet. Be first.
                   </li>
@@ -775,7 +751,9 @@ export default function TerminalView({
             Builder Arena
           </p>
           <h2 className="font-display mt-1 text-2xl font-bold">{ARENA_MATCH.title}</h2>
-          <p className="mt-1 text-sm text-steel">Community votes. Winner gets {ARENA_MATCH.prize}.</p>
+          <p className="mt-1 text-sm text-steel">
+            Votes on this device. {ARENA_MATCH.prize}.
+          </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
             <button

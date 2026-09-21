@@ -194,7 +194,7 @@ export default function FirstDiscoveryModal({
                           <p className="mt-0.5 text-xs text-steel">{p.tagline}</p>
                         </div>
                         <span className="shrink-0 rounded-full bg-accent/15 px-2.5 py-1 font-mono text-xs font-bold text-accent">
-                          {p.builderScore.overall}
+                          {p.githubRepo && p.githubRepo !== '—' ? p.githubRepo : 'Catalog'}
                         </span>
                       </button>
                     </li>

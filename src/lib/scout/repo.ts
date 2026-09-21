@@ -1,5 +1,6 @@
 import { getSqlite } from '../db/sqlite';
 import { isValidSolanaWallet } from '../reputation/repo';
+import { isPublicPassportWallet } from '../walletPlaceholders';
 import { INITIAL_SCOUT_MISSIONS } from '../../data/reputation';
 import { accuracyForWallet } from './outcomes';
 import type { ScoutLeaderboardRow, ScoutSubmissionRow } from './types';
@@ -142,6 +143,7 @@ export function listScoutLeaderboard(limit = 25): ScoutLeaderboardRow[] {
   }
 
   return [...byWallet.values()]
+    .filter((row) => isPublicPassportWallet(row.wallet))
     .sort(
       (a, b) =>
         b.scoutXp - a.scoutXp ||

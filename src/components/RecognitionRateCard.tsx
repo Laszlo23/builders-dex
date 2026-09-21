@@ -21,8 +21,8 @@ export default function RecognitionRateCard({ onApply }: Props) {
     },
     {
       icon: Percent,
-      label: 'Live-scored share',
-      value: `${RECOGNITION_RATE.ratePct}%`,
+      label: 'Tradeable here',
+      value: '0',
     },
   ];
 

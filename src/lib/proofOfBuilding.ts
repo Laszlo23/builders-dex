@@ -13,102 +13,81 @@ function clampStrength(n: number): number {
   return Math.max(0, Math.min(5, Math.round(n)));
 }
 
-/** Measure reality — not opinions. Derived from public project signals. */
+function hasPublicRepo(project: Project): boolean {
+  return Boolean(project.githubRepo && project.githubRepo !== '—');
+}
+
+/** Measure what we can cite — never invent commit/user counts. */
 export function proofOfBuildingFor(project: Project): ProofOfBuilding {
-  const curated = project.curation.status === 'curated';
   const rejected = project.curation.status === 'rejected';
+  const liveStars = project.githubActivity > 0;
 
   const githubStrength = rejected
     ? 0
     : clampStrength(
-        project.githubRepo === '—'
+        !hasPublicRepo(project)
           ? 0
-          : project.githubActivity >= 300
-            ? 5
-            : project.githubActivity >= 150
-              ? 4
-              : project.githubActivity >= 50
-                ? 3
-                : project.githubActivity >= 10
-                  ? 2
-                  : 1
+          : liveStars
+            ? project.githubActivity >= 10_000
+              ? 5
+              : project.githubActivity >= 1000
+                ? 4
+                : project.githubActivity >= 100
+                  ? 3
+                  : 2
+            : 1,
       );
 
-  const deployed =
-    curated &&
-    (project.journey.includes('Mainnet') ||
-      project.journey.includes('Revenue') ||
-      project.journey.includes('Launch') ||
-      Boolean(project.mint));
+  const mainnet = /mainnet/i.test(project.journey);
+  const productLive =
+    Boolean(project.mint) ||
+    Boolean(project.baseTokenAddress) ||
+    Boolean(project.hoodTokenAddress) ||
+    mainnet;
   const deployedStrength = rejected
     ? 0
-    : deployed
-      ? project.journey.includes('Mainnet')
-        ? 5
-        : 4
-      : project.journey.includes('Testnet') || project.journey.includes('Prototype')
+    : productLive
+      ? 4
+      : /testnet|prototype|hoodstreet live/i.test(project.journey)
         ? 2
-        : curated
-          ? 3
-          : 1;
+        : hasPublicRepo(project)
+          ? 1
+          : 0;
 
-  const usersOk =
-    curated &&
-    ((project.communityMilestones?.some((m) => /member|user|TVL|live/i.test(m)) ?? false) ||
-      project.upvotes >= 150);
-  const usersStrength = rejected
-    ? 0
-    : usersOk
-      ? project.upvotes >= 400
-        ? 5
-        : project.upvotes >= 200
-          ? 4
-          : 3
-      : curated
-        ? 2
-        : 1;
-
-  const communityOk = curated && (project.upvotes >= 100 || project.builderScore.community >= 85);
+  const usersStrength = rejected ? 0 : 0;
   const communityStrength = rejected
     ? 0
-    : clampStrength(Math.round(project.builderScore.community / 20));
-
-  const opensourceOk = githubStrength >= 2 && project.builderScore.development >= 80;
-  const opensourceStrength = rejected
-    ? 0
-    : opensourceOk
-      ? clampStrength(Math.round(project.builderScore.development / 20))
-      : githubStrength >= 2
-        ? 2
-        : 0;
-
-  const revenueOk =
-    curated &&
-    (project.journey.includes('Revenue') ||
-      project.raised >= project.goal ||
-      (project.communityMilestones?.some((m) => /revenue|fundrais|TVL/i.test(m)) ?? false));
-  const revenueStrength = rejected ? 0 : revenueOk ? 4 : curated ? 1 : 0;
+    : clampStrength(project.upvotes > 0 ? Math.min(5, Math.round(project.upvotes / 50)) : 0);
+  const opensourceStrength = githubStrength;
+  const revenueOk = /revenue/i.test(project.journey);
+  const revenueStrength = rejected ? 0 : revenueOk ? 2 : 0;
 
   const metricFor = (key: ProofKey, strength: number): string => {
     switch (key) {
       case 'github':
-        return `${project.githubActivity.toLocaleString()} commits`;
+        if (!hasPublicRepo(project)) return 'No public repo cited';
+        if (liveStars) return `${project.githubActivity.toLocaleString()} GitHub stars (live)`;
+        return `${project.githubRepo} — awaiting live count`;
       case 'deployed':
-        return deployed
-          ? project.journey.includes('Mainnet')
-            ? 'Mainnet deployed'
-            : 'Product live'
-          : strength > 0
-            ? project.journey.split('→').pop()?.trim() || 'In progress'
-            : 'Not deployed';
+        if (productLive) {
+          if (project.hoodTokenAddress) return 'On-chain address cited';
+          if (project.baseTokenAddress) return 'Base token address cited';
+          if (project.mint) return 'Mint cited';
+          return mainnet ? 'Journey cites mainnet' : 'Product address cited';
+        }
+        return strength > 0 ? 'Public repo / early product' : 'Not proven on-chain here';
       case 'users':
-        return usersOk ? 'Usage signal (unverified count)' : 'Early usage';
+        return 'No independent user count on this page';
       case 'community':
-        return communityOk ? 'Community signal (unverified count)' : 'Growing';
+        return project.upvotes > 0
+          ? `${project.upvotes.toLocaleString()} on-site upvotes`
+          : 'No on-site vote count yet';
       case 'opensource':
-        return opensourceOk ? 'Verified contributions' : 'Limited signal';
+        return hasPublicRepo(project) ? 'Public GitHub cited' : 'No public repo';
       case 'revenue':
-        return revenueOk ? 'Revenue / TVL signal' : 'Pre-revenue';
+        return revenueOk
+          ? 'Journey cites revenue — not a verified P&L'
+          : 'No revenue proof on this page';
       default: {
         const _exhaustive: never = key;
         return _exhaustive;
@@ -133,21 +112,26 @@ export function proofOfBuildingFor(project: Project): ProofOfBuilding {
     metricLabel: metricFor(key, strength),
   }));
 
-  const lastVerified =
-    project.curation.reviewedAt ||
-    new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const lastVerified = project.curation.reviewedAt || '';
 
   return {
     items,
-    lastVerified: formatRelative(lastVerified),
+    lastVerified: lastVerified ? formatRelative(lastVerified) : 'Not timestamped',
   };
 }
 
 function formatRelative(isoOrDate: string): string {
-  if (isoOrDate.includes('2026-07-20') || isoOrDate.includes('2026-07-1')) return '12 minutes ago';
-  if (isoOrDate.includes('2026-07')) return '2 hours ago';
-  if (isoOrDate.includes('2026-06')) return '1 day ago';
-  if (isoOrDate.includes('2026-05')) return '3 days ago';
-  if (isoOrDate.includes('2026-04')) return '1 week ago';
-  return isoOrDate;
+  const raw = isoOrDate.trim();
+  const t = Date.parse(raw.length <= 10 ? `${raw}T00:00:00Z` : raw);
+  if (Number.isNaN(t)) return raw;
+  const days = Math.round((Date.now() - t) / 86_400_000);
+  if (days <= 0) return raw.slice(0, 10);
+  if (days === 1) return '1 day ago';
+  if (days < 30) return `${days} days ago`;
+  if (days < 365) {
+    const mo = Math.max(1, Math.round(days / 30));
+    return `${mo} mo ago`;
+  }
+  const yr = Math.max(1, Math.round(days / 365));
+  return `${yr} yr ago`;
 }

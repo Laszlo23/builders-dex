@@ -46,6 +46,7 @@ const PRODUCT: FooterLink[] = [
   { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
   { id: 'hoodstreet', label: 'HoodStreet', icon: Layers },
   { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
+  { id: 'build', label: '$BUILD · Hood', icon: Coins },
   { id: 'cubes', label: 'Cubes Live', icon: Box },
   { id: 'apply', label: 'Apply', icon: Rocket },
   { id: 'earn', label: 'Earn', icon: Coins },

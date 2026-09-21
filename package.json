@@ -7,6 +7,8 @@
     "dev": "tsx server.ts",
     "generate:seo": "tsx scripts/generate-seo-assets.ts",
     "deploy:hood-share": "tsx scripts/deploy-hood-share.ts",
+    "compile:square-loop": "tsx scripts/compile-square-loop.ts",
+    "deploy:square-loop": "tsx scripts/deploy-square-loop.ts",
     "build": "tsx scripts/generate-seo-assets.ts && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",

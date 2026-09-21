@@ -11,7 +11,7 @@ import ComingSoonBanner from './ComingSoonBanner';
 interface BuildersViewProps {
   builders: Builder[];
   talent: TalentBuilder[];
-  talentSource: 'live' | 'curated';
+  talentSource: 'live' | 'unavailable';
   liveLoading: boolean;
   liveError: string | null;
   projects: Project[];
@@ -125,7 +125,9 @@ export default function BuildersView({
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-mono text-sm font-bold">{Math.round(entry.score)}</p>
+                      <p className="font-mono text-sm font-bold">
+                        {entry.score > 0 ? Math.round(entry.score) : '—'}
+                      </p>
                       <p className="font-mono text-[9px] text-accent/80">
                         {modeLabel(row?.scoreMode)}
                       </p>
@@ -174,9 +176,14 @@ export default function BuildersView({
               <p className="mt-1 font-mono text-[10px] text-steel">
                 {talentSource === 'live'
                   ? 'Live Talent.app search'
-                  : 'Public Talent.app profiles — we still work on the live key when it is off'}
+                  : 'Empty until the live Talent Protocol key answers'}
               </p>
             </div>
+            {talent.length === 0 ? (
+              <p className="px-5 py-8 text-sm text-steel">
+                No Talent ranking here until the API is live. We do not invent celebrity Top 7s.
+              </p>
+            ) : (
             <ul className="divide-y divide-white/5">
               {talent.map((t) => (
                 <li key={t.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
@@ -206,6 +213,7 @@ export default function BuildersView({
                 </li>
               ))}
             </ul>
+            )}
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -226,7 +234,9 @@ export default function BuildersView({
                     </div>
                     <div className="flex justify-between">
                       <dt>Live overall</dt>
-                      <dd className="text-accent">{Math.round(b.builderScore)}</dd>
+                      <dd className="text-accent">
+                        {b.builderScore > 0 ? Math.round(b.builderScore) : '—'}
+                      </dd>
                     </div>
                     <div className="flex justify-between">
                       <dt>GitHub stars</dt>
@@ -234,7 +244,9 @@ export default function BuildersView({
                     </div>
                     <div className="flex justify-between">
                       <dt>Community (cited)</dt>
-                      <dd className="text-accent">{Math.round(b.communityTrust)}</dd>
+                      <dd className="text-accent">
+                        {b.communityTrust > 0 ? Math.round(b.communityTrust) : '—'}
+                      </dd>
                     </div>
                     <div className="flex justify-between">
                       <dt>Open Source Impact</dt>

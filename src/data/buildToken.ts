@@ -1,0 +1,166 @@
+/**
+ * $BUILD on Robinhood Chain — not launched until an address is published here.
+ * Do not invent a mint, lock proof, APR, or TVL.
+ */
+import { CCFF00_NFT } from './ccff00Wallet';
+import { HOOD_CHAIN_ID, HOOD_EXPLORER_URL } from './hoodChain';
+
+export const BUILD_TOKEN_SYMBOL = 'BUILD';
+export const BUILD_TOKEN_NAME = 'Builders DEX';
+export const BUILD_PAIR_LABEL = 'BUILD/USDG';
+export const BUILD_PAIR_FALLBACK = 'BUILD/WETH';
+
+const ZERO = '0x0000000000000000000000000000000000000000';
+
+function envOrNull(key: string): string | null {
+  if (typeof process !== 'undefined' && process.env?.[key]?.trim()) {
+    return process.env[key]!.trim();
+  }
+  try {
+    const vite = (import.meta as ImportMeta & { env?: Record<string, string> }).env;
+    if (vite?.[key]?.trim()) return vite[key].trim();
+    if (vite?.[`VITE_${key}`]?.trim()) return vite[`VITE_${key}`].trim();
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function optionalAddress(raw: string | null | undefined): `0x${string}` | null {
+  const value = (raw || '').trim();
+  if (!/^0x[a-fA-F0-9]{40}$/.test(value)) return null;
+  if (value.toLowerCase() === ZERO) return null;
+  return value as `0x${string}`;
+}
+
+export const BUILD_TOKEN_ADDRESS = optionalAddress(
+  envOrNull('BUILD_TOKEN_ADDRESS') || envOrNull('VITE_BUILD_TOKEN_ADDRESS'),
+);
+export const ACTIVATION_REGISTRY_ADDRESS = optionalAddress(
+  envOrNull('ACTIVATION_REGISTRY_ADDRESS') || envOrNull('VITE_ACTIVATION_REGISTRY_ADDRESS'),
+);
+export const STALL_VAULT_ADDRESS = optionalAddress(
+  envOrNull('STALL_VAULT_ADDRESS') || envOrNull('VITE_STALL_VAULT_ADDRESS'),
+);
+export const FEE_SPLITTER_ADDRESS = optionalAddress(
+  envOrNull('FEE_SPLITTER_ADDRESS') || envOrNull('VITE_FEE_SPLITTER_ADDRESS'),
+);
+export const BUILD_LOCK_TX = envOrNull('BUILD_LOCK_TX') || envOrNull('VITE_BUILD_LOCK_TX');
+export const BUILD_LOCK_URL = envOrNull('BUILD_LOCK_URL') || envOrNull('VITE_BUILD_LOCK_URL');
+export const BUILD_POOLS_TRADE_URL =
+  envOrNull('BUILD_POOLS_TRADE_URL') || 'https://pools.trade';
+export const BUILD_CLANKER_URL = envOrNull('BUILD_CLANKER_URL') || 'https://www.clanker.world';
+
+export type BuildLaunchStatus = 'planned' | 'live';
+
+export type BuildLaunchpadId = 'pools-trade' | 'clanker';
+
+export type BuildLaunchpad = {
+  id: BuildLaunchpadId;
+  name: string;
+  href: string;
+  role: 'primary' | 'backup';
+  model: string;
+};
+
+export const BUILD_LAUNCHPADS: BuildLaunchpad[] = [
+  {
+    id: 'pools-trade',
+    name: 'Pools.trade Crowd Launch',
+    href: BUILD_POOLS_TRADE_URL,
+    role: 'primary',
+    model: 'Uniswap Labs · four-hour crowd window · locked Uniswap v4 LP · pair USDG or WETH',
+  },
+  {
+    id: 'clanker',
+    name: 'Clanker',
+    href: BUILD_CLANKER_URL,
+    role: 'backup',
+    model: 'Direct Uniswap pool · locked LP · creator fee remainder can fund parked Squares',
+  },
+];
+
+export function launchpadById(id: BuildLaunchpadId): BuildLaunchpad {
+  const found = BUILD_LAUNCHPADS.find((item) => item.id === id);
+  if (found) return found;
+  const _never: never = id;
+  return _never;
+}
+
+export function buildLaunchStatus(): BuildLaunchStatus {
+  return BUILD_TOKEN_ADDRESS ? 'live' : 'planned';
+}
+
+export function isBuildLoopLive(): boolean {
+  return Boolean(ACTIVATION_REGISTRY_ADDRESS && STALL_VAULT_ADDRESS && FEE_SPLITTER_ADDRESS);
+}
+
+export function explorerAddress(address: string): string {
+  return `${HOOD_EXPLORER_URL}/address/${address}`;
+}
+
+export function explorerTx(hash: string): string {
+  return `${HOOD_EXPLORER_URL}/tx/${hash}`;
+}
+
+export type BuildPublicStatus = {
+  chainId: number;
+  squareNft: `0x${string}`;
+  token: {
+    symbol: string;
+    name: string;
+    pair: string;
+    pairFallback: string;
+    address: `0x${string}` | null;
+    status: BuildLaunchStatus;
+  };
+  launchpads: BuildLaunchpad[];
+  lock: {
+    tx: string | null;
+    url: string | null;
+    published: boolean;
+  };
+  contracts: {
+    activationRegistry: `0x${string}` | null;
+    stallVault: `0x${string}` | null;
+    feeSplitter: `0x${string}` | null;
+  };
+  feesThisWeekWei: string;
+  firstStall: {
+    projectId: string;
+    name: string;
+    key: 'p5';
+  };
+};
+
+export function buildPublicStatus(feesThisWeekWei = '0'): BuildPublicStatus {
+  return {
+    chainId: HOOD_CHAIN_ID,
+    squareNft: CCFF00_NFT,
+    token: {
+      symbol: BUILD_TOKEN_SYMBOL,
+      name: BUILD_TOKEN_NAME,
+      pair: BUILD_PAIR_LABEL,
+      pairFallback: BUILD_PAIR_FALLBACK,
+      address: BUILD_TOKEN_ADDRESS,
+      status: buildLaunchStatus(),
+    },
+    launchpads: BUILD_LAUNCHPADS,
+    lock: {
+      tx: BUILD_LOCK_TX,
+      url: BUILD_LOCK_URL,
+      published: Boolean(BUILD_LOCK_TX || BUILD_LOCK_URL),
+    },
+    contracts: {
+      activationRegistry: ACTIVATION_REGISTRY_ADDRESS,
+      stallVault: STALL_VAULT_ADDRESS,
+      feeSplitter: FEE_SPLITTER_ADDRESS,
+    },
+    feesThisWeekWei,
+    firstStall: {
+      projectId: 'p5',
+      name: 'Aura Share',
+      key: 'p5',
+    },
+  };
+}

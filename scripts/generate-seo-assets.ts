@@ -17,6 +17,7 @@ const publicDir = path.join(root, 'public');
 const ogDir = path.join(publicDir, 'og');
 
 const BLOG_PLATES: Record<string, string> = {
+  'ccff00-square-loop': 'campaign/hook-wide.webp',
   'how-to-read-builder-score': 'campaign/hook-standard.webp',
   'trade-is-the-last-step': 'campaign/hook-trade-last.webp',
   'hoodstreet-on-robinhood-chain': 'campaign/hook-wide.webp',

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Brain, Coins, Layers, Share2, HelpCircle, ChevronRight } from 'lucide-react';
 import { Project } from '../types';
-import ScoreBars, { CurationBadges } from './ScoreBars';
+import { CurationBadges } from './ScoreBars';
 import DepthCard from './DepthCard';
 import { resolveTradeMint, getCuratedToken } from '../data/curatedTokens';
 import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
@@ -11,7 +11,6 @@ import { proofOfBuildingFor } from '../lib/proofOfBuilding';
 import { reputationChipFor } from '../lib/reputationRules';
 import { ReputationChipBadge } from './ReputationUnlocksCard';
 import ProjectSocialLinks from './ProjectSocialLinks';
-import { educationalReviewFor } from '../data/builderPlatform';
 import OptimizedImage from './OptimizedImage';
 import CommunityTrendingSection from './CommunityTrendingSection';
 import { useLiveScoreMap } from '../hooks/useLiveBuilderScore';
@@ -85,8 +84,7 @@ export default function ExploreView({
     if (next !== current) window.history.replaceState(null, '', next);
   }, [searchTerm]);
 
-  const scoreFor = (p: Project) =>
-    liveScores[p.id]?.overall ?? p.builderScore.overall;
+  const scoreFor = (p: Project): number | null => liveScores[p.id]?.overall ?? null;
 
   const getIconComponent = (logoName: string) => {
     switch (logoName) {
@@ -116,7 +114,14 @@ export default function ExploreView({
       }
       return matchesSearch && matchesCat && p.curation.status !== 'rejected';
     })
-    .sort((a, b) => scoreFor(b) - scoreFor(a));
+    .sort((a, b) => {
+      const sa = scoreFor(a);
+      const sb = scoreFor(b);
+      if (sa == null && sb == null) return a.name.localeCompare(b.name);
+      if (sa == null) return 1;
+      if (sb == null) return -1;
+      return sb - sa;
+    });
 
   const openProject = (id: string) => {
     onDiscover?.(id);
@@ -276,7 +281,7 @@ export default function ExploreView({
                   Aura OS — AI Company OS
                 </h3>
                 <p className="mb-3 text-sm leading-relaxed text-steel">
-                  Own a company. Let AI make money. Built with Building Culture ecosystem — fair launch on Base, $29/mo or $299/yr. Real business validation from 1,000+ Vienna shops.
+                  Own a company. Let AI make money. Built with Building Culture. Base AURA is cited on-chain. Vienna business counts stay founder-cited until independently verified.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -387,7 +392,7 @@ export default function ExploreView({
                             Score
                           </span>
                           <span className="font-mono text-base font-bold leading-none text-white">
-                            {scoreFor(p)}
+                            {scoreFor(p) ?? '—'}
                           </span>
                         </div>
                       </div>
@@ -419,7 +424,7 @@ export default function ExploreView({
                           Score
                         </span>
                         <span className="font-mono text-lg font-bold leading-none text-white">
-                          {scoreFor(p)}
+                          {scoreFor(p) ?? '—'}
                         </span>
                       </div>
                     </div>
@@ -430,23 +435,15 @@ export default function ExploreView({
 
                 {isRejected ? (
                   <div className="mt-4 space-y-3">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className="font-mono text-[10px] uppercase text-accent">Builder Review</p>
-                      <p className="font-display text-lg font-bold">
-                        {educationalReviewFor(p.id).score}
-                      </p>
-                    </div>
-                    <p className="font-mono text-[10px] uppercase text-steel">Improve</p>
-                    <ul className="space-y-1.5">
-                      {educationalReviewFor(p.id).improve.map((item) => (
-                        <li key={item} className="flex gap-2 text-xs text-white/80">
-                          <span className="text-accent">•</span> {item}
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="font-mono text-[10px] text-steel">
-                      Est. review: {educationalReviewFor(p.id).estimatedDays} days
+                    <p className="font-mono text-[10px] uppercase text-accent">Not approved</p>
+                    <p className="text-xs text-steel">
+                      No invented review score. Reasons stay on the story when a curator writes them.
                     </p>
+                    {(p.curation.rejectionReasons || []).map((item) => (
+                      <p key={item} className="flex gap-2 text-xs text-white/80">
+                        <span className="text-accent">•</span> {item}
+                      </p>
+                    ))}
                   </div>
                 ) : (
                   <>
@@ -464,7 +461,11 @@ export default function ExploreView({
                       Why selected: &ldquo;{p.whySelected}&rdquo;
                     </p>
                     <div className="mt-4">
-                      <ScoreBars score={p.builderScore} mode="top3" compact />
+                      <p className="font-mono text-[10px] text-steel">
+                        {scoreFor(p) != null
+                          ? `Live Builder Score™ ${scoreFor(p)} — open the story for citations`
+                          : 'Live Builder Score™ loads on the story from GitHub'}
+                      </p>
                     </div>
                   </>
                 )}

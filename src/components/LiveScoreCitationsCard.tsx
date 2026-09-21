@@ -29,7 +29,7 @@ function modeLabel(mode: LiveBuilderScoreResult['mode'] | 'seed'): string {
     case 'provisional':
       return 'Provisional — limited sources';
     case 'seed':
-      return 'Seed catalog (loading…)';
+      return 'Awaiting live GitHub';
     default: {
       const _e: never = mode;
       return _e;
@@ -60,7 +60,7 @@ export default function LiveScoreCitationsCard({
             Builder Score™ · v{live?.version || SCORE_VERSION}
           </p>
           <h2 className="font-display mt-1 text-xl font-bold">
-            {overall} <span className="text-steel">— Why?</span>
+            {mode === 'seed' ? '—' : overall} <span className="text-steel">— Why?</span>
           </h2>
           <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-steel">
             <Radio className="h-3.5 w-3.5 text-accent" />
@@ -73,7 +73,7 @@ export default function LiveScoreCitationsCard({
             <Clock className="h-3 w-3 text-accent" />
             {live?.computedAt
               ? `Computed ${new Date(live.computedAt).toLocaleString()}`
-              : 'Computing…'}
+              : 'No live computation yet'}
           </p>
           <a
             href="/api/builder-score/methodology"
@@ -106,7 +106,7 @@ export default function LiveScoreCitationsCard({
       <ul className="mt-5 space-y-2">
         {citations.length === 0 && (
           <li className="rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5 text-sm text-steel">
-            Fetching live citations…
+            {loading ? 'Fetching live citations…' : 'No live citations yet — we do not invent them.'}
           </li>
         )}
         {citations.map((c) => (

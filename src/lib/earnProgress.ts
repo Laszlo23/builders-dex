@@ -1,7 +1,7 @@
 import { INITIAL_GROWTH_TASKS, GrowthTask, PendingUnstake } from '../data/earn';
 import type { PassportStats } from '../types';
 
-export const EARN_PROGRESS_VERSION = 1;
+export const EARN_PROGRESS_VERSION = 2;
 
 const DEVICE_ID_KEY = 'bdx_device_id';
 const MIGRATED_FLAG = 'bdx_earn_migrated_to_wallet';
@@ -35,11 +35,11 @@ export type EarnProgressSnapshot = {
 };
 
 export const DEFAULT_SIM_BALANCES: Record<string, number> = {
-  BUILD: 1200,
-  ETH: 1.84,
-  POL: 320,
-  SOL: 8.5,
-  SENT: 100,
+  BUILD: 0,
+  ETH: 0,
+  POL: 0,
+  SOL: 0,
+  SENT: 0,
   AERO: 0,
   SPHERE: 0,
   LINK: 0,
@@ -49,9 +49,9 @@ export const DEFAULT_PASSPORT: PassportStats = {
   projectsDiscovered: 0,
   communitiesSupported: 0,
   researchQuestsCompleted: 0,
-  builderReputation: 50,
-  communityTrust: 50,
-  openSourceImpact: 'Medium',
+  builderReputation: 0,
+  communityTrust: 0,
+  openSourceImpact: 'Low',
   projectsCreated: 0,
   previousContributions: 0,
   activeUsers: 0,
@@ -145,6 +145,20 @@ export function loadEarnProgress(walletPubkey: string | null): EarnProgressSnaps
     }
 
     const parsed = JSON.parse(raw) as Partial<EarnProgressSnapshot>;
+    const priorVersion = Number(parsed.version) || 0;
+    const passportMerged =
+      parsed.passport && typeof parsed.passport === 'object'
+        ? { ...DEFAULT_PASSPORT, ...parsed.passport }
+        : { ...DEFAULT_PASSPORT };
+    if (
+      priorVersion < 2 &&
+      (Number(parsed.builderXp) || 0) === 0 &&
+      (passportMerged.builderReputation === 50 || passportMerged.communityTrust === 50)
+    ) {
+      passportMerged.builderReputation = 0;
+      passportMerged.communityTrust = 0;
+      passportMerged.openSourceImpact = 'Low';
+    }
     return {
       ...fresh,
       ...parsed,
@@ -169,13 +183,10 @@ export function loadEarnProgress(walletPubkey: string | null): EarnProgressSnaps
         ? parsed.pendingUnstake
         : null,
       simBalances:
-        parsed.simBalances && typeof parsed.simBalances === 'object'
+        priorVersion >= 2 && parsed.simBalances && typeof parsed.simBalances === 'object'
           ? { ...DEFAULT_SIM_BALANCES, ...parsed.simBalances }
           : { ...DEFAULT_SIM_BALANCES },
-      passport:
-        parsed.passport && typeof parsed.passport === 'object'
-          ? { ...DEFAULT_PASSPORT, ...parsed.passport }
-          : { ...DEFAULT_PASSPORT },
+      passport: passportMerged,
       completedQuestIds: Array.isArray(parsed.completedQuestIds)
         ? parsed.completedQuestIds.filter((x) => typeof x === 'string')
         : [],

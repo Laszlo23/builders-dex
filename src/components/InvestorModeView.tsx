@@ -28,22 +28,18 @@ export default function InvestorModeView({ projects, onOpenStory, setCurrentPath
     return projects
       .filter((p) => p.curation.status === 'curated')
       .filter((p) => category === 'All' || p.category === category)
-      .filter((p) => (liveMap[p.id]?.overall ?? p.builderScore.overall) >= minScore)
+      .filter((p) => (liveMap[p.id]?.overall ?? 0) >= minScore)
       .filter((p) => {
         const cap = parseCapM(p.marketCapLabel);
         if (cap == null) return true;
         return cap < maxCap;
       })
-      .filter((p) => !ossRequired || p.githubActivity > 50)
+      .filter((p) => !ossRequired || (p.githubRepo && p.githubRepo !== '—'))
       .filter((p) => {
         if (!revenueGrowing) return true;
-        return (p.reputationDelta ?? 0) >= 0 && p.builderScore.productProgress >= 70;
+        return /revenue/i.test(p.journey);
       })
-      .sort(
-        (a, b) =>
-          (liveMap[b.id]?.overall ?? b.builderScore.overall) -
-          (liveMap[a.id]?.overall ?? a.builderScore.overall),
-      );
+      .sort((a, b) => (liveMap[b.id]?.overall ?? 0) - (liveMap[a.id]?.overall ?? 0));
   }, [projects, category, maxCap, minScore, revenueGrowing, ossRequired, liveMap]);
 
   return (
@@ -137,11 +133,12 @@ export default function InvestorModeView({ projects, onOpenStory, setCurrentPath
               <div>
                 <p className="font-display text-lg font-bold">{p.name}</p>
                 <p className="mt-0.5 text-xs text-steel">
-                  {p.category} · {p.marketCapLabel || 'Early'} · {p.githubActivity} commits
+                  {p.category} · {p.marketCapLabel || 'Early'} ·{' '}
+                  {p.githubRepo && p.githubRepo !== '—' ? p.githubRepo : 'no public repo'}
                 </p>
               </div>
               <p className="font-mono text-sm text-accent">
-                {liveMap[p.id]?.overall ?? p.builderScore.overall} score
+                {liveMap[p.id]?.overall != null ? `${liveMap[p.id].overall} live` : 'awaiting live score'}
                 {liveMap[p.id]?.mode ? ` · ${liveMap[p.id].mode}` : ''}
               </p>
             </button>

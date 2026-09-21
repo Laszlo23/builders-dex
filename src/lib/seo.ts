@@ -12,7 +12,7 @@ export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const DEFAULT_OG_IMAGE = '/og-image.webp';
 export const OG_LOCALE = 'en_US';
-export const SITEMAP_LASTMOD = '2026-09-19';
+export const SITEMAP_LASTMOD = '2026-09-20';
 export const TWITTER_HANDLE =
   BRAND_SOCIALS.find((s) => s.id === 'x')?.href.replace(/^https?:\/\/(x|twitter)\.com\//, '') ||
   'buildingcultu3';
@@ -56,6 +56,7 @@ export type SeoRoute =
   | 'hood'
   | 'hoodstreet'
   | 'ccff00'
+  | 'build'
   | 'cubes'
   | 'telegram-bot'
   | 'coming-soon';
@@ -117,9 +118,9 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
     path: '/dao',
   },
   earn: {
-    title: 'Earn XP & preview vaults | Builders DEX',
+    title: 'Earn XP & Square loop | Builders DEX',
     description:
-      'Growth tasks and daily spin are live on your profile. Stake and LP are still a simulation — not an on-chain vault.',
+      'Growth tasks and daily spin are live. CCFF00 Square activate → park → stall is a preview. $BUILD is not launched. No fake APR.',
     path: '/earn',
   },
   launchpad: {
@@ -270,8 +271,14 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
   ccff00: {
     title: 'CCFF00 Wallet | Square ERC-6551',
     description:
-      'Use your CCFF00 Square ERC-6551 wallet to buy Hood projects and trade as the NFT. Not affiliated with Robinhood Markets.',
+      'Use your CCFF00 Square ERC-6551 wallet to buy Hood projects, activate, park, and stall. Not affiliated with Robinhood Markets.',
     path: '/ccff00',
+  },
+  build: {
+    title: '$BUILD on Hood | Builders DEX',
+    description:
+      'Builders DEX token on Robinhood Chain. Not launched until an address and LP lock are published. Pools.trade Crowd Launch is the intended door.',
+    path: '/build',
   },
   cubes: {
     title: 'Cubes Live | CCFF00 mint phases',
@@ -348,6 +355,7 @@ const PATH_ALIASES: Record<string, SeoRoute> = {
   neon: 'ccff00',
   'my-neon': 'ccff00',
   myneon: 'ccff00',
+  '$build': 'build',
 };
 
 function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: string | null } {
@@ -615,6 +623,7 @@ export function sitemapEntries(): {
     { route: 'hood', changefreq: 'weekly', priority: '0.6' },
     { route: 'hoodstreet', changefreq: 'daily', priority: '0.8' },
     { route: 'ccff00', changefreq: 'daily', priority: '0.7' },
+    { route: 'build', changefreq: 'weekly', priority: '0.7' },
     { route: 'cubes', changefreq: 'hourly', priority: '0.6' },
     { route: 'telegram-bot', changefreq: 'monthly', priority: '0.3' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },

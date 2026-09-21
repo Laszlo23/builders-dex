@@ -9,7 +9,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   terms: {
     id: 'terms',
     title: 'Terms of Use',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: '1. Service',
@@ -33,7 +33,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
       {
         heading: '4. Simulations',
         paragraphs: [
-          'Earn stake/LP, Investor Mode fund rails, and DAO votes are labeled as simulations or work-in-progress unless a page states a live contract. Do not treat preview balances as on-chain assets.',
+          'Earn Square loop, Investor Mode fund rails, and DAO votes are labeled as simulations or work-in-progress unless a page states a live contract. $BUILD has no published address yet. Do not treat preview balances as on-chain assets.',
         ],
       },
     ],
@@ -41,7 +41,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   privacy: {
     id: 'privacy',
     title: 'Privacy Policy',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: 'Data we process',
@@ -65,7 +65,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   imprint: {
     id: 'imprint',
     title: 'Imprint',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: 'Operator',
@@ -86,7 +86,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   contact: {
     id: 'contact',
     title: 'Contact',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: 'Reach us',
@@ -103,7 +103,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   faq: {
     id: 'faq',
     title: 'FAQ',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: 'I just landed. What do I click?',
@@ -150,7 +150,13 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
       {
         heading: 'Are Earn, Investor Mode, and DAO live on-chain?',
         paragraphs: [
-          'Stake/LP, fund rails, and DAO votes are simulations until a page names a live contract. Growth tasks and the daily spin on Earn already save on this profile. Investor Mode filters real catalog scores. Builder Stories are catalog briefs until we publish recorded episodes.',
+          'Growth tasks and the daily spin on Earn already save on this profile. The CCFF00 Square loop (activate → park → stall) is a labeled preview until the registry, stall vault, and fee splitter addresses are published. Fake LP APRs were removed. $BUILD is not live. DAO votes stay simulated. Investor Mode filters real catalog scores.',
+        ],
+      },
+      {
+        heading: 'What is $BUILD on Hood?',
+        paragraphs: [
+          'A planned Builders DEX token on Robinhood Chain (4663), separate from HoodStreet $CCFF00. It launches only after an address and LP lock are published on /build. Intended door: Pools.trade Crowd Launch with locked Uniswap v4 LP. Not a Pons deploy, not a promised yield.',
         ],
       },
       {
@@ -164,7 +170,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   mission: {
     id: 'mission',
     title: 'Mission',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: 'What we build',
@@ -185,7 +191,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   story: {
     id: 'story',
     title: 'Our story',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: 'From Building Culture',
@@ -200,7 +206,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
   guide: {
     id: 'guide',
     title: 'Site guide',
-    updated: '2026-09-19',
+    updated: '2026-09-20',
     sections: [
       {
         heading: 'Start here (no wallet)',
@@ -211,7 +217,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
       {
         heading: 'Product rooms',
         paragraphs: [
-          'Trade — curated Solana swaps after allowlist. Explore — Builder Stories. Terminal™ — morning intelligence. Builder Graph™ — who is connected to what. Builder Stories — catalog founder briefs (recorded Netflix episodes still filming). Investor Mode — thesis filters on live scores; fund rails not live. Accelerator / Apply — inspection-gated raises and applications. $AURA Live — Base token board. On Hood — honest hop to 4663. HoodStreet — neon street. CCFF00 Wallet — Square TBA. Cubes Live — on-chain mint phases. Earn — tasks live; stake/LP simulated. Passport™ — reputation profile.',
+          'Trade — curated Solana swaps after allowlist. Explore — Builder Stories. Terminal™ — morning intelligence. Builder Graph™ — who is connected to what. Builder Stories — catalog founder briefs (recorded Netflix episodes still filming). Investor Mode — thesis filters on live scores; fund rails not live. Accelerator / Apply — inspection-gated raises and applications. $AURA Live — Base token board. On Hood — honest hop to 4663. HoodStreet — neon street. CCFF00 Wallet — Square TBA. $BUILD — Hood token page (not launched until address + lock). Cubes Live — on-chain mint phases. Earn — tasks live; Square loop preview, no fake APR. Passport™ — reputation profile.',
         ],
       },
       {

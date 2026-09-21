@@ -62,6 +62,7 @@ import ProjectVelocityCard from './ProjectVelocityCard';
 import FounderHumanCard from './FounderHumanCard';
 import CollaborationNeedsCard from './CollaborationNeedsCard';
 import FeaturedStandardBadge from './FeaturedStandardBadge';
+import OptimizedImage from './OptimizedImage';
 import { BUILDER_SCORE_UNLOCK } from '../lib/reputationRules';
 import {
   DUAL_CONVICTION,
@@ -79,7 +80,7 @@ import DualConvictionCard from './DualConvictionCard';
 import BuilderMilestonesCard from './BuilderMilestonesCard';
 import EducationalReviewCard from './EducationalReviewCard';
 import BuilderNetflixCard from './BuilderNetflixCard';
-import OptimizedImage from './OptimizedImage';
+import SquareStallCard from './SquareStallCard';
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -92,7 +93,7 @@ interface ProjectDetailViewProps {
   onAskIntelligence?: (prompt: string) => void;
   tradeableMintSet: Set<string>;
   builders: Builder[];
-  setCurrentPath: (path: string, state?: { buy?: string | null }) => void;
+  setCurrentPath: (path: string, state?: { buy?: string | null; stall?: string | null }) => void;
   onShareReward?: (channel?: string) => ShareActionResult | void;
   onSignal: (id: string, side: SignalSide) => void;
   signal: SignalSnapshot;
@@ -342,7 +343,10 @@ export default function ProjectDetailView({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {project.curation.status !== 'rejected' && (
-              <BuilderScoreBadge overall={liveScore.overall} mode={scoreMode} />
+              <BuilderScoreBadge
+                overall={scoreMode === 'seed' ? null : liveScore.overall}
+                mode={scoreMode}
+              />
             )}
             <button
               type="button"
@@ -457,7 +461,13 @@ export default function ProjectDetailView({
               <span className="inline-flex items-center gap-1.5">
                 <Github className="h-3.5 w-3.5" /> {project.githubRepo}
               </span>
-              <span>{(live?.github?.stars ?? project.githubActivity).toLocaleString()}{(live?.github ? ' stars' : ' commits')}</span>
+              <span>
+                {live?.github
+                  ? `${live.github.stars.toLocaleString()} stars`
+                  : project.githubRepo && project.githubRepo !== '—'
+                    ? 'Awaiting live GitHub'
+                    : 'No public repo'}
+              </span>
               <span>{project.chain}</span>
               {project.marketCapLabel && <span>{project.marketCapLabel}</span>}
             </div>
@@ -509,28 +519,27 @@ export default function ProjectDetailView({
                   />
                 )
               )}
-              <BuilderDnaCard dna={dna} />
+              {scoreMode !== 'seed' && <BuilderDnaCard dna={dna} />}
               <ProofOfBuildingCard proof={proof} />
               <CrossChainBindingCard projectId={project.id} projectName={project.name} />
               {founder && (
                 <FounderPassportCard
                   founder={founder}
-                  buildingSince={Math.min(project.foundedYear, 2021)}
-                  previousProtocols={Math.max(founder.projectsCreated.length, 1)}
-                  exits={founder.level >= 4 ? 1 : 0}
-                  openSourceCommits={
-                    project.githubActivity > 0
-                      ? Math.round(project.githubActivity * 12)
-                      : undefined
-                  }
+                  buildingSince={project.foundedYear}
+                  previousProtocols={founder.projectsCreated.length}
+                  exits={0}
+                  openSourceCommits={live?.github?.stars}
                   legacy={LEGACY_PASSPORTS[founder.id]}
                   onOpenRankings={() => setCurrentPath('builders')}
                 />
               )}
-              <ReputationUnlocksCard builderScore={liveScore.overall} mode="builder" />
+              {scoreMode !== 'seed' && (
+                <ReputationUnlocksCard builderScore={liveScore.overall} mode="builder" />
+              )}
               <FeaturedStandardBadge
                 projectName={project.name}
                 unlocked={
+                  scoreMode !== 'seed' &&
                   project.curation.status === 'curated' &&
                   liveScore.overall >= BUILDER_SCORE_UNLOCK
                 }
@@ -617,7 +626,7 @@ export default function ProjectDetailView({
               live={live}
               loading={scoreLoading}
               mode={scoreMode}
-              overall={liveScore.overall}
+              overall={scoreMode === 'seed' ? 0 : liveScore.overall}
             />
           )}
 
@@ -625,11 +634,18 @@ export default function ProjectDetailView({
           <section className="rounded-3xl border border-white/10 bg-surface p-6 md:p-8">
             <h2 className="font-sans text-lg font-bold">Builder Score™ breakdown</h2>
             <p className="mt-1 text-xs text-steel">
-              Live weighted dimensions · methodology {live?.version || '…'}
-              {scoreLoading ? ' · refreshing' : ''}
+              {scoreMode === 'seed'
+                ? 'Live GitHub score has not landed yet — we do not show a catalog placeholder as a score.'
+                : `Live weighted dimensions · methodology ${live?.version || '…'}${
+                    scoreLoading ? ' · refreshing' : ''
+                  }`}
             </p>
             <div className="mt-6">
-              <ScoreBars score={liveScore} mode="all" />
+              {scoreMode === 'seed' ? (
+                <p className="text-sm text-steel">—</p>
+              ) : (
+                <ScoreBars score={liveScore} mode="all" />
+              )}
             </div>
           </section>
 
@@ -772,6 +788,11 @@ export default function ProjectDetailView({
 
         {/* Sidebar */}
         <aside className="space-y-6">
+          <SquareStallCard
+            projectId={project.id}
+            projectName={project.name}
+            setCurrentPath={setCurrentPath}
+          />
           <div className="rounded-3xl border border-white/10 bg-surface p-5">
             {hoodAsset ? (
               <>

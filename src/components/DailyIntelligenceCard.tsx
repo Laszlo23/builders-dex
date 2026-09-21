@@ -55,7 +55,7 @@ export default function DailyIntelligenceCard({
           </h2>
           <p className="mt-1 font-mono text-[10px] text-steel">
             {brief.dateLabel}
-            {loading ? ' · loading live…' : ' · live'}
+            {loading ? ' · loading…' : sources.length ? ' · live radar' : ' · catalog note'}
           </p>
         </div>
         <span className="rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 font-mono text-[10px] text-accent">
@@ -93,8 +93,7 @@ export default function DailyIntelligenceCard({
             >
               {p.sector}{' '}
               <span className="text-accent">
-                {p.changePct >= 0 ? '+' : ''}
-                {p.changePct}%
+                {p.changePct === 0 ? 'No Δ' : `${p.changePct > 0 ? '+' : ''}${p.changePct}%`}
               </span>
             </span>
           ))}
@@ -110,7 +109,9 @@ export default function DailyIntelligenceCard({
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-4">
         <p className="text-sm text-white/80">
           Your Watchlist:{' '}
-          <span className="font-mono text-accent">{updates} updates</span>
+          <span className="font-mono text-accent">
+            {updates > 0 ? `${updates} updates` : 'no discoveries yet'}
+          </span>
         </p>
         {onOpenIntelligence && (
           <button

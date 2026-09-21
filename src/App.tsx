@@ -42,10 +42,11 @@ const HoodGuideView = lazyWithRetry(() => import('./components/HoodGuideView'));
 const CubesLiveView = lazyWithRetry(() => import('./components/CubesLiveView'));
 const HoodStreetView = lazyWithRetry(() => import('./components/HoodStreetView'));
 const Ccff00WalletView = lazyWithRetry(() => import('./components/Ccff00WalletView'));
+const BuildTokenView = lazyWithRetry(() => import('./components/BuildTokenView'));
 const HoodShareView = lazyWithRetry(() => import('./components/HoodShareView'));
 const ComingSoonView = lazyWithRetry(() => import('./components/ComingSoonView'));
 
-import { INITIAL_PROJECTS, INITIAL_PROPOSALS, ALL_QUESTS } from './data/projects';
+import { INITIAL_PROJECTS, INITIAL_PROPOSALS, ALL_QUESTS, preferPublishedCatalog } from './data/projects';
 import { useLiveBuilders } from './hooks/useLiveBuilders';
 import { LIVE_AURA_RAISE_SEED, isLiveAuraRaiseId } from './data/liveShareRaise';
 import { HOOD_SHARE_ID, HOOD_SHARE_PROJECT_ID, isHoodShareId } from './data/hoodShare';
@@ -80,6 +81,7 @@ import {
   PassportStats,
   ScoutMission,
   UserProfile,
+  ProjectChain,
 } from './types';
 import { getPassportLevel } from './lib/builderScore';
 import {
@@ -131,6 +133,24 @@ const EMPTY_PROFILE: UserProfile = {
 
 function truncateAddress(address: string): string {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
+}
+
+function nativeTickerFor(chain: ProjectChain): string {
+  switch (chain) {
+    case 'Solana':
+      return 'SOL';
+    case 'Polygon':
+      return 'POL';
+    case 'Base':
+    case 'Ethereum':
+    case 'Robinhood':
+    case 'Off-chain':
+      return 'ETH';
+    default: {
+      const _never: never = chain;
+      return _never;
+    }
+  }
 }
 
 export default function App() {
@@ -320,7 +340,7 @@ export default function App() {
       .then((r) => r.json())
       .then((data: { projects?: Project[] }) => {
         if (cancelled || !Array.isArray(data.projects) || data.projects.length === 0) return;
-        setProjects(data.projects);
+        setProjects(preferPublishedCatalog(data.projects));
       })
       .catch(() => {
         /* keep seed catalog */
@@ -724,8 +744,7 @@ export default function App() {
   const handleFundProject = (amount: number, receivedAmt: number) => {
     const selectedProj = projects.find((p) => p.id === selectedProjectId);
     if (!selectedProj) return;
-    const nativeTicker =
-      selectedProj.chain === 'Solana' ? 'SOL' : selectedProj.chain === 'Polygon' ? 'POL' : 'ETH';
+    const nativeTicker = nativeTickerFor(selectedProj.chain);
 
     setSimBalances((prev) => ({
       ...prev,
@@ -853,7 +872,7 @@ export default function App() {
       .then((r) => r.json())
       .then((data: { projects?: Project[] }) => {
         if (Array.isArray(data.projects) && data.projects.length > 0) {
-          setProjects(data.projects);
+          setProjects(preferPublishedCatalog(data.projects));
         }
       })
       .catch(() => {
@@ -1185,13 +1204,6 @@ export default function App() {
         return (
           <EarnView
             wallet={wallet}
-            stakedBuild={stakedBuild}
-            onStake={handleStakeBuild}
-            onRequestUnstake={handleRequestUnstake}
-            onClaimUnstake={handleClaimUnstake}
-            pendingUnstake={pendingUnstake}
-            onProvideLiquidity={handleProvideLiquidity}
-            lpDeposits={lpDeposits}
             tasks={growthTasks}
             startedTaskIds={startedTaskIds}
             onStartTask={handleStartGrowthTask}
@@ -1210,7 +1222,6 @@ export default function App() {
                 )
               );
             }}
-            isStaker={stakedBuild > 0 || Boolean(pendingUnstake)}
             setCurrentPath={setCurrentPath}
             builderXp={builderXp}
           />
@@ -1226,9 +1237,7 @@ export default function App() {
             setSelectedProjectId={setSelectedProjectId}
             setCurrentPath={setCurrentPath}
             scoutXp={passport.scoutXp || 0}
-            watchlistUpdates={
-              discoveredIds.size > 0 ? discoveredIds.size : 3
-            }
+            watchlistUpdates={discoveredIds.size}
             walletAddress={walletKey}
             onConnectWallet={connectWallet}
             userScout={{
@@ -1239,7 +1248,9 @@ export default function App() {
                   ? 'Genesis Scout'
                   : (passport.scoutXp || 0) >= 500
                     ? 'Core Scout'
-                    : 'Field Scout',
+                    : (passport.scoutXp || 0) > 0
+                      ? 'Field Scout'
+                      : 'Not on the ledger yet',
               projectsDiscovered: passport.projectsDiscovered,
               earlyCalls: passport.earlyCalls || 0,
               researchAccuracy: passport.researchAccuracy || 0,
@@ -1340,6 +1351,8 @@ export default function App() {
             setSelectedProjectId={setSelectedProjectId}
           />
         );
+      case 'build':
+        return <BuildTokenView setCurrentPath={setCurrentPath} />;
       case 'ccff00':
         return <Ccff00WalletView setCurrentPath={setCurrentPath} />;
       case 'cubes':

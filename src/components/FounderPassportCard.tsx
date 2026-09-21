@@ -15,25 +15,28 @@ type Props = {
 
 export default function FounderPassportCard({
   founder,
-  buildingSince = 2021,
+  buildingSince,
   previousProtocols,
   exits = 0,
   openSourceCommits,
   legacy,
   onOpenRankings,
 }: Props) {
-  const protocols = previousProtocols ?? Math.max(founder.projectsCreated.length, 1);
-  const oss =
-    openSourceCommits ??
-    Math.max(120, Math.round(founder.builderScore * 18 + founder.projectsCreated.length * 40));
+  const protocols = previousProtocols ?? founder.projectsCreated.length;
+  const ossLabel =
+    openSourceCommits == null
+      ? '—'
+      : openSourceCommits >= 1000
+        ? `${(openSourceCommits / 1000).toFixed(1)}k`
+        : String(openSourceCommits);
 
   const shareStats = [
-    { label: 'Building since', value: String(buildingSince) },
-    { label: 'Prior protocols', value: String(protocols) },
-    { label: 'Exits', value: String(exits) },
-    { label: 'OSS commits', value: oss >= 1000 ? `${(oss / 1000).toFixed(1)}k` : String(oss) },
+    { label: 'Building since', value: buildingSince ? String(buildingSince) : '—' },
+    { label: 'Catalog projects', value: String(protocols) },
+    { label: 'Exits', value: exits > 0 ? String(exits) : '—' },
+    { label: 'Live GH stars', value: ossLabel },
     { label: 'Level', value: founder.reputationLevel },
-    { label: 'Reputation', value: String(founder.builderScore) },
+    { label: 'Reputation', value: founder.builderScore > 0 ? String(founder.builderScore) : '—' },
   ];
 
   return (
@@ -56,7 +59,9 @@ export default function FounderPassportCard({
           </div>
           <div className="rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-center">
             <p className="font-mono text-[9px] uppercase tracking-wider text-accent">Score</p>
-            <p className="font-display mt-0.5 text-2xl font-bold text-white">{founder.builderScore}</p>
+            <p className="font-display mt-0.5 text-2xl font-bold text-white">
+              {founder.builderScore > 0 ? founder.builderScore : '—'}
+            </p>
           </div>
         </div>
 

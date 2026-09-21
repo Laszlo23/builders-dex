@@ -41,7 +41,7 @@ export const CCFF00_DESK: Ccff00DeskItem[] = [
   {
     id: 'p5',
     name: 'Aura Share',
-    blurb: 'Inspected Hood Accelerator certificate. The Square pays ETH and holds the NFT.',
+    blurb: 'Inspected Hood Accelerator certificate. Park the Square, take the stall, then the TBA pays ETH and holds the NFT.',
     status: 'live',
     to: HOOD_SHARE_ADDRESS,
     valueWei: HOOD_SHARE_PRICE_WEI,

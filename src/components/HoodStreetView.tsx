@@ -25,9 +25,11 @@ import {
 } from '../data/hoodStreet';
 import type { CubesLiveSnapshot } from '../lib/hoodLive';
 import ChainLaneBar from './ChainLaneBar';
+import SquareLoopPanel from './SquareLoopPanel';
+import SquareStorefronts from './SquareStorefronts';
 
 type Props = {
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: { buy?: string | null; stall?: string | null }) => void;
   setSelectedProjectId?: (id: string) => void;
 };
 
@@ -40,6 +42,8 @@ const TICKER = [
   'NO RARITY THEATER',
   'CUBES · ETH MINT',
   'THE STREET IS ONCHAIN',
+  'ACTIVATE · PARK · STALL',
+  'FEE DUST NOT APR',
 ];
 
 export default function HoodStreetView({ setCurrentPath, setSelectedProjectId }: Props) {
@@ -139,6 +143,13 @@ export default function HoodStreetView({ setCurrentPath, setSelectedProjectId }:
               </button>
               <button
                 type="button"
+                onClick={() => setCurrentPath('build')}
+                className="hood-cta inline-flex min-h-[48px] items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold"
+              >
+                $BUILD launch <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
                 onClick={() => setCurrentPath('cubes')}
                 className="hood-cta inline-flex min-h-[48px] items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold"
               >
@@ -205,6 +216,12 @@ export default function HoodStreetView({ setCurrentPath, setSelectedProjectId }:
           </div>
         </section>
       )}
+
+      <div className="relative z-10 mt-10">
+        <SquareLoopPanel setCurrentPath={setCurrentPath} compact />
+      </div>
+
+      <SquareStorefronts setCurrentPath={setCurrentPath} />
 
       <section className="relative z-10 mt-14">
         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#CCFF00]">

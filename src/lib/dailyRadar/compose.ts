@@ -32,23 +32,22 @@ export function composeDailyRadar(input: {
   now?: Date;
 }): DailyRadarPayload {
   const now = input.now ?? new Date();
-  const movers: RadarMover[] = input.projects
-    .filter((p) => p.curation.status !== 'rejected')
-    .map((p) => {
-      const overall =
-        input.liveOverall.get(p.id) ?? p.builderScore.overall;
-      const prior =
-        input.priorOverall.get(p.id) ?? p.builderScore.overall;
-      return {
-        projectId: p.id,
-        name: p.name,
-        category: p.category,
-        overall,
-        priorOverall: prior,
-        delta: overall - prior,
-        curationStatus: p.curation.status,
-      };
+  const movers: RadarMover[] = [];
+  for (const p of input.projects) {
+    if (p.curation.status === 'rejected') continue;
+    const overall = input.liveOverall.get(p.id);
+    if (overall == null) continue;
+    const prior = input.priorOverall.get(p.id);
+    movers.push({
+      projectId: p.id,
+      name: p.name,
+      category: p.category,
+      overall,
+      priorOverall: prior ?? overall,
+      delta: overall - (prior ?? overall),
+      curationStatus: p.curation.status,
     });
+  }
 
   const rising = [...movers]
     .filter((m) => m.delta > 0)

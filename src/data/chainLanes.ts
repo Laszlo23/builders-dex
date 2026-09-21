@@ -31,7 +31,7 @@ export const CHAIN_LANES: ChainLane[] = [
     id: 'hood',
     label: 'Hood',
     chain: 'Robinhood 4663',
-    job: 'Square wallet · ETH mint',
+    job: 'Square wallet · $BUILD loop',
     wallet: 'EVM / TBA',
     route: 'ccff00',
   },
@@ -41,6 +41,7 @@ export const HOOD_LANE_ROUTES = new Set([
   'hood',
   'hoodstreet',
   'ccff00',
+  'build',
   'cubes',
 ]);
 

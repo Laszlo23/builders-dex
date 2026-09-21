@@ -79,6 +79,11 @@ export function BuilderSignalsCard({ signals }: { signals: BuilderSignal[] }) {
         Builder Signals™
       </p>
       <h2 className="font-display mt-2 text-xl font-bold">What&apos;s moving now</h2>
+      {signals.length === 0 ? (
+        <p className="mt-5 rounded-xl border border-dashed border-white/12 px-4 py-8 text-center text-sm text-steel">
+          No live shipping signals yet — we do not invent hiring or launch theater.
+        </p>
+      ) : (
       <ul className="mt-5 space-y-2.5">
         {signals.map((s) => (
           <li
@@ -90,6 +95,7 @@ export function BuilderSignalsCard({ signals }: { signals: BuilderSignal[] }) {
           </li>
         ))}
       </ul>
+      )}
     </section>
   );
 }

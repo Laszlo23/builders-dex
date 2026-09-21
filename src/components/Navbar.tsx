@@ -59,6 +59,7 @@ const MORE_GROUPS = [
       { id: 'aura', label: '$AURA · Base', icon: Zap },
       { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
       { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
+      { id: 'build', label: '$BUILD · Hood', icon: Coins },
       { id: 'cubes', label: 'Cubes Live', icon: Box },
       { id: 'launchpad', label: 'Accelerator', icon: Rocket },
     ],
@@ -86,7 +87,7 @@ const MORE_GROUPS = [
   {
     title: 'Labs',
     items: [
-      { id: 'earn', label: 'Earn (sim)', icon: Coins },
+      { id: 'earn', label: 'Earn', icon: Coins },
       { id: 'dao', label: 'DAO (sim)', icon: Users },
       { id: 'campaign', label: 'Share kit', icon: Share2 },
       { id: 'telegram-bot', label: 'Telegram', icon: Bot },

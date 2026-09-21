@@ -97,28 +97,7 @@ export const SCORE_TRANSPARENCY: Record<string, ScoreTransparency> = {};
 /** Public dependents — only cite when we have a real source; empty until verified. */
 export const USED_BY: Record<string, UsedByBlock> = {};
 
-export const PROJECT_REALITY: Record<string, ProjectReality> = {
-  p1: {
-    challenge: 'Hardware / inference cost at consumer scale',
-    nextMilestone: 'Continued ggml / llama.cpp releases',
-    needs: ['C++ Engineer', 'CUDA / Metal'],
-  },
-  p2: {
-    challenge: 'Risk modularity across markets',
-    nextMilestone: 'Continued open governance + audits',
-    needs: ['Smart Contract Auditor', 'Risk Researcher'],
-  },
-  p3: {
-    challenge: 'Cross-chain security under adversarial load',
-    nextMilestone: 'Continued guardian / messaging hardening',
-    needs: ['Rust Engineer', 'Protocol Designer', 'Researcher'],
-  },
-  p4: {
-    challenge: 'Creator standards that stay portable',
-    nextMilestone: 'Token Metadata ecosystem growth',
-    needs: ['Solana Engineer', 'Developer Relations'],
-  },
-};
+export const PROJECT_REALITY: Record<string, ProjectReality> = {};
 
 /** Recorded founder videos — empty until we publish an episode. Catalog briefs are separate. */
 export const FOUNDER_EPISODES: FounderEpisode[] = [];
@@ -155,25 +134,9 @@ export const MILESTONE_CATALOG: { key: MilestoneKey; label: string }[] = [
   { key: 'first_enterprise', label: 'First Enterprise Customer' },
 ];
 
-export const PROJECT_MILESTONES: Record<string, MilestoneKey[]> = {
-  p1: ['first_100_users', 'first_mainnet', 'first_audit', 'one_m_tx'],
-  p2: ['first_100_users', 'first_audit'],
-  p3: ['first_100_users', 'first_audit'],
-  p4: ['first_100_users', 'first_revenue', 'first_audit'],
-};
+export const PROJECT_MILESTONES: Record<string, MilestoneKey[]> = {};
 
-export const EDUCATIONAL_REVIEWS: Record<string, EducationalReview> = {
-  p5: {
-    score: 64,
-    improve: ['Ship documentation', 'Publish roadmap', 'Increase code activity'],
-    estimatedDays: 14,
-  },
-  p6: {
-    score: 58,
-    improve: ['Reveal team identity', 'Show product usage', 'Open a public repo'],
-    estimatedDays: 21,
-  },
-};
+export const EDUCATIONAL_REVIEWS: Record<string, EducationalReview> = {};
 
 export const BUILDER_GRAPH: { nodes: GraphNode[]; edges: GraphEdge[] } = {
   nodes: [
@@ -274,12 +237,6 @@ export function episodesFor(projectId: string, project?: Project): FounderEpisod
   return [];
 }
 
-export function educationalReviewFor(projectId: string): EducationalReview {
-  return (
-    EDUCATIONAL_REVIEWS[projectId] || {
-      score: 64,
-      improve: ['Ship documentation', 'Publish roadmap', 'Increase code activity'],
-      estimatedDays: 14,
-    }
-  );
+export function educationalReviewFor(projectId: string): EducationalReview | null {
+  return EDUCATIONAL_REVIEWS[projectId] ?? null;
 }

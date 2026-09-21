@@ -56,10 +56,10 @@ export function journeyFor(project: Project): JourneyStep[] {
   const tradeable =
     curated && Boolean(resolveTradeMint(project) || resolveBaseTradeAddress(project));
   const mainnet = /mainnet|revenue|launch/i.test(project.journey);
-  const testnet = /testnet/i.test(project.journey) || (!mainnet && curated);
-  const users = project.upvotes >= 100 || curated;
-  const users1k = project.upvotes >= 250 || (curated && project.builderScore.community >= 88);
-  const commits = project.githubActivity > 0 && project.githubRepo !== '—';
+  const testnet = /testnet/i.test(project.journey);
+  const users = project.upvotes >= 100;
+  const users1k = project.upvotes >= 1000;
+  const commits = project.githubRepo !== '—' && project.githubRepo.trim().length > 0;
 
   const mark = (done: boolean, current: boolean): JourneyStepStatus =>
     done ? 'done' : current ? 'current' : 'upcoming';
@@ -86,72 +86,29 @@ export function journeyFor(project: Project): JourneyStep[] {
   });
 }
 
-export const BUILDER_SIGNALS: Record<string, BuilderSignal[]> = {
-  p1: [
-    { id: 's1', tone: 'green', label: 'Hiring engineers' },
-    { id: 's2', tone: 'green', label: 'Shipping weekly' },
-    { id: 's3', tone: 'green', label: 'Community accelerating' },
-    { id: 's4', tone: 'green', label: 'Mainnet next month' },
-    { id: 's5', tone: 'yellow', label: 'New tokenomics proposal' },
-  ],
-  p2: [
-    { id: 's1', tone: 'green', label: 'Shipping weekly' },
-    { id: 's2', tone: 'yellow', label: 'Liquidity design review' },
-    { id: 's3', tone: 'green', label: 'Founder AMA tomorrow' },
-  ],
-  p3: [
-    { id: 's1', tone: 'green', label: 'Community accelerating' },
-    { id: 's2', tone: 'green', label: 'Testnet v3 live' },
-    { id: 's3', tone: 'yellow', label: 'Audit in progress' },
-  ],
-  p4: [
-    { id: 's1', tone: 'green', label: 'Reached growth milestone' },
-    { id: 's2', tone: 'green', label: 'Shipping weekly' },
-    { id: 's3', tone: 'yellow', label: 'Creator economy season focus' },
-  ],
-};
+/** Live shipping theater only — empty until GitHub / radar events exist. */
+export const BUILDER_SIGNALS: Record<string, BuilderSignal[]> = {};
 
 export function signalsFor(projectId: string): BuilderSignal[] {
-  return (
-    BUILDER_SIGNALS[projectId] || [
-      { id: 'd1', tone: 'green', label: 'Building in public' },
-      { id: 'd2', tone: 'yellow', label: 'Awaiting next signal' },
-    ]
-  );
+  return BUILDER_SIGNALS[projectId] || [];
 }
 
 /** Build Feed — empty until events come from GitHub / radar (no staged theater). */
 export const BUILD_FEED: BuildFeedItem[] = [];
 
-export const INITIAL_CONVICTIONS: Conviction[] = [
-  {
-    id: 'c1',
-    projectId: 'p1',
-    projectName: 'llama.cpp',
-    level: 5,
-    label: 'Strong Conviction',
-    reason: 'Founder execution.',
-  },
-  {
-    id: 'c2',
-    projectId: 'p4',
-    projectName: 'Metaplex',
-    level: 3,
-    label: 'Medium',
-    reason: 'Growing quickly.',
-  },
-];
+/** Convictions start empty — the visitor writes their own. */
+export const INITIAL_CONVICTIONS: Conviction[] = [];
 
 export const CURRENT_SEASON: BuilderSeason = {
-  id: 'spring-2026',
-  name: 'SPRING 2026',
-  theme: 'The AI Builder Season',
-  applications: 4,
-  accepted: 3,
-  winnerName: 'llama.cpp',
-  winnerProjectId: 'p1',
-  closesInDays: 18,
-  status: 'live',
+  id: 'none',
+  name: 'No live season',
+  theme: 'A Builder Season opens when we run a public vote with a published rule set.',
+  applications: 0,
+  accepted: 0,
+  winnerName: '',
+  winnerProjectId: '',
+  closesInDays: 0,
+  status: 'closed',
 };
 
 export const FIRST_DISCOVERY_COPY = {

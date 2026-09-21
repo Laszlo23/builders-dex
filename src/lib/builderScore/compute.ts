@@ -184,7 +184,7 @@ export function computeLiveBuilderScore(
       id: 'gh-missing',
       dimension: 'development',
       label: 'GitHub unresolved',
-      detail: `Could not verify ${input.githubRepo} — using provisional catalog activity (${input.githubActivity} commits declared)`,
+      detail: `Could not verify ${input.githubRepo} — catalog has no live GitHub count yet`,
       url: repoUrl,
       status: 'provisional',
     });

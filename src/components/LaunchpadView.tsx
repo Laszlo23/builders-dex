@@ -365,7 +365,7 @@ export default function LaunchpadView({
                   >
                     <span className="text-sm font-semibold">{p.name}</span>
                     <span className="font-mono text-[10px] text-accent">
-                      {p.builderScore.overall}
+                      {p.curation.status}
                     </span>
                   </button>
                 </li>

@@ -4,7 +4,7 @@ import { BookOpen, Clock } from 'lucide-react';
 
 type Props = {
   projectName: string;
-  review: EducationalReview;
+  review?: EducationalReview | null;
   rejectionReasons?: string[];
 };
 
@@ -24,12 +24,18 @@ export default function EducationalReviewCard({
         Not a dead end — a curriculum. Rejection becomes motivation.
       </p>
 
-      <div className="mt-5 inline-flex rounded-2xl border border-white/12 bg-ink/50 px-4 py-3">
-        <div>
-          <p className="font-mono text-[9px] uppercase text-steel">Current Score</p>
-          <p className="font-display text-2xl font-bold text-white">{review.score}</p>
+      {review ? (
+        <div className="mt-5 inline-flex rounded-2xl border border-white/12 bg-ink/50 px-4 py-3">
+          <div>
+            <p className="font-mono text-[9px] uppercase text-steel">Current Score</p>
+            <p className="font-display text-2xl font-bold text-white">{review.score}</p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <p className="mt-5 text-sm text-steel">
+          No invented review score. A curator writes the next steps when they exist.
+        </p>
+      )}
 
       {rejectionReasons.length > 0 && (
         <ul className="mt-4 space-y-1.5 text-sm text-white/80">
@@ -41,24 +47,27 @@ export default function EducationalReviewCard({
         </ul>
       )}
 
-      <div className="mt-6">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-accent">Improve</p>
-        <ul className="mt-2 space-y-2">
-          {review.improve.map((item) => (
-            <li
-              key={item}
-              className="rounded-xl border border-accent/25 bg-accent/10 px-3 py-2.5 text-sm text-white"
-            >
-              • {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <p className="mt-5 inline-flex items-center gap-2 font-mono text-xs text-steel">
-        <Clock className="h-3.5 w-3.5 text-accent" />
-        Estimated Review: {review.estimatedDays} days
-      </p>
+      {review && (
+        <>
+          <div className="mt-6">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-accent">Improve</p>
+            <ul className="mt-2 space-y-2">
+              {review.improve.map((item) => (
+                <li
+                  key={item}
+                  className="rounded-xl border border-accent/25 bg-accent/10 px-3 py-2.5 text-sm text-white"
+                >
+                  • {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="mt-5 inline-flex items-center gap-2 font-mono text-xs text-steel">
+            <Clock className="h-3.5 w-3.5 text-accent" />
+            Estimated Review: {review.estimatedDays} days
+          </p>
+        </>
+      )}
     </section>
   );
 }

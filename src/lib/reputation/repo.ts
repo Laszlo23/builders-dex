@@ -6,6 +6,7 @@ import type { PassportStats } from '../../types';
 import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import { passportSyncMessage } from './messages';
+import { isPublicPassportWallet } from '../walletPlaceholders';
 
 const WALLET_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
@@ -180,22 +181,24 @@ export function listLeaderboard(limit = 25): PublicPassportRow[] {
     created_at: string;
   }[];
 
-  return rows.map((r) => {
-    const rec = rowToRecord(r);
-    return {
-      wallet: rec.wallet,
-      displayName: rec.displayName,
-      builderXp: rec.builderXp,
-      contributionsCount: rec.contributionsCount,
-      levelName: rec.levelName,
-      passport: rec.passport,
-      verified: rec.verified,
-      updatedAt: rec.updatedAt,
-      createdAt: rec.createdAt,
-      completedTaskCount: rec.completedTaskCount,
-      scoutXp: rec.scoutXp,
-    };
-  });
+  return rows
+    .map((r) => {
+      const rec = rowToRecord(r);
+      return {
+        wallet: rec.wallet,
+        displayName: rec.displayName,
+        builderXp: rec.builderXp,
+        contributionsCount: rec.contributionsCount,
+        levelName: rec.levelName,
+        passport: rec.passport,
+        verified: rec.verified,
+        updatedAt: rec.updatedAt,
+        createdAt: rec.createdAt,
+        completedTaskCount: rec.completedTaskCount,
+        scoutXp: rec.scoutXp,
+      };
+    })
+    .filter((row) => isPublicPassportWallet(row.wallet));
 }
 
 export function upsertReputation(input: {

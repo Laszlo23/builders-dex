@@ -41,7 +41,7 @@ export function BuilderScoreBadge({
   overall,
   mode,
 }: {
-  overall: number;
+  overall: number | null;
   mode?: 'live' | 'partial' | 'provisional' | 'seed';
 }) {
   return (
@@ -51,7 +51,7 @@ export function BuilderScoreBadge({
         {mode && mode !== 'seed' ? ` · ${mode}` : ''}
       </span>
       <span className="mt-1 font-mono text-3xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
-        {overall}
+        {overall == null || mode === 'seed' ? '—' : overall}
         <span className="text-base text-steel"> / 100</span>
       </span>
     </div>

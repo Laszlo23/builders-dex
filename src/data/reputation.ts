@@ -53,67 +53,11 @@ export const INITIAL_SCOUT_MISSIONS: ScoutMission[] = [
   },
 ];
 
-/** Seed Scout showcase (Terminal shows live ledger first; seed fills empty board). */
-export const SCOUT_LEADERBOARD: ScoutProfile[] = [
-  {
-    id: 'scout_laszlo',
-    name: 'Laszlo',
-    title: 'Genesis Scout',
-    avatarUrl: 'https://unavatar.io/twitter/buildingcultu3',
-    projectsDiscovered: 12,
-    earlyCalls: 5,
-    researchAccuracy: 0,
-    scoutReputation: 92,
-    focus: 'AI + Infrastructure',
-  },
-  {
-    id: 'scout_field',
-    name: 'Field Scout',
-    title: 'Core Scout',
-    projectsDiscovered: 7,
-    earlyCalls: 2,
-    researchAccuracy: 0,
-    scoutReputation: 78,
-    focus: 'DeFi',
-  },
-  {
-    id: 'scout_rising',
-    name: 'Rising Scout',
-    title: 'Rising Scout',
-    projectsDiscovered: 3,
-    earlyCalls: 1,
-    researchAccuracy: 0,
-    scoutReputation: 61,
-    focus: 'Creator Economy',
-  },
-];
+/** Live ledger only — never invent scouts. */
+export const SCOUT_LEADERBOARD: ScoutProfile[] = [];
 
-/**
- * Under-evaluation pads for Genesis Radar™ — merge with live pending/reviewed catalog.
- * Names are pipeline labels, not tradeable projects.
- */
-export const GENESIS_RADAR: GenesisRadarEntry[] = [
-  {
-    id: 'gr_pipeline_1',
-    name: 'Pending Index intake',
-    sector: 'Infrastructure',
-    beforeLabel: 'Telegram / Apply',
-    currentLabel: 'Private evaluation',
-    status: 'Under Review',
-    signal: 'Community signal → Index queue',
-    progress: 72,
-  },
-  {
-    id: 'gr_pipeline_2',
-    name: 'Scout consensus window',
-    sector: 'AI + Web3',
-    beforeLabel: 'Early thesis',
-    currentLabel: 'Awaiting PoB',
-    status: 'Early Signal',
-    signal: 'Needs timestamped Scout calls',
-    progress: 48,
-  },
-];
+/** Pipeline pads — empty until a real review queue is public. */
+export const GENESIS_RADAR: GenesisRadarEntry[] = [];
 
 export const TERMINAL_SECTORS: TerminalSector[] = [
   { name: 'AI Sector', changePct: 0 },
@@ -129,7 +73,7 @@ export const ARENA_MATCH: ArenaMatch = {
   title: 'Genesis Builders Arena',
   a: { name: 'llama.cpp', projectId: 'p1', votes: 0 },
   b: { name: 'Wormhole', projectId: 'p3', votes: 0 },
-  prize: 'Featured position · Community badge · Terminal spotlight',
+  prize: 'This-device poll until a shared Arena ledger ships',
 };
 
 export const TRUST_FLOW = [
