@@ -10,7 +10,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 
 const PROGRAM_ID_ENV =
   import.meta.env.VITE_BUILDER_PASSPORT_PROGRAM_ID ||
-  (import.meta.env.DEV ? '7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD' : undefined);
+  '7MWCkrbSxv5tsBSbSUwiH5C6iztBwe4CksjrRA7VSQnD';
 
 export const BUILDER_PASSPORT_PROGRAM_ID = PROGRAM_ID_ENV 
   ? new PublicKey(PROGRAM_ID_ENV)

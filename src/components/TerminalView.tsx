@@ -37,7 +37,7 @@ interface TerminalViewProps {
   onVoteArena: (side: 'a' | 'b') => void;
   arenaVotes: { a: number; b: number; userSide?: 'a' | 'b' };
   setSelectedProjectId: (id: string) => void;
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: { wallet?: string | null }) => void;
   scoutXp: number;
   watchlistUpdates: number;
   userScout: ScoutProfile;
@@ -569,7 +569,8 @@ export default function TerminalView({
                 {scoutBoard.map((s, i) => (
                   <li
                     key={s.wallet}
-                    className="flex items-center gap-3 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5"
+                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/8 bg-ink/40 px-3 py-2.5 hover:border-accent/35"
+                    onClick={() => setCurrentPath('dossier', { wallet: s.wallet })}
                   >
                     <span className="w-6 font-mono text-xs text-steel">#{i + 1}</span>
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 font-mono text-[10px]">

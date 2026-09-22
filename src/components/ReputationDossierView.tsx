@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, Copy, Search, Share2 } from 'lucide-react';
+import { PublicKey } from '@solana/web3.js';
+import { BadgeCheck, Copy, ExternalLink, Search, Share2 } from 'lucide-react';
 import { fetchReputationDossier, type ReputationDossier } from '../lib/reputation/client';
+import { useBuilderPassportByWallet } from '../hooks/useBuilderPassport';
+import { getPassportExplorerUrl, PASSPORT_DEPLOYED } from '../lib/builderPassport';
+import { useNetwork } from '../providers/NetworkProvider';
 
 type Props = {
   walletAddress?: string;
@@ -42,6 +46,15 @@ export default function ReputationDossierView({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { network } = useNetwork();
+  const onChainKey = useMemo(() => {
+    try {
+      return active ? new PublicKey(active) : null;
+    } catch {
+      return null;
+    }
+  }, [active]);
+  const onChain = useBuilderPassportByWallet(onChainKey);
 
   useEffect(() => {
     const next = walletFromSearch() || walletAddress || '';
@@ -206,6 +219,52 @@ export default function ReputationDossierView({
             Accuracy is hits / (hits + misses) on scored 30-day calls. Empty means none scored
             yet — not 0%.
           </p>
+        </section>
+      )}
+
+      {active && PASSPORT_DEPLOYED && (
+        <section className="mt-8 rounded-[1.75rem] border border-white/10 bg-ink/60 p-6">
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
+            Solana PDA · separate score
+          </p>
+          <h2 className="font-display mt-2 text-2xl font-bold">On-chain Passport</h2>
+          {onChain.loading && (
+            <p className="mt-3 font-mono text-xs text-steel">Reading {network}…</p>
+          )}
+          {!onChain.loading && onChain.passport && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase text-steel">Level</p>
+                <p className="font-display mt-1 text-2xl font-bold">{onChain.passport.level}</p>
+              </div>
+              <div>
+                <p className="font-mono text-[10px] uppercase text-steel">Score</p>
+                <p className="font-display mt-1 text-2xl font-bold">{onChain.passport.score}</p>
+              </div>
+              <div>
+                <p className="font-mono text-[10px] uppercase text-steel">Updated</p>
+                <p className="mt-1 font-mono text-sm">
+                  {onChain.passport.lastUpdated.toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          )}
+          {!onChain.loading && !onChain.passport && (
+            <p className="mt-3 text-sm text-steel">
+              No PDA on {network} yet. Mint from Profile on Devnet — mainnet mint stays gated.
+              This number is not ledger XP.
+            </p>
+          )}
+          {onChainKey && getPassportExplorerUrl(onChainKey, network) && (
+            <a
+              href={getPassportExplorerUrl(onChainKey, network) || '#'}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 text-xs text-accent"
+            >
+              View PDA on Explorer <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
         </section>
       )}
 

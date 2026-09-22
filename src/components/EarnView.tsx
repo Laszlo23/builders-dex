@@ -24,7 +24,10 @@ interface EarnViewProps {
   onStartTask: (taskId: string) => void;
   onCompleteTask: (taskId: string) => void;
   onDailySpin: (prize: SpinPrize) => void;
-  setCurrentPath: (path: string, state?: { buy?: string | null; stall?: string | null }) => void;
+  setCurrentPath: (
+    path: string,
+    state?: { buy?: string | null; stall?: string | null; wallet?: string | null },
+  ) => void;
   builderXp: number;
 }
 
@@ -75,6 +78,33 @@ export default function EarnView({
         {builderXp.toLocaleString()} XP · {doneTasks.length}/{tasks.length} missions complete ·{' '}
         {socialOpen.length} social open · progress saved
         {wallet.connected ? '' : ' · preview saves on this device'}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-[#CCFF00]/25 bg-[#CCFF00]/5 px-4 py-4">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#CCFF00]">
+            The Tape
+          </p>
+          <p className="mt-1 text-sm text-white/75">
+            This XP is on-device until you Publish Passport. On-chain mint is a second step.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setCurrentPath('profile')}
+            className="rounded-full bg-[#CCFF00] px-4 py-2 text-xs font-bold text-ink"
+          >
+            Publish Passport
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentPath('dossier')}
+            className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold"
+          >
+            Open Dossier
+          </button>
+        </div>
       </div>
 
       <div className="mt-8">

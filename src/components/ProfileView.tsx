@@ -1066,9 +1066,15 @@ export default function ProfileView({
 
       <div className="mt-10">
         <ReputationLeaderboard
-          highlightWallet={wallet?.address ?? null}
+          highlightWallet={walletAddress ?? null}
           onOpenProfile={onOpenDossier}
           onOpenDossier={(w) => setCurrentPath('dossier', { wallet: w })}
+          onOpenEarn={() => setCurrentPath('earn')}
+          localPreview={{
+            wallet: walletAddress,
+            xp: builderXp,
+            levelName: builderLevelName,
+          }}
         />
       </div>
     </div>

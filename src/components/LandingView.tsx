@@ -75,6 +75,8 @@ interface LandingViewProps {
   onStartFirstDiscovery?: () => void;
   onOpenWalletRoom: () => void;
   highlightWallet?: string | null;
+  builderLevelName?: string;
+  onRitualXp?: (amount: number) => void;
   onSignal: (id: string, side: SignalSide) => void;
   signal: SignalSnapshot;
   builderXp: number;
@@ -143,6 +145,8 @@ export default function LandingView({
   onStartFirstDiscovery,
   onOpenWalletRoom,
   highlightWallet,
+  builderLevelName,
+  onRitualXp,
   onSignal,
   signal,
   builderXp,
@@ -160,7 +164,11 @@ export default function LandingView({
   const ritualStreak = getCurrentRitualStreak();
 
   const handleDailyScoutCall = () => {
-    recordRitualCompletion();
+    const before = getCurrentRitualStreak();
+    const after = recordRitualCompletion();
+    if (after.totalRituals > before.totalRituals) {
+      onRitualXp?.(25);
+    }
     setCurrentPath('terminal');
   };
 
@@ -327,6 +335,22 @@ export default function LandingView({
         </section>
       )}
 
+      <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-8 lg:py-14">
+        <div className="mx-auto max-w-5xl">
+          <ReputationLeaderboard
+            onOpenProfile={() => setCurrentPath('profile')}
+            onOpenDossier={(wallet) => setCurrentPath('dossier', { wallet })}
+            onOpenEarn={() => setCurrentPath('earn')}
+            highlightWallet={highlightWallet}
+            localPreview={{
+              wallet: highlightWallet,
+              xp: builderXp,
+              levelName: builderLevelName,
+            }}
+          />
+        </div>
+      </section>
+
       <div className="hidden lg:block">
       {/* 3 — Manifesto */}
       <section className="relative z-10 border-b border-white/5 bg-ink px-4 py-12">
@@ -447,16 +471,6 @@ export default function LandingView({
 
       {/* 6 — Mission rally + daily icons */}
       <AspirationNetworkSection setCurrentPath={setCurrentPath} aspirationIndex={0} />
-
-      <section className="relative border-b border-white/5 bg-ink px-4 py-14">
-        <div className="mx-auto max-w-5xl">
-          <ReputationLeaderboard
-            onOpenProfile={() => setCurrentPath('profile')}
-            onOpenDossier={(wallet) => setCurrentPath('dossier', { wallet })}
-            highlightWallet={highlightWallet}
-          />
-        </div>
-      </section>
 
       {/* 7 — Crystal Ball */}
       <section className="border-b border-white/5 bg-ink px-4 py-16">

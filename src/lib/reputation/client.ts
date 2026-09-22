@@ -12,6 +12,7 @@ export type ReputationPublic = {
   updatedAt: string;
   completedTaskCount: number;
   scoutXp: number;
+  scoutAccuracy?: number | null;
 };
 
 export type ReputationScoutCall = {
@@ -33,6 +34,7 @@ export async function fetchReputation(wallet: string): Promise<{
   displayName: string;
   verified: boolean;
   updatedAt: string;
+  scoutAccuracy: number | null;
 } | null> {
   const res = await fetch(`/api/reputation/${encodeURIComponent(wallet)}`);
   if (res.status === 404) return null;
@@ -42,8 +44,12 @@ export async function fetchReputation(wallet: string): Promise<{
     displayName: string;
     verified: boolean;
     updatedAt: string;
+    scoutAccuracy?: number | null;
   };
-  return data;
+  return {
+    ...data,
+    scoutAccuracy: data.scoutAccuracy ?? null,
+  };
 }
 
 async function signPayload(

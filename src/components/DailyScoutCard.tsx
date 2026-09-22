@@ -59,7 +59,7 @@ export default function DailyScoutCard({
         </button>
 
         <p className="mt-3 font-mono text-[9px] uppercase tracking-wider text-steel">
-          Daily ritual — open Terminal, earn XP, compound reputation
+          First open today +25 XP on this device. Then Terminal — Publish to put it on the tape.
         </p>
       </div>
     </div>

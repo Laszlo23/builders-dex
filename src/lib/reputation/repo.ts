@@ -7,6 +7,7 @@ import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import { passportSyncMessage } from './messages';
 import { isPublicPassportWallet } from '../walletPlaceholders';
+import { accuracyForWallet } from '../scout/outcomes';
 
 const WALLET_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
@@ -22,6 +23,7 @@ export type PublicPassportRow = {
   createdAt: string;
   completedTaskCount: number;
   scoutXp: number;
+  scoutAccuracy?: number | null;
 };
 
 export type ReputationRecord = PublicPassportRow & {
@@ -196,6 +198,7 @@ export function listLeaderboard(limit = 25): PublicPassportRow[] {
         createdAt: rec.createdAt,
         completedTaskCount: rec.completedTaskCount,
         scoutXp: rec.scoutXp,
+        scoutAccuracy: accuracyForWallet(rec.wallet),
       };
     })
     .filter((row) => isPublicPassportWallet(row.wallet));

@@ -423,6 +423,9 @@ export default function App() {
         if (cancelled) return;
         applyEarnSnapshot(merged);
         saveEarnProgress(walletKey, merged);
+        if (remote.scoutAccuracy != null) {
+          setPassport((p) => ({ ...p, researchAccuracy: remote.scoutAccuracy }));
+        }
         if (remote.displayName) {
           setUserProfile((p) =>
             p.displayName ? p : { ...p, displayName: remote.displayName },
@@ -1066,6 +1069,8 @@ export default function App() {
             onStartFirstDiscovery={() => setFirstDiscoveryOpen(true)}
             onOpenWalletRoom={() => setWalletRoomOpen(true)}
             highlightWallet={walletKey}
+            builderLevelName={builderLevelName}
+            onRitualXp={handleAddXp}
             onSignal={handleSignalVote}
             signal={signal}
             builderXp={builderXp}
