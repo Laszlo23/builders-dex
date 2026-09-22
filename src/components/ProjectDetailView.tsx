@@ -98,6 +98,7 @@ interface ProjectDetailViewProps {
   onSignal: (id: string, side: SignalSide) => void;
   signal: SignalSnapshot;
   builderXp: number;
+  signalBonus: number;
 }
 
 export default function ProjectDetailView({
@@ -114,6 +115,7 @@ export default function ProjectDetailView({
   onSignal,
   signal,
   builderXp,
+  signalBonus,
 }: ProjectDetailViewProps) {
   const [commentText, setCommentText] = useState('');
   const [aiSummary, setAiSummary] = useState(project.aiAnalysis);
@@ -327,8 +329,8 @@ export default function ProjectDetailView({
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/8 px-6 py-4 sm:px-8">
           <ProjectSignalButtons
             {...displayedVotes(project.id, project.upvotes, signal)}
-            remaining={signalRemaining(signal, builderXp)}
-            allowance={signalAllowance(builderXp)}
+            remaining={signalRemaining(signal, builderXp, signalBonus)}
+            allowance={signalAllowance(builderXp, signalBonus)}
             onVote={(side) => onSignal(project.id, side)}
           />
           <div className="flex flex-wrap items-center gap-2">

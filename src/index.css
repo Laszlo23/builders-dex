@@ -968,6 +968,104 @@ a,
   box-shadow: 0 0 28px -8px rgba(204, 255, 0, 0.55);
 }
 
+.desk-page {
+  position: relative;
+}
+
+.desk-page::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: -2rem -1rem auto;
+  height: 22rem;
+  background:
+    radial-gradient(50% 70% at 80% 0%, rgba(204, 255, 0, 0.16), transparent 55%),
+    radial-gradient(40% 50% at 12% 10%, rgba(200, 232, 104, 0.1), transparent 50%);
+}
+
+.desk-stamp {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(7, 8, 10, 0.55);
+  min-height: 6.5rem;
+  padding: 0.85rem;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.desk-stamp.is-on {
+  border-color: rgba(204, 255, 0, 0.45);
+  box-shadow: 0 0 32px -12px rgba(204, 255, 0, 0.55);
+}
+
+.desk-stamp.is-on .desk-coin {
+  background: #ccff00;
+  color: #07080a;
+  box-shadow: 0 0 24px rgba(204, 255, 0, 0.35);
+}
+
+.desk-coin {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.desk-heat {
+  height: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.desk-heat > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c8e868, #ccff00);
+}
+
+.desk-call-foil {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(204, 255, 0, 0.4);
+  background:
+    radial-gradient(80% 120% at 100% 0%, rgba(204, 255, 0, 0.16), transparent 50%),
+    #101214;
+}
+
+.desk-call-foil::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.08) 48%, transparent 66%);
+}
+
+.desk-ring {
+  --desk-pct: 0;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 999px;
+  background: conic-gradient(#ccff00 calc(var(--desk-pct) * 1%), rgba(255, 255, 255, 0.08) 0);
+  display: grid;
+  place-items: center;
+}
+
+.desk-ring > span {
+  display: grid;
+  place-items: center;
+  width: 4.35rem;
+  height: 4.35rem;
+  border-radius: inherit;
+  background: #07080a;
+}
+
 .site-footer {
   border-top: 1px solid rgba(200, 232, 104, 0.12);
   background:

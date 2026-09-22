@@ -18,6 +18,7 @@ import {
   chainSyncFees,
   chainTakeStall,
   chainUnpark,
+  loadSquareLoopChain,
   squareLoopContractsReady,
 } from '../lib/squareLoopChain';
 
@@ -45,6 +46,7 @@ export function useSquareLoop(tokenId: number | null) {
   const [busy, setBusy] = useState<SquareLoopAction | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tx, setTx] = useState<string | null>(null);
+  const [earnedWei, setEarnedWei] = useState('0');
 
   useEffect(() => {
     let cancelled = false;
@@ -53,7 +55,15 @@ export function useSquareLoop(tokenId: number | null) {
         .then((res) => res.json())
         .then((payload: BuildPublicStatus & { error?: string }) => {
           if (cancelled || payload.error) return;
-          setStatus(payload);
+          setStatus((prev) => ({
+            ...payload,
+            contracts: {
+              activationRegistry:
+                payload.contracts.activationRegistry ?? prev.contracts.activationRegistry,
+              stallVault: payload.contracts.stallVault ?? prev.contracts.stallVault,
+              feeSplitter: payload.contracts.feeSplitter ?? prev.contracts.feeSplitter,
+            },
+          }));
         })
         .catch(() => {
           /* keep local planned snapshot */
@@ -66,6 +76,29 @@ export function useSquareLoop(tokenId: number | null) {
       window.clearInterval(id);
     };
   }, []);
+
+  useEffect(() => {
+    if (tokenId == null || !squareLoopContractsReady()) return;
+    let cancelled = false;
+    loadSquareLoopChain(tokenId)
+      .then((snap) => {
+        if (cancelled || !snap) return;
+        setEarnedWei(snap.earnedWei);
+        setStore((prev) => {
+          const next = {
+            squares: { ...prev.squares, [String(tokenId)]: snap.entry },
+          };
+          saveSquareLoopStore(next);
+          return next;
+        });
+      })
+      .catch(() => {
+        /* keep local preview if the RPC hiccups */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tokenId]);
 
   const persist = useCallback((next: SquareLoopStore) => {
     saveSquareLoopStore(next);
@@ -160,7 +193,7 @@ export function useSquareLoop(tokenId: number | null) {
     error,
     tx,
     run,
-    feesThisWeek: status.feesThisWeekWei || '0',
+    feesThisWeek: earnedWei !== '0' ? earnedWei : status.feesThisWeekWei || '0',
     contractsReady: squareLoopContractsReady(),
   };
 }

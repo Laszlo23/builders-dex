@@ -76,10 +76,17 @@ export default function SquareLoopPanel({
 
   return (
     <section className="rounded-[1.75rem] border border-[#CCFF00]/30 bg-[#CCFF00]/[0.05] p-5 sm:p-6">
-      <ComingSoonBanner
-        title="Preview — registry not on 4663 yet"
-        detail="Activate → park → stall is the live design. $BUILD, the activation registry, stall vault, and fee splitter have no published addresses. Fees this week are 0. Growth stays a local preview until those contracts are named."
-      />
+      {loop.contractsReady ? (
+        <ComingSoonBanner
+          title="Square loop is on Hood 4663"
+          detail="Activate, park, and take the Aura Share stall against the live overlay. $BUILD is still unpublished — fee dust stays 0 until volume hits the splitter. We do not wrap the Square."
+        />
+      ) : (
+        <ComingSoonBanner
+          title="Preview — registry not on 4663 yet"
+          detail="Activate → park → stall is the live design. $BUILD, the activation registry, stall vault, and fee splitter have no published addresses. Fees this week are 0."
+        />
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#CCFF00]">

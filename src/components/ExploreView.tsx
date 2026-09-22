@@ -31,6 +31,7 @@ interface ExploreViewProps {
   onSignal: (id: string, side: SignalSide) => void;
   signal: SignalSnapshot;
   builderXp: number;
+  signalBonus: number;
   setSelectedProjectId: (id: string) => void;
   setCurrentPath: (path: string) => void;
   onTrade: (mint?: string) => void;
@@ -45,6 +46,7 @@ export default function ExploreView({
   onSignal,
   signal,
   builderXp,
+  signalBonus,
   setSelectedProjectId,
   setCurrentPath,
   onTrade,
@@ -164,7 +166,7 @@ export default function ExploreView({
             (GitHub-cited) — not hype cards. Spend daily signal to upvote or downvote.
           </p>
           <p className="mt-2 font-mono text-[11px] text-accent">
-            {signalRemaining(signal, builderXp)}/{signalAllowance(builderXp)} signal left today ·
+            {signalRemaining(signal, builderXp, signalBonus)}/{signalAllowance(builderXp, signalBonus)} signal left today ·
             resets 00:00 UTC
           </p>
         </div>
@@ -486,8 +488,8 @@ export default function ExploreView({
                     <ProjectSignalButtons
                       compact
                       {...displayedVotes(p.id, p.upvotes, signal)}
-                      remaining={signalRemaining(signal, builderXp)}
-                      allowance={signalAllowance(builderXp)}
+                      remaining={signalRemaining(signal, builderXp, signalBonus)}
+                      allowance={signalAllowance(builderXp, signalBonus)}
                       onVote={(side) => onSignal(p.id, side)}
                     />
                   )}

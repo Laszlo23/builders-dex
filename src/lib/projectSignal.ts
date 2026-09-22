@@ -8,7 +8,11 @@ export type SignalSnapshot = {
   votes: Record<string, SignalSide>;
   extraUp: Record<string, number>;
   extraDown: Record<string, number>;
+  /** One project stamped as today's call. Resets at 00:00 UTC. */
+  callId: string | null;
 };
+
+export const CALL_COST = 2;
 
 const PREFIX = 'bdx_signal_v1_';
 
@@ -16,25 +20,32 @@ export function utcDay(now = Date.now()): string {
   return new Date(now).toISOString().slice(0, 10);
 }
 
-/** Daily signal budget. Rookie 5 → Genesis 12. */
-export function signalAllowance(xp: number): number {
+/** Daily signal budget. Rookie 5 → Genesis 12, plus room/Square bonus. */
+export function signalAllowance(xp: number, bonus = 0): number {
   const level = getPassportLevel(xp);
+  let base = 5;
   switch (level) {
     case 'Genesis Builder':
-      return 12;
+      base = 12;
+      break;
     case 'Visionary':
-      return 11;
+      base = 11;
+      break;
     case 'Core Builder':
-      return 9;
+      base = 9;
+      break;
     case 'Builder':
-      return 7;
+      base = 7;
+      break;
     case 'Rookie Builder':
-      return 5;
+      base = 5;
+      break;
     default: {
       const _never: never = level;
       return _never;
     }
   }
+  return base + Math.max(0, Math.floor(bonus));
 }
 
 export function signalOwnerKey(wallet: string | null | undefined): string {
@@ -49,7 +60,7 @@ export function signalOwnerKey(wallet: string | null | undefined): string {
 }
 
 function emptySnap(day = utcDay()): SignalSnapshot {
-  return { day, spent: 0, votes: {}, extraUp: {}, extraDown: {} };
+  return { day, spent: 0, votes: {}, extraUp: {}, extraDown: {}, callId: null };
 }
 
 export function loadSignal(ownerKey: string): SignalSnapshot {
@@ -65,6 +76,7 @@ export function loadSignal(ownerKey: string): SignalSnapshot {
       votes: parsed.votes && typeof parsed.votes === 'object' ? parsed.votes : {},
       extraUp: parsed.extraUp && typeof parsed.extraUp === 'object' ? parsed.extraUp : {},
       extraDown: parsed.extraDown && typeof parsed.extraDown === 'object' ? parsed.extraDown : {},
+      callId: typeof parsed.callId === 'string' ? parsed.callId : null,
     };
     if (snap.day !== utcDay()) {
       return { ...emptySnap(), votes: snap.votes, extraUp: snap.extraUp, extraDown: snap.extraDown };
@@ -80,8 +92,8 @@ export function saveSignal(ownerKey: string, snap: SignalSnapshot): void {
   window.localStorage.setItem(PREFIX + ownerKey, JSON.stringify(snap));
 }
 
-export function signalRemaining(snap: SignalSnapshot, xp: number): number {
-  return Math.max(0, signalAllowance(xp) - snap.spent);
+export function signalRemaining(snap: SignalSnapshot, xp: number, bonus = 0): number {
+  return Math.max(0, signalAllowance(xp, bonus) - snap.spent);
 }
 
 export function displayedVotes(
@@ -101,15 +113,16 @@ export function applySignalVote(
   projectId: string,
   side: SignalSide,
   xp: number,
+  bonus = 0,
 ):
   | { ok: true; next: SignalSnapshot; flipped: boolean }
   | { ok: false; reason: string; next: SignalSnapshot } {
-  const fresh = snap.day === utcDay() ? snap : { ...snap, day: utcDay(), spent: 0 };
+  const fresh = snap.day === utcDay() ? snap : { ...snap, day: utcDay(), spent: 0, callId: null };
   const current = fresh.votes[projectId];
   if (current === side) {
     return { ok: false, reason: 'Already cast', next: fresh };
   }
-  if (signalRemaining(fresh, xp) < 1) {
+  if (signalRemaining(fresh, xp, bonus) < 1) {
     return { ok: false, reason: 'No signal left today — resets at 00:00 UTC', next: fresh };
   }
 
@@ -129,6 +142,58 @@ export function applySignalVote(
       votes: { ...fresh.votes, [projectId]: side },
       extraUp,
       extraDown,
+      callId: fresh.callId,
     },
   };
+}
+
+export function applyDailyCall(
+  snap: SignalSnapshot,
+  projectId: string,
+  xp: number,
+  bonus = 0,
+):
+  | { ok: true; next: SignalSnapshot }
+  | { ok: false; reason: string; next: SignalSnapshot } {
+  const fresh = snap.day === utcDay() ? snap : { ...snap, day: utcDay(), spent: 0, callId: null };
+  if (fresh.callId === projectId) {
+    return { ok: false, reason: 'This is already todays call', next: fresh };
+  }
+  if (fresh.callId) {
+    return { ok: false, reason: 'You already stamped a call today', next: fresh };
+  }
+  if (signalRemaining(fresh, xp, bonus) < CALL_COST) {
+    return { ok: false, reason: `Need ${CALL_COST} signal to stamp a call`, next: fresh };
+  }
+  return {
+    ok: true,
+    next: { ...fresh, spent: fresh.spent + CALL_COST, callId: projectId },
+  };
+}
+
+export type HeatRow = {
+  id: string;
+  heat: number;
+  up: number;
+  down: number;
+  called: boolean;
+};
+
+export function heatForProjects(
+  projects: { id: string; upvotes: number }[],
+  snap: SignalSnapshot,
+): HeatRow[] {
+  return projects
+    .map((p) => {
+      const shown = displayedVotes(p.id, p.upvotes, snap);
+      const called = snap.callId === p.id;
+      return {
+        id: p.id,
+        up: shown.up,
+        down: shown.down,
+        called,
+        heat: shown.up * 2 - shown.down * 3 + (called ? 24 : 0) + (shown.mine === 'up' ? 2 : 0),
+      };
+    })
+    .sort((a, b) => b.heat - a.heat || b.up - a.up);
 }

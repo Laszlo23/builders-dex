@@ -4,6 +4,11 @@
  */
 import { CCFF00_NFT } from './ccff00Wallet';
 import { HOOD_CHAIN_ID, HOOD_EXPLORER_URL } from './hoodChain';
+import {
+  ACTIVATION_REGISTRY_PUBLISHED,
+  FEE_SPLITTER_PUBLISHED,
+  STALL_VAULT_PUBLISHED,
+} from './squareLoopContracts';
 
 export const BUILD_TOKEN_SYMBOL = 'BUILD';
 export const BUILD_TOKEN_NAME = 'Builders DEX';
@@ -36,15 +41,16 @@ function optionalAddress(raw: string | null | undefined): `0x${string}` | null {
 export const BUILD_TOKEN_ADDRESS = optionalAddress(
   envOrNull('BUILD_TOKEN_ADDRESS') || envOrNull('VITE_BUILD_TOKEN_ADDRESS'),
 );
-export const ACTIVATION_REGISTRY_ADDRESS = optionalAddress(
-  envOrNull('ACTIVATION_REGISTRY_ADDRESS') || envOrNull('VITE_ACTIVATION_REGISTRY_ADDRESS'),
-);
-export const STALL_VAULT_ADDRESS = optionalAddress(
-  envOrNull('STALL_VAULT_ADDRESS') || envOrNull('VITE_STALL_VAULT_ADDRESS'),
-);
-export const FEE_SPLITTER_ADDRESS = optionalAddress(
-  envOrNull('FEE_SPLITTER_ADDRESS') || envOrNull('VITE_FEE_SPLITTER_ADDRESS'),
-);
+export const ACTIVATION_REGISTRY_ADDRESS =
+  optionalAddress(
+    envOrNull('ACTIVATION_REGISTRY_ADDRESS') || envOrNull('VITE_ACTIVATION_REGISTRY_ADDRESS'),
+  ) ?? ACTIVATION_REGISTRY_PUBLISHED;
+export const STALL_VAULT_ADDRESS =
+  optionalAddress(envOrNull('STALL_VAULT_ADDRESS') || envOrNull('VITE_STALL_VAULT_ADDRESS')) ??
+  STALL_VAULT_PUBLISHED;
+export const FEE_SPLITTER_ADDRESS =
+  optionalAddress(envOrNull('FEE_SPLITTER_ADDRESS') || envOrNull('VITE_FEE_SPLITTER_ADDRESS')) ??
+  FEE_SPLITTER_PUBLISHED;
 export const BUILD_LOCK_TX = envOrNull('BUILD_LOCK_TX') || envOrNull('VITE_BUILD_LOCK_TX');
 export const BUILD_LOCK_URL = envOrNull('BUILD_LOCK_URL') || envOrNull('VITE_BUILD_LOCK_URL');
 export const BUILD_POOLS_TRADE_URL =

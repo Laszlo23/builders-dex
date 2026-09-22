@@ -32,6 +32,8 @@ import {
   type Ccff00WalletSnapshot,
 } from '../lib/ccff00Wallet';
 import SquareLoopPanel from './SquareLoopPanel';
+import { StaccpadOutbound } from './StaccpadDeskView';
+import { stampRoom, stampSquare } from '../lib/roomStamps';
 
 type Props = {
   setCurrentPath: (path: string, state?: { buy?: string | null; stall?: string | null }) => void;
@@ -147,6 +149,12 @@ export default function Ccff00WalletView({ setCurrentPath }: Props) {
     setBuyId(item.id);
     void runTx('buy', () => executeAsSquare(selected.tba, item));
   };
+
+  useEffect(() => {
+    if (!selected) return;
+    stampRoom('hood');
+    stampSquare(selected.tokenId);
+  }, [selected]);
 
   useEffect(() => {
     const want = buyFromSearch();
@@ -417,6 +425,10 @@ export default function Ccff00WalletView({ setCurrentPath }: Props) {
         </div>
       </section>
 
+      <div className="mt-8">
+        <StaccpadOutbound compact />
+      </div>
+
       {tx && (
         <a
           href={hoodShareTxExplorer(tx)}
@@ -451,6 +463,9 @@ export default function Ccff00WalletView({ setCurrentPath }: Props) {
         </button>
         <button type="button" onClick={() => setCurrentPath('cubes')} className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold">
           Live phases
+        </button>
+        <button type="button" onClick={() => setCurrentPath('stacc')} className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold">
+          staccpad book
         </button>
         <a
           href={hoodExplorerTokenUrl(CCFF00_NFT)}

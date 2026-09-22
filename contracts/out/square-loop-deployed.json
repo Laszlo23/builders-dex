@@ -1,0 +1,13 @@
+{
+  "chainId": 4663,
+  "squares": "0x505a22ffed8d37ebe580ffd98d2cdb0021189146",
+  "activationRegistry": "0xbb780b26ceba6cd184bf321158bf6fd46a156da3",
+  "stallVault": "0x1c752a04dd0664ff605d10665f1ce7651780da0c",
+  "feeSplitter": "0xc3bf5a881b079c947c0ec184a4ff3ebf8a364a64",
+  "txs": {
+    "registry": "0x98f7ea5875f7ac74f622e772f8729c426161194ec09b8833a5f7b6c395421ae0",
+    "stall": "0x07aace6983cf7433d1781fbaafc2464abbfa9b6d5cfa043da4c5bd2557981f87",
+    "fees": "0xde79d2dd7413263ffa75f4c600cfd971dca0624917c545354169c736c0a9faf8"
+  },
+  "at": "2026-09-21T23:18:19.397Z"
+}

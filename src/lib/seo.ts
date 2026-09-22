@@ -58,6 +58,8 @@ export type SeoRoute =
   | 'ccff00'
   | 'build'
   | 'cubes'
+  | 'desk'
+  | 'stacc'
   | 'telegram-bot'
   | 'coming-soon';
 
@@ -286,6 +288,18 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
       'CCFF00 Cubes mint windows on Robinhood Chain from on-chain phases(). Outbound Square Apes mint only.',
     path: '/cubes',
   },
+  desk: {
+    title: 'The Desk | Daily conviction',
+    description:
+      'Stamp today\'s call. Collect Solana, Base, and Hood rooms. Load a CCFF00 Square for neon signal. NFA.',
+    path: '/desk',
+  },
+  stacc: {
+    title: 'staccpad book | Outbound Hood vault',
+    description:
+      'Official staccpad CCFF00 vault and Neons desks on Robinhood Chain. Same Square collection. Not affiliated. Unaudited. NFA.',
+    path: '/stacc',
+  },
   'telegram-bot': {
     title: 'Telegram bots | Builders DEX',
     description: 'Register buy-bot alerts and token profiles for Telegram — wallet not required to read the setup.',
@@ -316,6 +330,7 @@ export function projectOgPath(projectId: string): string {
 
 export function routeOgPath(route: SeoRoute): string {
   if (route === 'landing') return DEFAULT_OG_IMAGE;
+  if (route === 'stacc') return '/og/route-hoodstreet.webp';
   return `/og/route-${route}.webp`;
 }
 
@@ -356,6 +371,11 @@ const PATH_ALIASES: Record<string, SeoRoute> = {
   'my-neon': 'ccff00',
   myneon: 'ccff00',
   '$build': 'build',
+  pulse: 'desk',
+  conviction: 'desk',
+  staccpad: 'stacc',
+  ngu: 'stacc',
+  neons: 'stacc',
 };
 
 function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: string | null } {
@@ -625,6 +645,8 @@ export function sitemapEntries(): {
     { route: 'ccff00', changefreq: 'daily', priority: '0.7' },
     { route: 'build', changefreq: 'weekly', priority: '0.7' },
     { route: 'cubes', changefreq: 'hourly', priority: '0.6' },
+    { route: 'desk', changefreq: 'daily', priority: '0.8' },
+    { route: 'stacc', changefreq: 'daily', priority: '0.7' },
     { route: 'telegram-bot', changefreq: 'monthly', priority: '0.3' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },
     { route: 'privacy', changefreq: 'yearly', priority: '0.2' },

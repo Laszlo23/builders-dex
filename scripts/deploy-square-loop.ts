@@ -33,8 +33,19 @@ async function main() {
   }
 
   const artifacts = compileSquareLoop();
-  const publicClient = createPublicClient({ chain: hood, transport: http(HOOD_RPC_URL) });
-  const wallet = createWalletClient({ account, chain: hood, transport: http(HOOD_RPC_URL) });
+  const hoodFetch: typeof fetch = (url, init) =>
+    fetch(url, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'user-agent': 'BuildersDEX/square-loop-deploy',
+      },
+    });
+  const transport = http(HOOD_RPC_URL, { fetchFn: hoodFetch });
+  const publicClient = createPublicClient({ chain: hood, transport });
+  const wallet = createWalletClient({ account, chain: hood, transport });
 
   const balance = await publicClient.getBalance({ address: account.address });
   console.log('deployer', account.address, 'eth', Number(balance) / 1e18);

@@ -271,8 +271,8 @@ export default function ProfileView({
       
       {PASSPORT_DEPLOYED && network === 'mainnet' && !mainnetMintEnabled && (
         <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/90">
-          <strong className="font-semibold">Mainnet Passport canary.</strong> After program deploy +{' '}
-          <code className="text-[10px]">initialize_config</code>, set{' '}
+          <strong className="font-semibold">Mainnet Passport canary.</strong> Program + config are
+          live. Public mint stays off until{' '}
           <code className="text-[10px]">VITE_PASSPORT_MAINNET_MINT=true</code>. Until then use Devnet.
         </div>
       )}

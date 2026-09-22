@@ -56,11 +56,13 @@ const MORE_GROUPS = [
   {
     title: 'Rooms',
     items: [
+      { id: 'desk', label: 'The Desk', icon: Sparkles },
       { id: 'aura', label: '$AURA · Base', icon: Zap },
       { id: 'hood', label: 'On Hood', icon: ArrowLeftRight },
       { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
       { id: 'build', label: '$BUILD · Hood', icon: Coins },
       { id: 'cubes', label: 'Cubes Live', icon: Box },
+      { id: 'stacc', label: 'staccpad book', icon: Activity },
       { id: 'launchpad', label: 'Accelerator', icon: Rocket },
     ],
   },

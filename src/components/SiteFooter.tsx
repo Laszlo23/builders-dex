@@ -28,6 +28,7 @@ import {
   Share2,
   Vote,
   Box,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { BRAND_HOOD_STANCE, BRAND_MULTICHAIN, BRAND_SOCIALS, BRAND_SUPPORT, BRAND_TAGLINE, CULTURE_NODE_X_POST } from '../data/brand';
@@ -37,6 +38,7 @@ type FooterLink = { id: string; label: string; icon: LucideIcon };
 const PRODUCT: FooterLink[] = [
   { id: 'swap', label: 'Trade', icon: ArrowLeftRight },
   { id: 'explore', label: 'Explore', icon: Layers },
+  { id: 'desk', label: 'The Desk', icon: Sparkles },
   { id: 'terminal', label: 'Terminal™', icon: Activity },
   { id: 'builder-graph', label: 'Builder Graph™', icon: Network },
   { id: 'builder-stories', label: 'Builder Stories', icon: Clapperboard },
@@ -48,6 +50,7 @@ const PRODUCT: FooterLink[] = [
   { id: 'ccff00', label: 'CCFF00 Wallet', icon: Wallet },
   { id: 'build', label: '$BUILD · Hood', icon: Coins },
   { id: 'cubes', label: 'Cubes Live', icon: Box },
+  { id: 'stacc', label: 'staccpad book', icon: Activity },
   { id: 'apply', label: 'Apply', icon: Rocket },
   { id: 'earn', label: 'Earn', icon: Coins },
   { id: 'dao', label: 'Governance', icon: Vote },

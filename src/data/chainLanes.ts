@@ -43,6 +43,7 @@ export const HOOD_LANE_ROUTES = new Set([
   'ccff00',
   'build',
   'cubes',
+  'stacc',
 ]);
 
 export function laneForRoute(route: string): ChainLaneId {

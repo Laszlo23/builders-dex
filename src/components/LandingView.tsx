@@ -78,6 +78,7 @@ interface LandingViewProps {
   onSignal: (id: string, side: SignalSide) => void;
   signal: SignalSnapshot;
   builderXp: number;
+  signalBonus: number;
   onShareMeme?: () => void;
 }
 
@@ -145,6 +146,7 @@ export default function LandingView({
   onSignal,
   signal,
   builderXp,
+  signalBonus,
   onShareMeme,
 }: LandingViewProps) {
   const featured = GENESIS_PROJECT_IDS.map(
@@ -246,6 +248,13 @@ export default function LandingView({
             >
               <Activity className="h-5 w-5" />
               Open Terminal™
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPath('desk')}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#CCFF00]/40 bg-[#CCFF00]/10 px-7 py-4 text-sm font-semibold text-[#CCFF00] transition hover:bg-[#CCFF00]/20 active:scale-95 min-h-[56px]"
+            >
+              The Desk
             </button>
           </motion.div>
 
@@ -647,8 +656,8 @@ export default function LandingView({
                       <ProjectSignalButtons
                         compact
                         {...displayedVotes(p.id, p.upvotes, signal)}
-                        remaining={signalRemaining(signal, builderXp)}
-                        allowance={signalAllowance(builderXp)}
+                        remaining={signalRemaining(signal, builderXp, signalBonus)}
+                        allowance={signalAllowance(builderXp, signalBonus)}
                         onVote={(side) => onSignal(p.id, side)}
                       />
                     </div>

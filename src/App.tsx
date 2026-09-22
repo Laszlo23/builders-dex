@@ -44,6 +44,8 @@ const HoodStreetView = lazyWithRetry(() => import('./components/HoodStreetView')
 const Ccff00WalletView = lazyWithRetry(() => import('./components/Ccff00WalletView'));
 const BuildTokenView = lazyWithRetry(() => import('./components/BuildTokenView'));
 const HoodShareView = lazyWithRetry(() => import('./components/HoodShareView'));
+const ConvictionDeskView = lazyWithRetry(() => import('./components/ConvictionDeskView'));
+const StaccpadDeskView = lazyWithRetry(() => import('./components/StaccpadDeskView'));
 const ComingSoonView = lazyWithRetry(() => import('./components/ComingSoonView'));
 
 import { INITIAL_PROJECTS, INITIAL_PROPOSALS, ALL_QUESTS, preferPublishedCatalog } from './data/projects';
@@ -85,6 +87,7 @@ import {
 } from './types';
 import { getPassportLevel } from './lib/builderScore';
 import {
+  applyDailyCall,
   applySignalVote,
   loadSignal,
   saveSignal,
@@ -94,6 +97,7 @@ import {
   type SignalSide,
 } from './lib/projectSignal';
 import { loadEvmAccount, loadWalletRoom, shortenWallet } from './lib/walletRoom';
+import { loadRoomStamps, roomStampBonus, stampRoom } from './lib/roomStamps';
 import { laneForRoute } from './data/chainLanes';
 import { useTradeableTokens, isMintTradeable } from './hooks/useTradeableTokens';
 import {
@@ -277,6 +281,8 @@ export default function App() {
   const [walletRoom, setWalletRoom] = useState(() => loadWalletRoom());
   const [evmAccount, setEvmAccount] = useState(() => loadEvmAccount());
   const [signal, setSignal] = useState(() => loadSignal(signalOwnerKey(null)));
+  const [stamps, setStamps] = useState(() => loadRoomStamps());
+  const signalBonus = roomStampBonus(stamps);
   const [contributionsCount, setContributionsCount] = useState<number>(
     () => boot.contributionsCount,
   );
@@ -492,6 +498,24 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const sync = () => setStamps(loadRoomStamps());
+    window.addEventListener('bdx-room-stamps', sync);
+    return () => window.removeEventListener('bdx-room-stamps', sync);
+  }, []);
+
+  useEffect(() => {
+    if (connected) setStamps(stampRoom('solana'));
+  }, [connected]);
+
+  useEffect(() => {
+    if (evmAccount) setStamps(stampRoom('base'));
+  }, [evmAccount]);
+
+  useEffect(() => {
+    if (evmAccount && walletRoom === 'hood') setStamps(stampRoom('hood'));
+  }, [evmAccount, walletRoom]);
+
+  useEffect(() => {
     if (hasCompletedFirstDiscovery) return;
     if (currentPath !== 'landing') {
       setFirstDiscoveryOpen(false);
@@ -699,7 +723,7 @@ export default function App() {
   const handleSignalVote = (projectId: string, side: SignalSide) => {
     const owner = signalOwnerKey(walletKey);
     const current = loadSignal(owner);
-    const result = applySignalVote(current, projectId, side, builderXp);
+    const result = applySignalVote(current, projectId, side, builderXp, signalBonus);
     if (!result.ok) {
       window.alert(result.reason);
       return;
@@ -739,6 +763,19 @@ export default function App() {
         }
       })();
     }
+  };
+
+  const handleDailyCall = (projectId: string) => {
+    const owner = signalOwnerKey(walletKey);
+    const current = loadSignal(owner);
+    const result = applyDailyCall(current, projectId, builderXp, signalBonus);
+    if (!result.ok) {
+      window.alert(result.reason);
+      return;
+    }
+    saveSignal(owner, result.next);
+    setSignal(result.next);
+    handleAddXp(25);
   };
 
   const handleFundProject = (amount: number, receivedAmt: number) => {
@@ -996,6 +1033,7 @@ export default function App() {
             onSignal={handleSignalVote}
             signal={signal}
             builderXp={builderXp}
+            signalBonus={signalBonus}
             onShareMeme={() => handleCampaignShare('X / Twitter')}
           />
         );
@@ -1006,6 +1044,7 @@ export default function App() {
             onSignal={handleSignalVote}
             signal={signal}
             builderXp={builderXp}
+            signalBonus={signalBonus}
             setSelectedProjectId={setSelectedProjectId}
             setCurrentPath={setCurrentPath}
             onTrade={navigateToTrade}
@@ -1041,6 +1080,7 @@ export default function App() {
             onSignal={handleSignalVote}
             signal={signal}
             builderXp={builderXp}
+            signalBonus={signalBonus}
           />
         );
       }
@@ -1357,6 +1397,23 @@ export default function App() {
         return <Ccff00WalletView setCurrentPath={setCurrentPath} />;
       case 'cubes':
         return <CubesLiveView setCurrentPath={setCurrentPath} />;
+      case 'desk':
+        return (
+          <ConvictionDeskView
+            projects={projects}
+            signal={signal}
+            builderXp={builderXp}
+            signalBonus={signalBonus}
+            stamps={stamps}
+            setCurrentPath={setCurrentPath}
+            onOpenStory={navigateToStory}
+            onSignal={handleSignalVote}
+            onCall={handleDailyCall}
+            onOpenWalletRoom={() => setWalletRoomOpen(true)}
+          />
+        );
+      case 'stacc':
+        return <StaccpadDeskView setCurrentPath={setCurrentPath} />;
       default:
         return <ComingSoonView topic={currentPath} setCurrentPath={setCurrentPath} />;
     }
@@ -1423,8 +1480,8 @@ export default function App() {
           walletDomain={walletDisplay.domain}
           evmLabel={evmAccount ? shortenWallet(evmAccount) : null}
           room={walletRoom}
-          signalLeft={signalRemaining(signal, builderXp)}
-          signalMax={signalAllowance(builderXp)}
+          signalLeft={signalRemaining(signal, builderXp, signalBonus)}
+          signalMax={signalAllowance(builderXp, signalBonus)}
           onOpenWalletRoom={() => setWalletRoomOpen(true)}
         />
         <main className="pt-2 pb-28 lg:pb-16">

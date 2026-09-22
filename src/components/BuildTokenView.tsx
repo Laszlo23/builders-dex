@@ -136,8 +136,8 @@ export default function BuildTokenView({ setCurrentPath }: Props) {
         </p>
         <h2 className="font-display mt-2 text-2xl font-bold">Registry, vault, splitter</h2>
         <p className="mt-3 max-w-2xl text-sm text-steel">
-          These read CCFF00 ownerOf and the TBA. They never wrap the Square. Addresses stay empty
-          until deploy.
+          These read CCFF00 ownerOf and the TBA. They never wrap the Square. Registry, stall
+          vault, and splitter are live on 4663. $BUILD is still unpublished.
         </p>
         <ul className="mt-4 space-y-2 font-mono text-xs text-steel">
           <li>

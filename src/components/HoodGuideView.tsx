@@ -149,6 +149,13 @@ export default function HoodGuideView({ setCurrentPath }: Props) {
         </button>
         <button
           type="button"
+          onClick={() => setCurrentPath('stacc')}
+          className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[#CCFF00]/40 px-4 py-2.5 text-xs font-semibold text-[#CCFF00]"
+        >
+          staccpad book <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
           onClick={() => setCurrentPath('profile')}
           className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-xs font-semibold text-white"
         >

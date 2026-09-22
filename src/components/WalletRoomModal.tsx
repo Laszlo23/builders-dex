@@ -12,6 +12,7 @@ import {
   saveWalletRoom,
   shortenWallet,
 } from '../lib/walletRoom';
+import { stampRoom } from '../lib/roomStamps';
 import { connectLabel, walletDeepLinks } from '../lib/walletHost';
 import { hostHint, useSmartWalletConnect } from '../hooks/useSmartWalletConnect';
 
@@ -48,6 +49,8 @@ export default function WalletRoomModal({ open, onClose, setCurrentPath }: Props
     try {
       const result = await connectNow('auto');
       if (result === 'picker') return;
+      if (result === 'evm') stampRoom(host.id === 'robinhood' ? 'hood' : 'base');
+      else stampRoom('solana');
       setCurrentPath(result === 'evm' ? (host.id === 'robinhood' ? 'ccff00' : 'aura') : 'swap');
       onClose();
     } catch (err) {
@@ -61,6 +64,7 @@ export default function WalletRoomModal({ open, onClose, setCurrentPath }: Props
     try {
       saveWalletRoom(id);
       setRoom(id);
+      stampRoom(id);
       if (id === 'solana') {
         if (!connected) {
           const result = await connectNow('solana');

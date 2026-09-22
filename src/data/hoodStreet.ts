@@ -3,6 +3,7 @@
  * Cubes mint stays outbound Square Apes. No Solana wrap. No invented token mint.
  */
 import { CUBES_CONTRACT, CUBES_MINT_URL, CUBES_PROJECT_ID } from './hoodChain';
+import { STACCPAD_CCFF00_TERMINAL } from './staccpad';
 
 export const HOODSTREET_SITE = 'https://hoodstreet.capital';
 export const HOODSTREET_CCFF00_URL = 'https://hoodstreet.capital/ccff00';
@@ -55,6 +56,15 @@ export const HOODSTREET_LAYERS: HoodStreetLayer[] = [
     internal: 'cubes',
     blurb:
       'ETH mint on Robinhood Chain via Square Apes. We list the confirmed contract and live phases() — we are not the minter.',
+  },
+  {
+    id: 'stacc',
+    name: 'staccpad book',
+    status: 'outbound',
+    href: STACCPAD_CCFF00_TERMINAL,
+    internal: 'stacc',
+    blurb:
+      'Live Hood Uniswap v4 vault for the same CCFF00 Squares. Official staccpad desk — not affiliated, not our router.',
   },
 ];
 

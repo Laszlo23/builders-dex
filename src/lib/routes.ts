@@ -42,6 +42,8 @@ export const APP_ROUTES = [
   'ccff00',
   'build',
   'cubes',
+  'desk',
+  'stacc',
   'coming-soon',
 ] as const;
 
@@ -75,6 +77,11 @@ const ROUTE_ALIASES: Record<string, AppRoute> = {
   myneon: 'ccff00',
   build: 'build',
   '$build': 'build',
+  pulse: 'desk',
+  conviction: 'desk',
+  staccpad: 'stacc',
+  ngu: 'stacc',
+  neons: 'stacc',
 };
 
 export function isAppRoute(path: string): path is AppRoute {
