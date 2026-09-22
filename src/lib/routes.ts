@@ -44,6 +44,7 @@ export const APP_ROUTES = [
   'cubes',
   'desk',
   'stacc',
+  'dossier',
   'coming-soon',
 ] as const;
 
@@ -58,6 +59,7 @@ export type NavState = {
   raiseId?: string | null;
   buy?: string | null;
   stall?: string | null;
+  wallet?: string | null;
 };
 
 /** Legacy route aliases that map to current routes */
@@ -82,6 +84,8 @@ const ROUTE_ALIASES: Record<string, AppRoute> = {
   staccpad: 'stacc',
   ngu: 'stacc',
   neons: 'stacc',
+  dossier: 'dossier',
+  resume: 'dossier',
 };
 
 export function isAppRoute(path: string): path is AppRoute {
@@ -168,6 +172,7 @@ export function syncUrlToPath(path: AppRoute, state?: NavState): void {
     raiseId: state?.raiseId ?? (path === 'raise' ? getRaiseIdFromUrl() : null),
     buy: state?.buy ?? (path === 'ccff00' ? new URLSearchParams(window.location.search).get('buy') : null),
     stall: state?.stall ?? (path === 'ccff00' ? new URLSearchParams(window.location.search).get('stall') : null),
+    wallet: state?.wallet ?? (path === 'dossier' ? new URLSearchParams(window.location.search).get('w') : null),
   });
 
   const current = `${window.location.pathname}${window.location.search}`;
@@ -197,6 +202,10 @@ export function hrefForRoute(path: AppRoute, state?: NavState): string {
     if (state?.stall) params.set('stall', state.stall);
     const q = params.toString();
     return q ? `/ccff00?${q}` : '/ccff00';
+  }
+  if (path === 'dossier') {
+    const wallet = state?.wallet;
+    return wallet ? `/dossier?w=${encodeURIComponent(wallet)}` : '/dossier';
   }
   return `/${path}`;
 }
@@ -228,7 +237,13 @@ export function getPathFromUrl(): string {
   const resolved = resolveRoute(path);
   if (resolved) {
     if (path !== resolved && path in ROUTE_ALIASES) {
-      window.history.replaceState(null, '', hrefForRoute(resolved));
+      window.history.replaceState(
+        null,
+        '',
+        hrefForRoute(resolved, {
+          wallet: resolved === 'dossier' ? q.get('w') : null,
+        }),
+      );
     }
     if (resolved === 'project-detail' && projectId) {
       const canonical = projectExplorePath(projectId);

@@ -40,6 +40,7 @@ import { resolveTradeMint } from '../data/curatedTokens';
 import { openBaseTrade, resolveBaseTradeAddress } from '../data/crossChainRegistry';
 import { hoodAssetForProject, openHoodMint, resolveHoodAssetAddress } from '../data/hoodChain';
 import { hrefForRoute } from '../lib/routes';
+import { fetchLedgerUpvotes } from '../lib/reputation/client';
 import { LIVE_AURA_RAISE_SEED } from '../data/liveShareRaise';
 import { HOOD_SHARE_ID, HOOD_SHARE_PROJECT_ID } from '../data/hoodShare';
 import { reputationChipFor } from '../lib/reputationRules';
@@ -129,6 +130,19 @@ export default function ProjectDetailView({
     capped: false,
   });
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [ledgerUpvotes, setLedgerUpvotes] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchLedgerUpvotes([project.id]).then((counts) => {
+      if (!cancelled && Object.prototype.hasOwnProperty.call(counts, project.id)) {
+        setLedgerUpvotes(counts[project.id] ?? 0);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [project.id]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -333,6 +347,11 @@ export default function ProjectDetailView({
             allowance={signalAllowance(builderXp, signalBonus)}
             onVote={(side) => onSignal(project.id, side)}
           />
+          {ledgerUpvotes != null && (
+            <p className="font-mono text-[10px] uppercase tracking-widest text-steel">
+              {ledgerUpvotes} signed ledger upvote{ledgerUpvotes === 1 ? '' : 's'}
+            </p>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <CurationBadges
               status={project.curation.status}

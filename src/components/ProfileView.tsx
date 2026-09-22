@@ -90,9 +90,11 @@ interface ProfileViewProps {
   onOpenTerminal?: () => void;
   onOpenLaunchpad?: () => void;
   setSelectedProjectId: (id: string) => void;
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: { wallet?: string | null }) => void;
   connectWallet: () => void;
   walletAddress?: string;
+  onPublishPassport?: () => Promise<{ ok: boolean; error?: string }>;
+  onOpenDossier?: () => void;
 }
 
 export default function ProfileView({
@@ -114,6 +116,8 @@ export default function ProfileView({
   setCurrentPath,
   connectWallet,
   walletAddress,
+  onPublishPassport,
+  onOpenDossier,
 }: ProfileViewProps) {
   const { connection } = useConnection();
   const { publicKey, signTransaction } = useWallet();
@@ -134,6 +138,9 @@ export default function ProfileView({
   const [minting, setMinting] = useState(false);
   const [mintSuccess, setMintSuccess] = useState(false);
   const [mintError, setMintError] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [publishFlash, setPublishFlash] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   useEffect(() => {
     setDraft({
@@ -360,8 +367,7 @@ export default function ProfileView({
 
       {savedFlash && (
         <p className="mt-4 rounded-xl border border-accent/30 bg-accent/10 px-4 py-2.5 text-sm text-accent">
-          Passport saved — changes persist on this device
-          {wallet ? ' and sync to the shared ledger when your wallet is connected.' : '.'}
+          Passport saved on this device. Publish Passport signs the shared ledger.
         </p>
       )}
 
@@ -468,6 +474,74 @@ export default function ProfileView({
           )}
         </section>
       )}
+
+      <section className="pulse-card mt-6 rounded-3xl border border-[#CCFF00]/30 bg-gradient-to-br from-[#CCFF00]/10 via-surface to-ink p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#CCFF00]">
+              Shared ledger
+            </p>
+            <h2 className="font-display mt-1 text-xl font-bold">Publish Passport</h2>
+            <p className="mt-1 max-w-md text-xs text-steel">
+              Sign once. Your XP, level, and scout tape become a public Dossier. Device save
+              stays local. Solana Passport score is a different number.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (!onPublishPassport) return;
+                setPublishing(true);
+                setPublishError(null);
+                setPublishFlash(null);
+                void onPublishPassport()
+                  .then((result) => {
+                    if (result.ok) {
+                      setPublishFlash('Published. Anyone can open your Dossier.');
+                    } else {
+                      setPublishError(result.error || 'Publish failed');
+                    }
+                  })
+                  .finally(() => setPublishing(false));
+              }}
+              disabled={publishing || !onPublishPassport}
+              className="inline-flex items-center gap-2 rounded-full bg-[#CCFF00] px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-60"
+            >
+              {publishing ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Waiting for wallet…
+                </>
+              ) : (
+                <>
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  Publish Passport
+                </>
+              )}
+            </button>
+            {onOpenDossier && (
+              <button
+                type="button"
+                onClick={onOpenDossier}
+                className="rounded-full border border-white/15 px-4 py-2.5 text-xs font-semibold"
+              >
+                Open Dossier
+              </button>
+            )}
+          </div>
+        </div>
+        {publishFlash && (
+          <p className="mt-4 rounded-xl border border-[#CCFF00]/30 bg-[#CCFF00]/10 px-4 py-2.5 text-sm text-[#CCFF00]">
+            {publishFlash}
+          </p>
+        )}
+        {publishError && (
+          <p className="mt-4 rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+            {publishError}
+          </p>
+        )}
+      </section>
 
       <WalletLinkCard />
       <ShareCertificatesCard />
@@ -991,7 +1065,11 @@ export default function ProfileView({
       </div>
 
       <div className="mt-10">
-        <ReputationLeaderboard highlightWallet={wallet?.address ?? null} />
+        <ReputationLeaderboard
+          highlightWallet={wallet?.address ?? null}
+          onOpenProfile={onOpenDossier}
+          onOpenDossier={(w) => setCurrentPath('dossier', { wallet: w })}
+        />
       </div>
     </div>
   );

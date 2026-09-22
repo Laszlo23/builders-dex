@@ -14,6 +14,18 @@ export type ReputationPublic = {
   scoutXp: number;
 };
 
+export type ReputationScoutCall = {
+  projectId: string;
+  createdAt: string;
+  outcome30d?: string | null;
+  earlyCall?: boolean;
+};
+
+export type ReputationDossier = ReputationPublic & {
+  scoutAccuracy: number | null;
+  scoutCalls: ReputationScoutCall[];
+};
+
 export { passportSyncMessage };
 
 export async function fetchReputation(wallet: string): Promise<{
@@ -86,4 +98,29 @@ export async function fetchReputationLeaderboard(
   if (!res.ok) return [];
   const data = (await res.json()) as { leaderboard: ReputationPublic[] };
   return data.leaderboard || [];
+}
+
+export async function fetchReputationDossier(
+  wallet: string,
+): Promise<ReputationDossier | null> {
+  const res = await fetch(`/api/reputation/${encodeURIComponent(wallet)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Dossier fetch failed (${res.status})`);
+  const data = (await res.json()) as ReputationDossier;
+  return {
+    ...data,
+    scoutAccuracy: data.scoutAccuracy ?? null,
+    scoutCalls: Array.isArray(data.scoutCalls) ? data.scoutCalls : [],
+  };
+}
+
+export async function fetchLedgerUpvotes(ids: string[]): Promise<Record<string, number>> {
+  const clean = [...new Set(ids.filter(Boolean))].slice(0, 40);
+  if (!clean.length) return {};
+  const res = await fetch(
+    `/api/reputation/upvotes?ids=${encodeURIComponent(clean.join(','))}`,
+  );
+  if (!res.ok) return {};
+  const data = (await res.json()) as { counts?: Record<string, number> };
+  return data.counts || {};
 }

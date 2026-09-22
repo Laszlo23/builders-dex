@@ -72,6 +72,7 @@ const MORE_GROUPS = [
       { id: 'explore', label: 'Stories', icon: Layers },
       { id: 'ai', label: 'Analyst', icon: Sparkles },
       { id: 'profile', label: 'Passport™', icon: User },
+      { id: 'dossier', label: 'Dossier', icon: ScrollText },
       { id: 'apply', label: 'Apply', icon: FilePlus2 },
       { id: 'investor', label: 'Investor', icon: Sparkles },
     ],

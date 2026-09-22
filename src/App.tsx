@@ -46,6 +46,7 @@ const BuildTokenView = lazyWithRetry(() => import('./components/BuildTokenView')
 const HoodShareView = lazyWithRetry(() => import('./components/HoodShareView'));
 const ConvictionDeskView = lazyWithRetry(() => import('./components/ConvictionDeskView'));
 const StaccpadDeskView = lazyWithRetry(() => import('./components/StaccpadDeskView'));
+const ReputationDossierView = lazyWithRetry(() => import('./components/ReputationDossierView'));
 const ComingSoonView = lazyWithRetry(() => import('./components/ComingSoonView'));
 
 import { INITIAL_PROJECTS, INITIAL_PROPOSALS, ALL_QUESTS, preferPublishedCatalog } from './data/projects';
@@ -67,6 +68,7 @@ import {
 } from './lib/earnProgress';
 import {
   fetchReputation,
+  syncReputationToServer,
 } from './lib/reputation/client';
 import { upvoteMessage } from './lib/reputation/messages';
 import { submitScoutCall } from './lib/scout/client';
@@ -442,7 +444,7 @@ export default function App() {
   /** Persist Earn progress (wallet or device) — local only.
    *  Do NOT auto-call wallet signMessage here: that spam made Phantom/Solflare
    *  look stuck in an endless "connecting" / approve loop. Server sync happens
-   *  on explicit signed actions (Scout, upvote) or a future "Publish Passport". */
+   *  on explicit signed actions (Scout, upvote, Publish Passport). */
   useEffect(() => {
     if (!earnReady) return;
     if (hydratedKey !== (walletKey ?? 'device')) return;
@@ -776,6 +778,40 @@ export default function App() {
     saveSignal(owner, result.next);
     setSignal(result.next);
     handleAddXp(25);
+  };
+
+  const handlePublishPassport = async (): Promise<{ ok: boolean; error?: string }> => {
+    if (!walletKey) return { ok: false, error: 'Connect a Solana wallet first.' };
+    if (!signMessage) return { ok: false, error: 'This wallet cannot sign a publish message.' };
+    try {
+      const progress = {
+        version: 1 as const,
+        builderXp,
+        contributionsCount,
+        completedTaskIds: growthTasks.filter((t) => t.completed).map((t) => t.id),
+        startedTaskIds,
+        discoveredIds: Array.from(discoveredIds),
+        stakedBuild,
+        lpDeposits,
+        pendingUnstake,
+        simBalances,
+        passport,
+        completedQuestIds: quests.filter((q) => q.completed).map((q) => q.id),
+        completedScoutIds: scoutMissions.filter((m) => m.completed).map((m) => m.id),
+        arenaUserSide: arenaVotes.userSide ?? null,
+        hasCompletedFirstDiscovery,
+        updatedAt: Date.now(),
+      };
+      await syncReputationToServer({
+        wallet: walletKey,
+        displayName: userProfile.displayName,
+        progress,
+        signMessage: (msg) => signMessage(msg),
+      });
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : 'Publish failed' };
+    }
   };
 
   const handleFundProject = (amount: number, receivedAmt: number) => {
@@ -1341,6 +1377,8 @@ export default function App() {
             setCurrentPath={setCurrentPath}
             connectWallet={connectWallet}
             walletAddress={walletKey || undefined}
+            onPublishPassport={handlePublishPassport}
+            onOpenDossier={() => setCurrentPath('dossier', { wallet: walletKey })}
           />
         );
       case 'campaign':
@@ -1414,6 +1452,14 @@ export default function App() {
         );
       case 'stacc':
         return <StaccpadDeskView setCurrentPath={setCurrentPath} />;
+      case 'dossier':
+        return (
+          <ReputationDossierView
+            walletAddress={walletKey || undefined}
+            setCurrentPath={setCurrentPath}
+            onOpenStory={navigateToStory}
+          />
+        );
       default:
         return <ComingSoonView topic={currentPath} setCurrentPath={setCurrentPath} />;
     }

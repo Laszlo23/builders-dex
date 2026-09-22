@@ -55,6 +55,7 @@ const PRODUCT: FooterLink[] = [
   { id: 'earn', label: 'Earn', icon: Coins },
   { id: 'dao', label: 'Governance', icon: Vote },
   { id: 'profile', label: 'Passport™', icon: User },
+  { id: 'dossier', label: 'Dossier', icon: ScrollText },
 ];
 
 const COMMUNITY: FooterLink[] = [

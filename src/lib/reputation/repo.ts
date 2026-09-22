@@ -282,3 +282,15 @@ export function getProjectUpvoteCount(projectId: string): number {
     .get(projectId.trim()) as { c: number };
   return row?.c || 0;
 }
+
+export function listProjectUpvoteCounts(ids: string[]): Record<string, number> {
+  const clean = [...new Set(ids.map((id) => id.trim()).filter(Boolean))].slice(0, 80);
+  const out: Record<string, number> = {};
+  if (!clean.length) return out;
+  const db = getSqlite();
+  const stmt = db.prepare(`SELECT COUNT(*) AS c FROM project_upvotes WHERE project_id = ?`);
+  for (const id of clean) {
+    out[id] = (stmt.get(id) as { c: number }).c || 0;
+  }
+  return out;
+}

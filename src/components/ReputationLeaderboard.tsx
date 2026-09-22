@@ -12,11 +12,13 @@ function shortWallet(w: string): string {
 
 type Props = {
   onOpenProfile?: () => void;
+  onOpenDossier?: (wallet: string) => void;
   highlightWallet?: string | null;
 };
 
 export default function ReputationLeaderboard({
   onOpenProfile,
+  onOpenDossier,
   highlightWallet,
 }: Props) {
   const [rows, setRows] = useState<ReputationPublic[]>([]);
@@ -48,8 +50,8 @@ export default function ReputationLeaderboard({
             Public Builder Passports
           </h2>
           <p className="mt-2 max-w-xl text-sm text-steel">
-            XP and Passport™ sync to the network when a wallet is connected — visible to
-            everyone, not trapped in your browser.
+            Publish Passport signs the shared ledger. Rows here are public Dossiers — not
+            this-device XP.
           </p>
         </div>
         {onOpenProfile && (
@@ -58,7 +60,7 @@ export default function ReputationLeaderboard({
             onClick={onOpenProfile}
             className="rounded-full border border-accent/35 px-4 py-2 font-mono text-[11px] text-accent hover:bg-accent/10"
           >
-            Sync my Passport →
+            Open Dossier →
           </button>
         )}
       </div>
@@ -70,8 +72,7 @@ export default function ReputationLeaderboard({
       {!loading && rows.length === 0 && (
         <div className="mt-6 rounded-xl border border-white/10 bg-ink/40 px-4 py-5 text-sm text-steel">
           <Users className="mb-2 h-4 w-4 text-accent" />
-          No public Passports yet. Connect a wallet, complete a growth task, and your XP
-          lands on this board.
+          No published Passports yet. Connect a Solana wallet and hit Publish Passport.
         </div>
       )}
 
@@ -88,7 +89,8 @@ export default function ReputationLeaderboard({
                   mine
                     ? 'border-accent/40 bg-accent/10'
                     : 'border-white/8 bg-ink/40'
-                }`}
+                } ${onOpenDossier ? 'cursor-pointer hover:border-accent/35' : ''}`}
+                onClick={onOpenDossier ? () => onOpenDossier(r.wallet) : undefined}
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="w-6 font-mono text-xs text-steel">{i + 1}</span>

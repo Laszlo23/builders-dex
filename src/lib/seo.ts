@@ -60,6 +60,7 @@ export type SeoRoute =
   | 'cubes'
   | 'desk'
   | 'stacc'
+  | 'dossier'
   | 'telegram-bot'
   | 'coming-soon';
 
@@ -300,6 +301,12 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
       'Official staccpad CCFF00 vault and Neons desks on Robinhood Chain. Same Square collection. Not affiliated. Unaudited. NFA.',
     path: '/stacc',
   },
+  dossier: {
+    title: 'Builder Dossier | Signed reputation',
+    description:
+      'Look up a published Builder Passport. Scout accuracy is scored 30-day calls only. NFA.',
+    path: '/dossier',
+  },
   'telegram-bot': {
     title: 'Telegram bots | Builders DEX',
     description: 'Register buy-bot alerts and token profiles for Telegram — wallet not required to read the setup.',
@@ -331,6 +338,7 @@ export function projectOgPath(projectId: string): string {
 export function routeOgPath(route: SeoRoute): string {
   if (route === 'landing') return DEFAULT_OG_IMAGE;
   if (route === 'stacc') return '/og/route-hoodstreet.webp';
+  if (route === 'dossier') return '/og/route-profile.webp';
   return `/og/route-${route}.webp`;
 }
 
@@ -376,6 +384,7 @@ const PATH_ALIASES: Record<string, SeoRoute> = {
   staccpad: 'stacc',
   ngu: 'stacc',
   neons: 'stacc',
+  resume: 'dossier',
 };
 
 function routeFromPathname(pathname: string): { route: SeoRoute; blogSlug: string | null } {
@@ -405,6 +414,24 @@ export function resolveSeoForRequest(pathname: string, search = ''): ResolvedSeo
     (route === 'project-detail' || (route === 'explore' && projectId)) && projectId
       ? INITIAL_PROJECTS.find((p) => p.id === projectId)
       : undefined;
+
+  if (route === 'dossier') {
+    const wallet = (params.get('w') || '').trim();
+    if (wallet) {
+      const short =
+        wallet.length > 10 ? `${wallet.slice(0, 4)}…${wallet.slice(-4)}` : wallet;
+      return {
+        title: `Builder Dossier · ${short} | Builders DEX`,
+        description: base.description,
+        path: `/dossier?w=${encodeURIComponent(wallet)}`,
+        image: routeOgPath('dossier'),
+        type: 'website',
+        imageWidth: OG_WIDTH,
+        imageHeight: OG_HEIGHT,
+        robots: INDEXABLE,
+      };
+    }
+  }
 
   if (project) {
     return {
@@ -647,6 +674,7 @@ export function sitemapEntries(): {
     { route: 'cubes', changefreq: 'hourly', priority: '0.6' },
     { route: 'desk', changefreq: 'daily', priority: '0.8' },
     { route: 'stacc', changefreq: 'daily', priority: '0.7' },
+    { route: 'dossier', changefreq: 'daily', priority: '0.7' },
     { route: 'telegram-bot', changefreq: 'monthly', priority: '0.3' },
     { route: 'terms', changefreq: 'yearly', priority: '0.2' },
     { route: 'privacy', changefreq: 'yearly', priority: '0.2' },

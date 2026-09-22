@@ -47,6 +47,7 @@ import {
   listLeaderboard,
   MAX_SYNC_BUILDER_XP,
   MAX_SYNC_SCOUT_XP,
+  listProjectUpvoteCounts,
   recordProjectUpvote,
   upsertReputation,
   verifyPassportSignature,
@@ -72,7 +73,7 @@ import {
   listSubmissionsForWallet,
   submitScoutCall,
 } from './src/lib/scout/repo';
-import { resolveScoutOutcomes } from './src/lib/scout/outcomes';
+import { accuracyForWallet, resolveScoutOutcomes } from './src/lib/scout/outcomes';
 import {
   listIndexCandidates,
   setIndexCandidateStatus,
@@ -1027,6 +1028,23 @@ app.get(
 );
 
 app.get(
+  '/api/reputation/upvotes',
+  rateLimit(60, 60_000, 'rep-upvotes'),
+  (req, res) => {
+    try {
+      const raw = String(req.query.ids || '');
+      const ids = raw
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
+      res.json({ counts: listProjectUpvoteCounts(ids) });
+    } catch (err) {
+      res.status(500).json({ error: safeErrorMessage(err) });
+    }
+  },
+);
+
+app.get(
   '/api/reputation/:wallet',
   rateLimit(60, 60_000, 'rep-get'),
   (req, res) => {
@@ -1037,6 +1055,7 @@ app.get(
       }
       const row = getReputation(wallet);
       if (!row) return res.status(404).json({ error: 'Passport not found' });
+      const calls = listSubmissionsForWallet(wallet).slice(0, 8);
       res.json({
         wallet: row.wallet,
         displayName: row.displayName,
@@ -1050,6 +1069,13 @@ app.get(
         createdAt: row.createdAt,
         completedTaskCount: row.completedTaskCount,
         scoutXp: row.scoutXp,
+        scoutAccuracy: accuracyForWallet(wallet),
+        scoutCalls: calls.map((call) => ({
+          projectId: call.projectId,
+          createdAt: call.createdAt,
+          outcome30d: call.outcome30d,
+          earlyCall: call.earlyCall,
+        })),
       });
     } catch (err) {
       res.status(500).json({ error: safeErrorMessage(err) });

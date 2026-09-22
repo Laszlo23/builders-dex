@@ -64,7 +64,7 @@ import { MEME_CAMPAIGN_ASSETS, campaignPostForAsset } from '../data/campaign';
 import { campaignShareUrl, composeShareBody, openXIntent } from '../lib/shareHelper';
 
 interface LandingViewProps {
-  setCurrentPath: (path: string) => void;
+  setCurrentPath: (path: string, state?: { wallet?: string | null }) => void;
   projects: Project[];
   builders: Builder[];
   setSelectedProjectId: (id: string) => void;
@@ -106,7 +106,7 @@ const STEPS: { step: string; icon: LucideIcon; title: string; body: string }[] =
     step: '03',
     icon: Fingerprint,
     title: 'DNA™ + Passport™',
-    body: 'Identity and reputation compound for founders and scouts.',
+    body: 'Publish a signed Dossier. Anyone can look up who called it.',
   },
   {
     step: '04',
@@ -452,6 +452,7 @@ export default function LandingView({
         <div className="mx-auto max-w-5xl">
           <ReputationLeaderboard
             onOpenProfile={() => setCurrentPath('profile')}
+            onOpenDossier={(wallet) => setCurrentPath('dossier', { wallet })}
             highlightWallet={highlightWallet}
           />
         </div>
