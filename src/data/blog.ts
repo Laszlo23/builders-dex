@@ -12,6 +12,22 @@ export type BlogPost = {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: 'build-bankr-hood',
+    title: '$BUILD is a Bankr Doppler mint on Hood — address live, lock not',
+    excerpt:
+      'The Builders DEX token on Robinhood Chain 4663 is 0x7bf8…aba3, launched via Bankr. We publish the receipt. We do not swap it, invent a pair, or promise an APR.',
+    date: '2026-09-22',
+    author: 'Builders DEX',
+    tags: ['$BUILD', 'Robinhood Chain', 'Bankr', 'NFA'],
+    readingMinutes: 3,
+    coverImage: '/og/route-build.webp',
+    body: [
+      '$BUILD now has a published address on Robinhood Chain 4663: 0x7bf8a47DAf2c0032fE6FcDAB4dd2DF37b5Eeaba3. Blockscout names it Build / BUILD, 18 decimals, DopplerERC20V1 clone. That is the Bankr rail — not a Pools.trade Crowd Launch, not a wrap of the CCFF00 Square, not a Solana mint.',
+      'What we ship on /build: the checksum, the deploy tx, outbound Bankr trade + token pages, Blockscout, DexScreener, and add-to-wallet. What we do not ship: an in-app Bankr or x402 router, a fake BUILD/USDG book, an APR, or DAO stake that moves this token. DexScreener has no pair yet. LP lock is unpublished.',
+      'The Square loop overlay (activation registry, stall vault, fee splitter) is already on 4663. Fee dust stays 0 until volume hits the splitter. Parked Squares are not a buy-gate for $BUILD. DAO $BUILD remains a labeled simulation. NFA. Not affiliated with Bankr or Robinhood Markets.',
+    ],
+  },
+  {
     slug: 'ccff00-square-loop',
     title: 'Activate, park, stall: the CCFF00 Square loop (and why it is not an APR farm)',
     excerpt:

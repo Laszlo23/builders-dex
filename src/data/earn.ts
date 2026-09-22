@@ -15,7 +15,7 @@ export {
 } from './growthTasks';
 
 export const STAKER_PERKS = [
-  { title: 'Fee dust', body: 'Parked Square TBAs share real fees when $BUILD and the splitter are live. Zero volume = zero fees.' },
+  { title: 'Fee dust', body: 'Parked Square TBAs share real fees when splitter volume exists. $BUILD has a Bankr address — zero volume still means zero fees.' },
   { title: 'Stall rights', body: 'Take a stall on inspected catalog launches. First stall is Aura Share.' },
   { title: 'Passport boost', body: '+15% XP on Discovery Quests and research tasks once a Square is parked.' },
   { title: 'Governance weight', body: 'DAO votes stay simulated until a live lock contract is named.' },

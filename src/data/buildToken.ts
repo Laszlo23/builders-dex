@@ -1,9 +1,15 @@
 /**
- * $BUILD on Robinhood Chain — not launched until an address is published here.
- * Do not invent a mint, lock proof, APR, or TVL.
+ * $BUILD on Robinhood Chain — Bankr Doppler ERC-20, published 2026-09-22.
+ * Address is live. LP lock, DexScreener pool, and Square-loop fee volume are not.
+ * Do not invent a lock, APR, pair, or in-app Bankr/x402 swap.
  */
 import { CCFF00_NFT } from './ccff00Wallet';
-import { HOOD_CHAIN_ID, HOOD_EXPLORER_URL } from './hoodChain';
+import {
+  HOOD_CHAIN_ID,
+  HOOD_EXPLORER_URL,
+  hoodDexScreenerTokenUrl,
+  hoodExplorerTokenUrl,
+} from './hoodChain';
 import {
   ACTIVATION_REGISTRY_PUBLISHED,
   FEE_SPLITTER_PUBLISHED,
@@ -11,9 +17,24 @@ import {
 } from './squareLoopContracts';
 
 export const BUILD_TOKEN_SYMBOL = 'BUILD';
-export const BUILD_TOKEN_NAME = 'Builders DEX';
-export const BUILD_PAIR_LABEL = 'BUILD/USDG';
-export const BUILD_PAIR_FALLBACK = 'BUILD/WETH';
+export const BUILD_TOKEN_NAME = 'Build';
+export const BUILD_TOKEN_DECIMALS = 18;
+export const BUILD_PAIR_LABEL = 'Unindexed';
+export const BUILD_PAIR_FALLBACK = 'WETH or USDG via Bankr';
+
+/** Blockscout checksum. Bankr DopplerERC20V1 clone on 4663. */
+export const BUILD_TOKEN_PUBLISHED =
+  '0x7bf8a47DAf2c0032fE6FcDAB4dd2DF37b5Eeaba3' as const;
+export const BUILD_DEPLOY_TX =
+  '0x7d2c85844df65222a570eaf6a307ba03ebabd0b8102593fea198704be03c218c' as const;
+export const BUILD_IMPLEMENTATION_NAME = 'DopplerERC20V1';
+export const BUILD_IMPLEMENTATION =
+  '0x3Be8B97Fd0e713B5aBE0649Fa830223B6B4BC599' as const;
+export const BUILD_CREATOR = '0x1B37D3a72082029c44B35B604Ea473617580b69a' as const;
+export const BUILD_BANKR_TOKEN_URL = `https://bankr.bot/token/${BUILD_TOKEN_PUBLISHED}`;
+export const BUILD_BANKR_TRADE_URL = `https://bankr.bot/terminal/trade?chain=robinhood&out=${BUILD_TOKEN_PUBLISHED}`;
+export const BUILD_DISCLAIMER =
+  'Bankr Doppler ERC-20 on Hood 4663. Not affiliated with Bankr or Robinhood Markets. No LP lock published. DexScreener has no pair yet. NFA.';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -38,9 +59,9 @@ function optionalAddress(raw: string | null | undefined): `0x${string}` | null {
   return value as `0x${string}`;
 }
 
-export const BUILD_TOKEN_ADDRESS = optionalAddress(
-  envOrNull('BUILD_TOKEN_ADDRESS') || envOrNull('VITE_BUILD_TOKEN_ADDRESS'),
-);
+export const BUILD_TOKEN_ADDRESS =
+  optionalAddress(envOrNull('BUILD_TOKEN_ADDRESS') || envOrNull('VITE_BUILD_TOKEN_ADDRESS')) ??
+  BUILD_TOKEN_PUBLISHED;
 export const ACTIVATION_REGISTRY_ADDRESS =
   optionalAddress(
     envOrNull('ACTIVATION_REGISTRY_ADDRESS') || envOrNull('VITE_ACTIVATION_REGISTRY_ADDRESS'),
@@ -59,30 +80,38 @@ export const BUILD_CLANKER_URL = envOrNull('BUILD_CLANKER_URL') || 'https://www.
 
 export type BuildLaunchStatus = 'planned' | 'live';
 
-export type BuildLaunchpadId = 'pools-trade' | 'clanker';
+export type BuildLaunchpadId = 'bankr' | 'pools-trade' | 'clanker';
 
 export type BuildLaunchpad = {
   id: BuildLaunchpadId;
   name: string;
   href: string;
-  role: 'primary' | 'backup';
+  role: 'primary' | 'backup' | 'unused';
   model: string;
 };
 
 export const BUILD_LAUNCHPADS: BuildLaunchpad[] = [
   {
+    id: 'bankr',
+    name: 'Bankr Doppler',
+    href: BUILD_BANKR_TOKEN_URL,
+    role: 'primary',
+    model:
+      'How this mint actually launched. DopplerERC20V1 clone on Hood. Trade on Bankr. We do not run their router, claim their fees, or embed x402.',
+  },
+  {
     id: 'pools-trade',
     name: 'Pools.trade Crowd Launch',
     href: BUILD_POOLS_TRADE_URL,
-    role: 'primary',
-    model: 'Uniswap Labs · four-hour crowd window · locked Uniswap v4 LP · pair USDG or WETH',
+    role: 'unused',
+    model: 'Earlier intended door. Not how this mint shipped. Uniswap Labs crowd window + locked v4 LP.',
   },
   {
     id: 'clanker',
     name: 'Clanker',
     href: BUILD_CLANKER_URL,
-    role: 'backup',
-    model: 'Direct Uniswap pool · locked LP · creator fee remainder can fund parked Squares',
+    role: 'unused',
+    model: 'Earlier backup door. Not this mint. Locked Uniswap pool with a creator-fee remainder.',
   },
 ];
 
@@ -109,6 +138,14 @@ export function explorerTx(hash: string): string {
   return `${HOOD_EXPLORER_URL}/tx/${hash}`;
 }
 
+export function explorerToken(address: string): string {
+  return hoodExplorerTokenUrl(address);
+}
+
+export function buildDexScreenerUrl(address: string): string {
+  return hoodDexScreenerTokenUrl(address);
+}
+
 export type BuildPublicStatus = {
   chainId: number;
   squareNft: `0x${string}`;
@@ -119,6 +156,13 @@ export type BuildPublicStatus = {
     pairFallback: string;
     address: `0x${string}` | null;
     status: BuildLaunchStatus;
+    origin: 'bankr-doppler' | null;
+    decimals: number;
+    deployTx: string | null;
+    implementation: string | null;
+    bankrTokenUrl: string | null;
+    bankrTradeUrl: string | null;
+    dexscreenerUrl: string | null;
   };
   launchpads: BuildLaunchpad[];
   lock: {
@@ -140,6 +184,7 @@ export type BuildPublicStatus = {
 };
 
 export function buildPublicStatus(feesThisWeekWei = '0'): BuildPublicStatus {
+  const address = BUILD_TOKEN_ADDRESS;
   return {
     chainId: HOOD_CHAIN_ID,
     squareNft: CCFF00_NFT,
@@ -148,8 +193,15 @@ export function buildPublicStatus(feesThisWeekWei = '0'): BuildPublicStatus {
       name: BUILD_TOKEN_NAME,
       pair: BUILD_PAIR_LABEL,
       pairFallback: BUILD_PAIR_FALLBACK,
-      address: BUILD_TOKEN_ADDRESS,
+      address,
       status: buildLaunchStatus(),
+      origin: address ? 'bankr-doppler' : null,
+      decimals: BUILD_TOKEN_DECIMALS,
+      deployTx: address ? BUILD_DEPLOY_TX : null,
+      implementation: address ? BUILD_IMPLEMENTATION_NAME : null,
+      bankrTokenUrl: address ? BUILD_BANKR_TOKEN_URL : null,
+      bankrTradeUrl: address ? BUILD_BANKR_TRADE_URL : null,
+      dexscreenerUrl: address ? buildDexScreenerUrl(address) : null,
     },
     launchpads: BUILD_LAUNCHPADS,
     lock: {

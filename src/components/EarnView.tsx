@@ -65,8 +65,8 @@ export default function EarnView({
           </h1>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/75">
             Growth tasks and the daily spin already save on this profile ({builderXp.toLocaleString()}{' '}
-            XP). Fake LP APRs are gone. Park a CCFF00 Square for fee dust when $BUILD and the
-            registry are published — until then, fees this week stay 0.
+            XP). Fake LP APRs are gone. Park a CCFF00 Square for fee dust — $BUILD has a Bankr
+            address, but fees this week stay 0 until the splitter sees volume.
           </p>
         </div>
       </div>

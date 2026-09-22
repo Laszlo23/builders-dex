@@ -55,15 +55,30 @@ export function useSquareLoop(tokenId: number | null) {
         .then((res) => res.json())
         .then((payload: BuildPublicStatus & { error?: string }) => {
           if (cancelled || payload.error) return;
-          setStatus((prev) => ({
+          setStatus((prev) => {
+            const address = payload.token.address ?? prev.token.address;
+            return {
             ...payload,
+            token: {
+              ...prev.token,
+              ...payload.token,
+              address,
+              status: address ? 'live' : 'planned',
+              origin: payload.token.origin ?? prev.token.origin,
+              bankrTokenUrl: payload.token.bankrTokenUrl ?? prev.token.bankrTokenUrl,
+              bankrTradeUrl: payload.token.bankrTradeUrl ?? prev.token.bankrTradeUrl,
+              dexscreenerUrl: payload.token.dexscreenerUrl ?? prev.token.dexscreenerUrl,
+              deployTx: payload.token.deployTx ?? prev.token.deployTx,
+              implementation: payload.token.implementation ?? prev.token.implementation,
+            },
             contracts: {
               activationRegistry:
                 payload.contracts.activationRegistry ?? prev.contracts.activationRegistry,
               stallVault: payload.contracts.stallVault ?? prev.contracts.stallVault,
               feeSplitter: payload.contracts.feeSplitter ?? prev.contracts.feeSplitter,
             },
-          }));
+            };
+          });
         })
         .catch(() => {
           /* keep local planned snapshot */

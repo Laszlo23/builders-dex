@@ -79,7 +79,7 @@ export default function SquareLoopPanel({
       {loop.contractsReady ? (
         <ComingSoonBanner
           title="Square loop is on Hood 4663"
-          detail="Activate, park, and take the Aura Share stall against the live overlay. $BUILD is still unpublished — fee dust stays 0 until volume hits the splitter. We do not wrap the Square."
+          detail="Activate, park, and take the Aura Share stall against the live overlay. $BUILD has a Bankr address — fee dust stays 0 until volume hits the splitter. We do not wrap the Square."
         />
       ) : (
         <ComingSoonBanner
@@ -220,11 +220,11 @@ export default function SquareLoopPanel({
         </button>
       </div>
 
-      {!loop.status.token.address && (
-        <p className="mt-3 font-mono text-[11px] text-steel">
-          ve-lock opens when a $BUILD address is published. Do not lock idle tokens from an EOA.
-        </p>
-      )}
+      <p className="mt-3 font-mono text-[11px] text-steel">
+        {loop.status.token.address
+          ? '$BUILD address is live. ve-lock stays closed until a lock tx is published. Do not lock idle tokens from an EOA.'
+          : 've-lock opens when a $BUILD address is published. Do not lock idle tokens from an EOA.'}
+      </p>
 
       {loop.error && (
         <p className="mt-3 rounded-2xl border border-amber-300/25 bg-amber-300/5 px-3 py-2 text-xs text-amber-100">

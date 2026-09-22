@@ -123,7 +123,7 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
   earn: {
     title: 'Earn XP & Square loop | Builders DEX',
     description:
-      'Growth tasks and daily spin are live. CCFF00 Square activate → park → stall is a preview. $BUILD is not launched. No fake APR.',
+      'Growth tasks and daily spin are live. CCFF00 Square activate → park → stall is a preview. $BUILD has a Bankr address — no lock, no fake APR.',
     path: '/earn',
   },
   launchpad: {
@@ -280,7 +280,7 @@ export const ROUTE_SEO: Record<SeoRoute, SeoConfig> = {
   build: {
     title: '$BUILD on Hood | Builders DEX',
     description:
-      'Builders DEX token on Robinhood Chain. Not launched until an address and LP lock are published. Pools.trade Crowd Launch is the intended door.',
+      'Bankr Doppler $BUILD on Robinhood Chain 4663. Address published. No LP lock, no in-app swap. NFA.',
     path: '/build',
   },
   cubes: {

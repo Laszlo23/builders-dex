@@ -146,7 +146,7 @@ export default function HoodStreetView({ setCurrentPath, setSelectedProjectId }:
                 onClick={() => setCurrentPath('build')}
                 className="hood-cta inline-flex min-h-[48px] items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold"
               >
-                $BUILD launch <ArrowRight className="h-3.5 w-3.5" />
+                $BUILD token <ArrowRight className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"

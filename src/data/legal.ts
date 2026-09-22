@@ -33,7 +33,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
       {
         heading: '4. Simulations',
         paragraphs: [
-          'Earn Square loop, Investor Mode fund rails, and DAO votes are labeled as simulations or work-in-progress unless a page states a live contract. $BUILD has no published address yet. Do not treat preview balances as on-chain assets.',
+          'Earn Square loop, Investor Mode fund rails, and DAO votes are labeled as simulations or work-in-progress unless a page states a live contract. $BUILD is a Bankr Doppler ERC-20 on Hood 4663 — address published, LP lock not. Do not treat preview balances as on-chain assets.',
         ],
       },
     ],
@@ -150,13 +150,13 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
       {
         heading: 'Are Earn, Investor Mode, and DAO live on-chain?',
         paragraphs: [
-          'Growth tasks and the daily spin on Earn already save on this profile. The CCFF00 Square loop (activate → park → stall) is a labeled preview until the registry, stall vault, and fee splitter addresses are published. Fake LP APRs were removed. $BUILD is not live. DAO votes stay simulated. Investor Mode filters real catalog scores.',
+          'Growth tasks and the daily spin on Earn already save on this profile. The CCFF00 Square loop (activate → park → stall) is live against the overlay contracts. Fake LP APRs were removed. $BUILD is a Bankr Doppler ERC-20 on Hood — address published, lock not. DAO votes stay simulated. Investor Mode filters real catalog scores.',
         ],
       },
       {
         heading: 'What is $BUILD on Hood?',
         paragraphs: [
-          'A planned Builders DEX token on Robinhood Chain (4663), separate from HoodStreet $CCFF00. It launches only after an address and LP lock are published on /build. Intended door: Pools.trade Crowd Launch with locked Uniswap v4 LP. Not a Pons deploy, not a promised yield.',
+          'A Builders DEX token on Robinhood Chain (4663), separate from HoodStreet $CCFF00. Address 0x7bf8…aba3 launched via Bankr as a DopplerERC20V1 clone. LP lock is not published. Trade outbound on Bankr. We do not wrap the Square, invent a pair, or list this on the Solana Trade tab. NFA.',
         ],
       },
       {
@@ -217,7 +217,7 @@ export const LEGAL_DOCS: Record<LegalDoc['id'], LegalDoc> = {
       {
         heading: 'Product rooms',
         paragraphs: [
-          'Trade — curated Solana swaps after allowlist. Explore — Builder Stories. Terminal™ — morning intelligence. Builder Graph™ — who is connected to what. Builder Stories — catalog founder briefs (recorded Netflix episodes still filming). Investor Mode — thesis filters on live scores; fund rails not live. Accelerator / Apply — inspection-gated raises and applications. $AURA Live — Base token board. On Hood — honest hop to 4663. HoodStreet — neon street. CCFF00 Wallet — Square TBA. $BUILD — Hood token page (not launched until address + lock). Cubes Live — on-chain mint phases. Earn — tasks live; Square loop preview, no fake APR. Passport™ — reputation profile.',
+          'Trade — curated Solana swaps after allowlist. Explore — Builder Stories. Terminal™ — morning intelligence. Builder Graph™ — who is connected to what. Builder Stories — catalog founder briefs (recorded Netflix episodes still filming). Investor Mode — thesis filters on live scores; fund rails not live. Accelerator / Apply — inspection-gated raises and applications. $AURA Live — Base token board. On Hood — honest hop to 4663. HoodStreet — neon street. CCFF00 Wallet — Square TBA. $BUILD — Bankr Doppler ERC-20 on Hood (address live, lock not). Cubes Live — on-chain mint phases. Earn — tasks live; Square loop overlay, no fake APR. Passport™ — reputation profile.',
         ],
       },
       {

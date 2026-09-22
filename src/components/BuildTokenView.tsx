@@ -1,16 +1,17 @@
-import React from 'react';
-import { ExternalLink, Lock, Radio } from 'lucide-react';
+import React, { useState } from 'react';
+import { ExternalLink, Lock, Radio, Wallet } from 'lucide-react';
 import {
+  BUILD_DISCLAIMER,
   BUILD_LAUNCHPADS,
-  BUILD_PAIR_FALLBACK,
-  BUILD_PAIR_LABEL,
+  BUILD_TOKEN_DECIMALS,
   BUILD_TOKEN_NAME,
   BUILD_TOKEN_SYMBOL,
   explorerAddress,
+  explorerToken,
   explorerTx,
   type BuildLaunchpad,
 } from '../data/buildToken';
-import { HOOD_CHAIN_ID, HOOD_DISCLAIMER } from '../data/hoodChain';
+import { HOOD_CHAIN_ID, HOOD_CHAIN_ID_HEX, HOOD_DISCLAIMER } from '../data/hoodChain';
 import ChainLaneBar from './ChainLaneBar';
 import ComingSoonBanner from './ComingSoonBanner';
 import SquareLoopPanel from './SquareLoopPanel';
@@ -42,22 +43,52 @@ function LaunchpadCard({ pad }: { pad: BuildLaunchpad }) {
   );
 }
 
+async function watchBuildToken(address: `0x${string}`): Promise<string | null> {
+  const eth = (window as Window & {
+    ethereum?: {
+      request: (args: { method: string; params?: unknown }) => Promise<unknown>;
+    };
+  }).ethereum;
+  if (!eth) return 'Connect MetaMask, Rabby, or Robinhood Wallet on Hood 4663.';
+  try {
+    await eth.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options: {
+          address,
+          symbol: BUILD_TOKEN_SYMBOL,
+          decimals: BUILD_TOKEN_DECIMALS,
+        },
+      },
+    });
+    return null;
+  } catch (err) {
+    return err instanceof Error ? err.message : 'Wallet rejected the token';
+  }
+}
+
 export default function BuildTokenView({ setCurrentPath }: Props) {
   const loop = useSquareLoop(null);
   const token = loop.status.token;
   const lock = loop.status.lock;
   const contracts = loop.status.contracts;
+  const [watchError, setWatchError] = useState<string | null>(null);
 
   return (
     <div className="hood-lane-page mx-auto max-w-6xl px-4 py-8 text-white sm:px-6">
       <ChainLaneBar active="hood" setCurrentPath={setCurrentPath} />
 
       <ComingSoonBanner
-        title={token.status === 'live' ? 'Token address published' : "We're still working on this"}
+        title={
+          token.status === 'live'
+            ? 'Address is live. Lock is not.'
+            : "We're still working on this"
+        }
         detail={
           token.status === 'live'
-            ? 'Verify the contract on Blockscout before you buy. Lock proof is listed below when we have a tx.'
-            : `$BUILD is not live on Robinhood Chain ${HOOD_CHAIN_ID} yet. No address, no lock, no APR. Crowd Launch on Pools.trade is the intended door — not Pons, not a volume bot.`
+            ? 'Bankr Doppler mint on Hood 4663. Verify the clone on Blockscout. No LP lock, no DexScreener pair, no APR. Trade outbound on Bankr — we do not swap this here.'
+            : `$BUILD is not live on Robinhood Chain ${HOOD_CHAIN_ID} yet. No address, no lock, no APR.`
         }
       />
 
@@ -69,20 +100,23 @@ export default function BuildTokenView({ setCurrentPath }: Props) {
         <h1 className="font-display mt-3 text-4xl font-bold sm:text-6xl">{BUILD_TOKEN_NAME}</h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-steel sm:text-base">
           Coordination token for Builders DEX on chain {HOOD_CHAIN_ID}. It is not $CCFF00 and not a
-          wrap of the Square. Utility is fee share to parked Square TBAs, stall rights, and later
-          governance — after an address is published. Pair {BUILD_PAIR_LABEL} (or {BUILD_PAIR_FALLBACK}{' '}
-          if the pad forces ETH).
+          wrap of the Square. It launched through Bankr as a Doppler ERC-20 clone. Utility (fee
+          share to parked Square TBAs, stall rights, governance) stays off until a lock and splitter
+          volume exist. Pair is unindexed — do not invent BUILD/USDG.
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <p className="font-mono text-[10px] uppercase text-steel">Status</p>
             <p className="mt-1 font-display text-2xl font-bold">{token.status}</p>
+            <p className="mt-1 font-mono text-[10px] text-steel">
+              {token.origin === 'bankr-doppler' ? 'Bankr Doppler' : 'Unpublished'}
+            </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <p className="font-mono text-[10px] uppercase text-steel">Address</p>
             {token.address ? (
               <a
-                href={explorerAddress(token.address)}
+                href={explorerToken(token.address)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-1 block break-all font-mono text-xs text-[#CCFF00]"
@@ -111,17 +145,86 @@ export default function BuildTokenView({ setCurrentPath }: Props) {
             )}
           </div>
         </div>
+
+        {token.address && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {token.bankrTradeUrl && (
+              <a
+                href={token.bankrTradeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hood-cta-fill inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-xs font-bold"
+              >
+                Trade on Bankr <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            {token.bankrTokenUrl && (
+              <a
+                href={token.bankrTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hood-cta inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-xs font-semibold"
+              >
+                Bankr token page <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            {token.dexscreenerUrl && (
+              <a
+                href={token.dexscreenerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hood-cta inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-xs font-semibold"
+              >
+                DexScreener <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            <a
+              href={explorerAddress(token.address)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hood-cta inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-xs font-semibold"
+            >
+              Blockscout <ExternalLink className="h-3 w-3" />
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                void watchBuildToken(token.address as `0x${string}`).then(setWatchError);
+              }}
+              className="hood-cta inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-xs font-semibold"
+            >
+              <Wallet className="h-3 w-3" /> Add to EVM wallet
+            </button>
+          </div>
+        )}
+        {watchError && (
+          <p className="mt-3 font-mono text-[11px] text-amber-200">{watchError}</p>
+        )}
+        {token.deployTx && (
+          <p className="mt-4 font-mono text-[10px] text-steel">
+            Deploy{' '}
+            <a
+              href={explorerTx(token.deployTx)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[#CCFF00]"
+            >
+              {token.deployTx.slice(0, 10)}…
+            </a>
+            {token.implementation ? ` · ${token.implementation}` : ''} · chain {HOOD_CHAIN_ID_HEX}
+          </p>
+        )}
       </div>
 
       <section className="mt-10">
         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#CCFF00]">Launchpad</p>
         <h2 className="font-display mt-2 text-2xl font-bold sm:text-3xl">
-          Traction without Pons trash.
+          Bankr launched it. We do not swap it.
         </h2>
         <p className="mt-3 max-w-2xl text-sm text-steel">
-          Default is a Pools.trade Crowd Launch so LP locks on Uniswap v4. Clanker is the backup if
-          we want the creator-fee remainder piped into parked Squares. We will not launch through a
-          900-deploys-an-hour mill, a bundler, or a volume bot.
+          Best integration is a published receipt plus outbound trade. We will not embed Bankr, run
+          x402, invent a lock, or list this on the Solana Trade tab. Pools.trade and Clanker were
+          the earlier doors — unused for this mint.
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {BUILD_LAUNCHPADS.map((pad) => (
@@ -137,7 +240,8 @@ export default function BuildTokenView({ setCurrentPath }: Props) {
         <h2 className="font-display mt-2 text-2xl font-bold">Registry, vault, splitter</h2>
         <p className="mt-3 max-w-2xl text-sm text-steel">
           These read CCFF00 ownerOf and the TBA. They never wrap the Square. Registry, stall
-          vault, and splitter are live on 4663. $BUILD is still unpublished.
+          vault, and splitter are live on 4663. $BUILD now has an address — fee dust stays 0 until
+          volume hits the splitter. DAO $BUILD stake stays a labeled simulation.
         </p>
         <ul className="mt-4 space-y-2 font-mono text-xs text-steel">
           <li>
@@ -177,7 +281,9 @@ export default function BuildTokenView({ setCurrentPath }: Props) {
         <SquareLoopPanel setCurrentPath={setCurrentPath} compact />
       </div>
 
-      <p className="mt-8 font-mono text-[10px] leading-relaxed text-steel">{HOOD_DISCLAIMER}</p>
+      <p className="mt-8 font-mono text-[10px] leading-relaxed text-steel">
+        {BUILD_DISCLAIMER} {HOOD_DISCLAIMER}
+      </p>
     </div>
   );
 }
